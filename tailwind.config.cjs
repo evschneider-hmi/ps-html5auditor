@@ -1,0 +1,1 @@
+module.exports = { content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'], theme: { extend: { colors: { pass: '#16a34a', warn: '#f59e0b', fail: '#dc2626' } } }, plugins: [] }
