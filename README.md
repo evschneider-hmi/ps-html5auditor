@@ -1,2 +1,5 @@
-# ps-html5auditor
-HTML5 Creative Auditor (Platform Solutions) - static client-side CM360 / IAB HTML5 compliance tool
+# PS HTML5 Auditor
+
+HTML5 Creative Auditor (Platform Solutions) deployment target.
+
+Source code lives in the original development repository; this one will host the built static site via GitHub Pages.
