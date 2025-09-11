@@ -28,7 +28,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Build
-        run: npm run build
+        # Build with a dynamic base so the same workflow works after migrating
+        # to a different repo name (e.g., ps-html5auditor). GitHub Pages serves
+        # the project at /<repo-name>/, so we align Vite's base accordingly.
+        run: npm run build -- --base=/${{ github.event.repository.name }}/
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
