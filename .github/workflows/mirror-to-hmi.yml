@@ -1,0 +1,98 @@
+name: Mirror to HMI repo
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read # repo contents are read (push uses PAT secret with its own scopes)
+  actions: read
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    env:
+      HTML5_PAT: ${{ secrets.HTML5_PAT }}
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Validate PAT secret
+        run: |
+          if [ -z "$HTML5_PAT" ]; then
+            echo "HTML5_PAT secret is not defined in source repo settings (Settings > Secrets and variables > Actions)." >&2
+            exit 1
+          fi
+          echo "HTML5_PAT secret detected (length: ${#HTML5_PAT}). Proceeding without revealing value." 
+          if [ ${#HTML5_PAT} -lt 30 ]; then
+            echo "Warning: PAT length seems short (<30). Ensure you used the full token when saving the secret." >&2
+          fi
+          # Basic pattern heuristic (will NOT reveal token): classic ghp_, fine-grained github_pat_
+          if ! echo "$HTML5_PAT" | grep -Eq '^(ghp_|github_pat_)'; then
+            echo "Warning: Token does not start with expected ghp_ or github_pat_ prefix. Verify you copied the full token." >&2
+          fi
+      - name: Preflight GitHub API access check
+        run: |
+          set -e
+          CLEANED=$(printf "%s" "$HTML5_PAT" | tr -d '\r' )
+          if [ "${#CLEANED}" -ne "${#HTML5_PAT}" ]; then
+            echo "Stripped CR characters from token (Windows newline fix)." >&2
+            export HTML5_PAT="$CLEANED"
+          fi
+          echo "Checking API access to target repo via REST..."
+          CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $HTML5_PAT" https://api.github.com/repos/evschneider-hmi/ps-html5auditor)
+          case "$CODE" in
+            200)
+              echo "API access OK (200).";;
+            403)
+              echo "API access 403: Token lacks permission (add repo access/authorize SSO or expand scopes)." >&2; exit 3;;
+            404)
+              echo "API access 404: Repository not visible to token (fine-grained: add repo; classic: include repo scope)." >&2; exit 4;;
+            401)
+              echo "API access 401: Token invalid/expired." >&2; exit 5;;
+            *)
+              echo "Unexpected API status $CODE" >&2; exit 6;;
+          esac
+      - name: Test remote access with PAT
+        run: |
+          set -e
+          echo "Testing remote access to target repo..."
+          if git ls-remote "https://x-access-token:$HTML5_PAT@github.com/evschneider-hmi/ps-html5auditor.git" HEAD > /dev/null 2>&1; then
+            echo "Remote access OK."
+          else
+            echo "Failed to access target repo with supplied PAT. Common causes:" >&2
+            echo " - PAT not granted repository access (fine-grained: add ps-html5auditor)" >&2
+            echo " - Missing 'Contents: Read and Write' permission" >&2
+            echo " - Organization/repo requires SSO authorization (authorize the token)" >&2
+            exit 2
+          fi
+      - name: Force push mirror
+        run: |
+          set -e
+          git config user.name "mirror-bot"
+          git config user.email "mirror-bot@users.noreply.github.com"
+          # Remove any credential helpers to avoid fallback to GITHUB_TOKEN
+          git config --global --unset-all credential.helper || true
+          if git remote | grep -q '^mirror$'; then git remote remove mirror; fi
+          git remote add mirror "https://github.com/evschneider-hmi/ps-html5auditor.git"
+          echo "Token length: ${#HTML5_PAT}"
+          TEST_BRANCH=mirror-permission-test
+          git branch -f $TEST_BRANCH
+          BASIC=$(printf "%s" "evschneider-hmi:${HTML5_PAT}" | base64 | tr -d '\n')
+          echo "Pushing test branch with Basic auth header..."
+          if git -c http.extraHeader="Authorization: Basic $BASIC" push mirror $TEST_BRANCH --force >/dev/null 2>&1; then
+            echo "Test branch push succeeded.";
+          else
+            echo "Test branch push failed with Basic auth. Possible causes: repo scope missing, SSO not authorized, repo restrictions." >&2
+            exit 12
+          fi
+          echo "Pushing main (non-force)..."
+          if git -c http.extraHeader="Authorization: Basic $BASIC" push mirror HEAD:main >/dev/null 2>&1; then
+            echo "Main push succeeded."; exit 0; fi
+          echo "Non-force failed; attempting force..."
+          if git -c http.extraHeader="Authorization: Basic $BASIC" push mirror HEAD:main --force >/dev/null 2>&1; then
+            echo "Force push succeeded."; exit 0; fi
+          echo "Final failure pushing main. Check: branch protection, SSO authorization, token repo scope." >&2
+          exit 13
