@@ -77,8 +77,16 @@ jobs:
           if git remote | grep -q '^mirror$'; then
             git remote remove mirror
           fi
-            
+          echo "Token length: ${#HMI_PAT}" | sed 's/[0-9]/&/g'
+          echo "Attempt 1: username:token format"
+          git remote add mirror "https://evschneider-hmi:$HMI_PAT@github.com/evschneider-hmi/ps-html5auditor.git"
+          git remote -v | sed 's/$HMI_PAT/****/g'
+          if git push mirror HEAD:main --force; then
+            echo "Mirror push complete via username:token format."; exit 0; fi
+          echo "Attempt 1 failed; removing remote and retrying with x-access-token format." >&2
+          git remote remove mirror || true
           git remote add mirror "https://x-access-token:$HMI_PAT@github.com/evschneider-hmi/ps-html5auditor.git"
-          echo "Pushing to target (force)..."
+          git remote -v | sed 's/$HMI_PAT/****/g'
+          echo "Attempt 2: x-access-token format"
           git push mirror HEAD:main --force
-          echo "Mirror push complete."
+          echo "Mirror push complete via x-access-token format."
