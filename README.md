@@ -2,12 +2,10 @@
 
 Created by Horizon Media's Platform Solutions Team
 
-Live Tool: https://evan-schneider.github.io/html5-audit-tool/
-
 Client‑side auditing of HTML5 display creative ZIP bundles (no files uploaded to a server). Provides quick compliance and quality checks aligned with common Campaign Manager 360 (CM360) and IAB HTML5 guidance.
 
 ## How To Use
-1. Open the live URL above in a modern desktop browser (Chrome, Edge, Firefox, Safari).
+1. Open the built tool locally or via an approved internal hosting location in a modern desktop browser (Chrome, Edge, Firefox, Safari).
 2. Drag & drop one or more creative ZIP files (each should contain a single HTML entry and its assets).
 3. Review the summary table (status, dimensions, total weight, issue counts).
 4. Click a bundle to inspect detailed findings (Fail / Warn / Pass) and open the preview.
