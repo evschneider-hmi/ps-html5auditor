@@ -29,23 +29,30 @@ jobs:
           if [ ${#HMI_PAT} -lt 30 ]; then
             echo "Warning: PAT length seems short (<30). Ensure you used the full token when saving the secret." >&2
           fi
-      - name: Push to evschneider-hmi/ps-html5auditor
-        if: ${{ secrets.HMI_PAT != '' }}
-        uses: ad-m/github-push-action@v0.8.0
-        with:
-          github_token: ${{ secrets.HMI_PAT }} # Fine-grained (or classic) PAT in source repo secrets
-          repository: evschneider-hmi/ps-html5auditor
-          branch: main
-          force: true
-      - name: Fallback manual push (only runs if previous step failed)
-        if: failure()
+      - name: Test remote access with PAT
         run: |
           set -e
-          echo "Attempting manual fallback push using PAT..."
-          if [ -z "$HMI_PAT" ]; then
-            echo "Cannot fallback push because HMI_PAT is empty." >&2
-            exit 1
+          echo "Testing remote access to target repo..."
+          if git ls-remote "https://x-access-token:$HMI_PAT@github.com/evschneider-hmi/ps-html5auditor.git" HEAD > /dev/null 2>&1; then
+            echo "Remote access OK."
+          else
+            echo "Failed to access target repo with supplied PAT. Common causes:" >&2
+            echo " - PAT not granted repository access (fine-grained: add ps-html5auditor)" >&2
+            echo " - Missing 'Contents: Read and Write' permission" >&2
+            echo " - Organization/repo requires SSO authorization (authorize the token)" >&2
+            exit 2
           fi
+      - name: Force push mirror
+        run: |
+          set -e
+          git config user.name "mirror-bot"
+          git config user.email "mirror-bot@users.noreply.github.com"
+          # Add/replace mirror remote
+          if git remote | grep -q '^mirror$'; then
+            git remote remove mirror
+          fi
+            
           git remote add mirror "https://x-access-token:$HMI_PAT@github.com/evschneider-hmi/ps-html5auditor.git"
+          echo "Pushing to target (force)..."
           git push mirror HEAD:main --force
-          echo "Manual push completed."
+          echo "Mirror push complete."
