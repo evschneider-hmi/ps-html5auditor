@@ -2,7 +2,7 @@ Param(
   [Parameter(Mandatory=$false)][string]$Branch = "main",
   [switch]$Deprecated
 )
-# NOTE: This script has been repurposed. The original "origin" (evan-schneider/html5-audit-tool) is no longer used.
+# NOTE: This script has been repurposed for the canonical repo at evschneider-hmi/ps-html5auditor.
 # It now targets the canonical repo under evschneider-hmi: ps-html5auditor.
 # Use:  powershell -ExecutionPolicy Bypass -File .\scripts\origin-push.ps1 -Branch main
 # Pass -Deprecated to only print a warning without pushing.
