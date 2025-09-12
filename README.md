@@ -2,6 +2,8 @@
 
 Created by Horizon Media's Platform Solutions Team
 
+[![Pages](https://img.shields.io/badge/Pages-live-brightgreen?logo=github&style=flat-square)](https://evschneider-hmi.github.io/ps-html5auditor/)
+
 Client‑side auditing of HTML5 display creative ZIP bundles (no files uploaded to a server). Provides quick compliance and quality checks aligned with common Campaign Manager 360 (CM360) and IAB HTML5 guidance.
 
 ## How To Use
@@ -30,6 +32,8 @@ Client‑side auditing of HTML5 display creative ZIP bundles (no files uploaded 
 * All processing happens locally in your browser; no network calls are made with creative contents.
 * Drop multiple ZIPs to compare bundles side by side.
 * For best accuracy ensure the ZIP root contains the primary HTML file (no nested archives).
+
+> Note: GitHub Pages provisioning can take a short time after a successful deploy. If the site does not appear immediately after a workflow completes, wait ~1–2 minutes and refresh.
 
 ## Attribution
 Created by Horizon Media's Platform Solutions Team
