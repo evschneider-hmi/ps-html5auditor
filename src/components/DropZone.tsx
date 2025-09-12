@@ -56,7 +56,7 @@ export const DropZone: React.FC = () => {
         <p className="text-xs text-gray-600">or</p>
         <button
           type="button"
-            className="mt-2 inline-flex items-center px-3 py-1.5 rounded bg-blue-600 text-white text-xs font-medium shadow hover:bg-blue-700 focus-ring"
+            className="mt-2 inline-flex items-center px-3 py-1.5 rounded bg-green-600 text-white text-xs font-medium shadow hover:bg-green-700 focus-ring"
           onClick={(e) => { e.stopPropagation(); onBrowseClick(); }}
         >Browse Files</button>
         <input
