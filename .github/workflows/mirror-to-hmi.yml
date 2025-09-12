@@ -1,0 +1,22 @@
+name: Mirror to HMI repo
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Push to evschneider-hmi/ps-html5auditor
+        uses: ad-m/github-push-action@v0.8.0
+        with:
+          github_token: ${{ secrets.HMI_PAT }}
+          repository: evschneider-hmi/ps-html5auditor
+          branch: main
+          force: true
