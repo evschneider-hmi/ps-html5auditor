@@ -5,6 +5,10 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: read # repo contents are read (push uses PAT secret with its own scopes)
+  actions: read
+
 jobs:
   mirror:
     runs-on: ubuntu-latest
@@ -16,7 +20,7 @@ jobs:
       - name: Push to evschneider-hmi/ps-html5auditor
         uses: ad-m/github-push-action@v0.8.0
         with:
-          github_token: ${{ secrets.HMI_PAT }}
+          github_token: ${{ secrets.HMI_PAT }} # Fine-grained PAT in source repo secrets
           repository: evschneider-hmi/ps-html5auditor
           branch: main
           force: true
