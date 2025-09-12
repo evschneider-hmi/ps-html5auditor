@@ -20,9 +20,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Setup GitHub Pages
-        # Ensures the Pages site is initialized (avoids 404 on first deploy)
-        uses: actions/configure-pages@v4
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -46,8 +43,10 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Configure Pages
+      - name: Configure Pages (enable if first run)
         uses: actions/configure-pages@v4
+        with:
+          enablement: true
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
