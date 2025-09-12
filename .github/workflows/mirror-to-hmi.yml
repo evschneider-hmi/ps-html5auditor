@@ -29,6 +29,32 @@ jobs:
           if [ ${#HMI_PAT} -lt 30 ]; then
             echo "Warning: PAT length seems short (<30). Ensure you used the full token when saving the secret." >&2
           fi
+          # Basic pattern heuristic (will NOT reveal token): classic ghp_, fine-grained github_pat_
+          if ! echo "$HMI_PAT" | grep -Eq '^(ghp_|github_pat_)'; then
+            echo "Warning: Token does not start with expected ghp_ or github_pat_ prefix. Verify you copied the full token." >&2
+          fi
+      - name: Preflight GitHub API access check
+        run: |
+          set -e
+          CLEANED=$(printf "%s" "$HMI_PAT" | tr -d '\r' )
+          if [ "${#CLEANED}" -ne "${#HMI_PAT}" ]; then
+            echo "Stripped CR characters from token (Windows newline fix)." >&2
+            export HMI_PAT="$CLEANED"
+          fi
+          echo "Checking API access to target repo via REST..."
+          CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $HMI_PAT" https://api.github.com/repos/evschneider-hmi/ps-html5auditor)
+          case "$CODE" in
+            200)
+              echo "API access OK (200).";;
+            403)
+              echo "API access 403: Token lacks permission (add repo access/authorize SSO or expand scopes)." >&2; exit 3;;
+            404)
+              echo "API access 404: Repository not visible to token (fine-grained: add repo; classic: include repo scope)." >&2; exit 4;;
+            401)
+              echo "API access 401: Token invalid/expired." >&2; exit 5;;
+            *)
+              echo "Unexpected API status $CODE" >&2; exit 6;;
+          esac
       - name: Test remote access with PAT
         run: |
           set -e
