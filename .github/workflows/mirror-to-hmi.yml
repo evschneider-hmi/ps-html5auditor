@@ -12,6 +12,8 @@ permissions:
 jobs:
   mirror:
     runs-on: ubuntu-latest
+    env:
+      HMI_PAT: ${{ secrets.HMI_PAT }}
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -19,15 +21,19 @@ jobs:
           fetch-depth: 0
       - name: Validate PAT secret
         run: |
-          if [ -z "${{ secrets.HMI_PAT }}" ]; then
+          if [ -z "$HMI_PAT" ]; then
             echo "HMI_PAT secret is not defined in source repo settings (Settings > Secrets and variables > Actions)." >&2
             exit 1
           fi
-          echo "HMI_PAT secret is present (length: ${#HMI_PAT}). Proceeding." | sed 's/./*/g'
+          echo "HMI_PAT secret detected (length: ${#HMI_PAT}). Proceeding without revealing value." 
+          if [ ${#HMI_PAT} -lt 30 ]; then
+            echo "Warning: PAT length seems short (<30). Ensure you used the full token when saving the secret." >&2
+          fi
       - name: Push to evschneider-hmi/ps-html5auditor
+        if: ${{ secrets.HMI_PAT != '' }}
         uses: ad-m/github-push-action@v0.8.0
         with:
-          github_token: ${{ secrets.HMI_PAT }} # Fine-grained PAT in source repo secrets
+          github_token: ${{ secrets.HMI_PAT }} # Fine-grained (or classic) PAT in source repo secrets
           repository: evschneider-hmi/ps-html5auditor
           branch: main
           force: true
@@ -36,6 +42,10 @@ jobs:
         run: |
           set -e
           echo "Attempting manual fallback push using PAT..."
-          git remote add mirror https://x-access-token:${{ secrets.HMI_PAT }}@github.com/evschneider-hmi/ps-html5auditor.git
+          if [ -z "$HMI_PAT" ]; then
+            echo "Cannot fallback push because HMI_PAT is empty." >&2
+            exit 1
+          fi
+          git remote add mirror "https://x-access-token:$HMI_PAT@github.com/evschneider-hmi/ps-html5auditor.git"
           git push mirror HEAD:main --force
           echo "Manual push completed."
