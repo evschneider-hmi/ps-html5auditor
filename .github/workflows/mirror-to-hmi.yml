@@ -13,7 +13,7 @@ jobs:
   mirror:
     runs-on: ubuntu-latest
     env:
-      HMI_PAT: ${{ secrets.HMI_PAT }}
+      HTML5_PAT: ${{ secrets.HTML5_PAT }}
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -21,28 +21,28 @@ jobs:
           fetch-depth: 0
       - name: Validate PAT secret
         run: |
-          if [ -z "$HMI_PAT" ]; then
-            echo "HMI_PAT secret is not defined in source repo settings (Settings > Secrets and variables > Actions)." >&2
+          if [ -z "$HTML5_PAT" ]; then
+            echo "HTML5_PAT secret is not defined in source repo settings (Settings > Secrets and variables > Actions)." >&2
             exit 1
           fi
-          echo "HMI_PAT secret detected (length: ${#HMI_PAT}). Proceeding without revealing value." 
-          if [ ${#HMI_PAT} -lt 30 ]; then
+          echo "HTML5_PAT secret detected (length: ${#HTML5_PAT}). Proceeding without revealing value." 
+          if [ ${#HTML5_PAT} -lt 30 ]; then
             echo "Warning: PAT length seems short (<30). Ensure you used the full token when saving the secret." >&2
           fi
           # Basic pattern heuristic (will NOT reveal token): classic ghp_, fine-grained github_pat_
-          if ! echo "$HMI_PAT" | grep -Eq '^(ghp_|github_pat_)'; then
+          if ! echo "$HTML5_PAT" | grep -Eq '^(ghp_|github_pat_)'; then
             echo "Warning: Token does not start with expected ghp_ or github_pat_ prefix. Verify you copied the full token." >&2
           fi
       - name: Preflight GitHub API access check
         run: |
           set -e
-          CLEANED=$(printf "%s" "$HMI_PAT" | tr -d '\r' )
-          if [ "${#CLEANED}" -ne "${#HMI_PAT}" ]; then
+          CLEANED=$(printf "%s" "$HTML5_PAT" | tr -d '\r' )
+          if [ "${#CLEANED}" -ne "${#HTML5_PAT}" ]; then
             echo "Stripped CR characters from token (Windows newline fix)." >&2
-            export HMI_PAT="$CLEANED"
+            export HTML5_PAT="$CLEANED"
           fi
           echo "Checking API access to target repo via REST..."
-          CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $HMI_PAT" https://api.github.com/repos/evschneider-hmi/ps-html5auditor)
+          CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $HTML5_PAT" https://api.github.com/repos/evschneider-hmi/ps-html5auditor)
           case "$CODE" in
             200)
               echo "API access OK (200).";;
@@ -59,7 +59,7 @@ jobs:
         run: |
           set -e
           echo "Testing remote access to target repo..."
-          if git ls-remote "https://x-access-token:$HMI_PAT@github.com/evschneider-hmi/ps-html5auditor.git" HEAD > /dev/null 2>&1; then
+          if git ls-remote "https://x-access-token:$HTML5_PAT@github.com/evschneider-hmi/ps-html5auditor.git" HEAD > /dev/null 2>&1; then
             echo "Remote access OK."
           else
             echo "Failed to access target repo with supplied PAT. Common causes:" >&2
@@ -77,15 +77,15 @@ jobs:
           if git remote | grep -q '^mirror$'; then
             git remote remove mirror
           fi
-          echo "Token length: ${#HMI_PAT}" | sed 's/[0-9]/&/g'
+          echo "Token length: ${#HTML5_PAT}" | sed 's/[0-9]/&/g'
           echo "Attempt 1: username:token format"
-          git remote add mirror "https://evschneider-hmi:$HMI_PAT@github.com/evschneider-hmi/ps-html5auditor.git"
+          git remote add mirror "https://evschneider-hmi:$HTML5_PAT@github.com/evschneider-hmi/ps-html5auditor.git"
           git remote -v | sed 's/$HMI_PAT/****/g'
           if git push mirror HEAD:main --force; then
             echo "Mirror push complete via username:token format."; exit 0; fi
           echo "Attempt 1 failed; removing remote and retrying with x-access-token format." >&2
           git remote remove mirror || true
-          git remote add mirror "https://x-access-token:$HMI_PAT@github.com/evschneider-hmi/ps-html5auditor.git"
+          git remote add mirror "https://x-access-token:$HTML5_PAT@github.com/evschneider-hmi/ps-html5auditor.git"
           git remote -v | sed 's/$HMI_PAT/****/g'
           echo "Attempt 2: x-access-token format"
           git push mirror HEAD:main --force
