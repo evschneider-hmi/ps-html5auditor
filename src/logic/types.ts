@@ -1,4 +1,4 @@
-import { Severity } from './severity';
+﻿import { Severity } from './severity';
 
 export interface ZipBundle {
   id: string;
@@ -75,3 +75,4 @@ export interface Report {
   generatedAt: string;
   version: string;
 }
+

@@ -1,0 +1,915 @@
+﻿
+                <div id=div_report >
+                  
+                  <div>
+        <style>
+            #results, #results table {font-size:15px; line-height:26px;}
+            #testtable td {border-bottom:1px solid #f0f0f0; padding:8px 0px;}
+            .checkerboard {background:url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%202%202%22%3E%3Cpath%20d%3D%22M1%202V0h1v1H0v1z%22%20fill-opacity%3D%22.05%22%2F%3E%3C%2Fsvg%3E'); background-size:16px 16px;}
+            .button_sticky {background:#003F7E; width:50px; height:50px; line-height:50px; color:white; border-radius:3px; text-align:center; cursor:pointer; margin-bottom:10px; user-select:none;}
+            .button_sticky_light {background:#003F7E90;}
+        </style>
+    <div id=results class='relative' style='max-width:1100px; margin:auto;'>
+        <div class=adglarebox id=download onmousedown='event.stopPropagation();'>
+            <div class='adglarebox_inner adglare_scrollbar animatedfastfast fadeInDown rb2' id=download_inner style='min-width:120px; max-height:calc(100vh - 100px); overflow-y:auto; overflow-x:hidden; box-shadow:rgba(2, 2, 2, 0.4) 0px 0px 0px 2000px, rgba(0, 0, 0, 0.15) 0px 4px 5px 0px, rgba(0, 0, 0, 0.13) 0px 1px 10px 0px, rgba(0, 0, 0, 0.2) 0px 2px 4px -1px; min-width:10px;'>
+              <div class='mb10 mt10'><div style='padding:5px 0px; color:#444;' class=noselect><div id=div_adglarebox_ class='download_option cursor hl ' style='padding:10px 25px 10px 20px;' onclick="adglareBox.hide('download',0,1); goto('/?download&what=original&job_id=s8e9w-c0dc3-3c345');; " onmousedown="">Original Creative</div><div id=div_adglarebox_ class='download_option cursor hl ' style='padding:10px 25px 10px 20px;' onclick="adglareBox.hide('download',0,1); mynotification.open('Generating PDF...',4000); goto('/?download&what=pdf&job_id=s8e9w-c0dc3-3c345');; " onmousedown="">Report in PDF</div><div id=div_adglarebox_ class='download_option cursor hl ' style='padding:10px 25px 10px 20px;' onclick="adglareBox.hide('download',0,1); goto('/?download&what=screenshots&job_id=s8e9w-c0dc3-3c345');; " onmousedown="">Screenshot Bundle</div></div></div>
+            </div>
+        </div>
+    
+        <div class=adglarebox id=more onmousedown='event.stopPropagation();'>
+            <div class='adglarebox_inner adglare_scrollbar animatedfastfast fadeInDown rb2' id=more_inner style='min-width:120px; max-height:calc(100vh - 100px); overflow-y:auto; overflow-x:hidden; box-shadow:rgba(2, 2, 2, 0.4) 0px 0px 0px 2000px, rgba(0, 0, 0, 0.15) 0px 4px 5px 0px, rgba(0, 0, 0, 0.13) 0px 1px 10px 0px, rgba(0, 0, 0, 0.2) 0px 2px 4px -1px; min-width:10px;'>
+              <div class='mb10 mt10'><div style='padding:5px 0px; color:#444;' class=noselect><div id=div_adglarebox_ class='more_option cursor hl ' style='padding:10px 25px 10px 20px;' onclick="adglareBox.hide('more',0,1); mynotification.open('Please wait. Generating PDF...',6000); goto('/?download&what=pdf&job_id=s8e9w-c0dc3-3c345');; " onmousedown=""><span class='mat'>picture_as_pdf</span>Create PDF</div><div id=div_adglarebox_ class='more_option cursor hl ' style='padding:10px 25px 10px 20px;' onclick="adglareBox.hide('more',0,1); rescan('get','6z545zsngf');; " onmousedown=""><span class='mat'>restart_alt</span>Rescan</div><div id=div_adglarebox_ class='more_option cursor hl ' style='padding:10px 25px 10px 20px;' onclick="adglareBox.hide('more',0,1); feedbackaction('get','s8e9w-c0dc3-3c345');; " onmousedown=""><span class='mat'>feedback</span>Give Feedback</div></div></div>
+            </div>
+        </div>
+    
+      <div class='bs sticky' style='border-bottom:1px solid #e0e0e0; padding:10px 5px 0px 20px; top:0px; background:white; z-index:10;'>
+        <div class=grid style='grid-template-columns: auto 1fr;'>
+          <div class=nowrap>
+            <div class='inline top'>
+              <span class='mat nowidth hl rb5 cursor' onclick="scanaction('list',function(){window.scrollTo(0, localStorage.getItem('scroll_top')||0);});" style='font-size:40px; padding:5px; margin:3px 0px 0px 0px;'>west</span>
+              <div class=iconright2line style='margin-top:8px;'></div>
+            </div>
+            <div class='inline top'>
+              
+                <h2 class='green nomargin'>COMPLIANT</h2>
+              
+              <div class='small ellipsis' style='margin-left:2px; max-width:600px;'>DCO_09-14-25_ASOR_EVGRN_NA_Sv30Pct_DIS_D-HTML5_160x600_ENG.zip</div>
+            </div>
+          </div>
+          <div class=right>
+            <div class='myscrollbar_white nowrap' style='margin-top:-8px; padding-top:15px; padding-bottom:10px; max-width:calc(100vw - 40px); overflow-y:hidden; overflow-x:auto;'>
+                
+                    <div class='iconright2 div_hidedesktop jump_infinitely iconright2blue' onclick="if(navigator.share) {navigator.share({title:'AdValify Scan Results',text:'Check out these results:',url:'https://www.advalify.io/scans/s8e9w-c0dc3-3c345'});} else getsharelink('zip','s8e9w-c0dc3-3c345');">
+                      <span class=mat>share</span>
+                      <div>Share</div>
+                    </div>
+                
+                <div class='iconright2line div_hidedesktop'></div>
+                
+                    <div class=iconright2 onclick="adspecsaction('get','6z545zsngf');">
+                      <span class=mat>fact_check</span>
+                      <div>Ad Specs</div>
+                    </div>
+                
+                
+                
+                    <div class='iconright2 ' id=icon_fix onclick="this.classList.remove('jump_infinitely','iconright2blue'); fixaction('get','zip#','s8e9w-c0dc3-3c345','6z545zsngf');">
+                      <span class=mat>handyman</span>
+                      <div class=relative>Fix Things</div>
+                    </div>
+                
+                
+                    <div class='iconright2 ' onmousedown="this.classList.remove('jump_infinitely','iconright2blue'); adglareBox.show('download',this,event,'right');">
+                      <span class=mat style='transform:scale(1.3);'>file_download</span>
+                      <div>Download</div>
+                    </div>
+                
+                
+                    <div class=iconright2 onclick="getsharelink('zip','s8e9w-c0dc3-3c345');">
+                      <span class=mat>share</span>
+                      <div>Share</div>
+                    </div>
+                
+                <div class=iconright2line></div>
+                <div class='iconright2 mr10' onmousedown="adglareBox.show('more',this,event,'right');">
+                  <span class=mat>more_vert</span>
+                  <div>More</div>
+                </div>
+                
+                
+            </div>
+          </div>
+        </div>
+      </div>
+      
+    
+        <div class='mb20 bgwhite p20 bs rb5_bottom'>
+          <div class='checkerboard mb30 relative' style='min-height:640px;'>
+            <iframe id=frm_preview src='https://try.cdn.advalify.io/img/s8e9w-s8e9w-c0dc3-3c345-9wcmzbrh.zip/index.html' onload="setTimeout(function(){ /*this.contentWindow.postMessage('IAB_HOST_LOADED','*');*/ },100);" style='background:white; width:160px; height:600px; max-width:100%; display:inline-block; border:0; position:absolute; left:50%; top:50%; transform:translateX(-50%) translateY(-50%);' scrolling=no marginwidth=0 marginheight=0 hspace=0 vspace=0></iframe>
+          </div>
+    <div class=grid><div class=nomargin>
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_animation_duration onclick="getinfo('s8e9w-c0dc3-3c345','zip','animation_duration','gray','PGltZyBsb2FkaW5nPWxhenkgc3R5bGU9InZlcnRpY2FsLWFsaWduOi0xcHg7IG1hcmdpbi1yaWdodDoxcHg7IGhlaWdodDoxMHB4OyBvcGFjaXR5OjAuNzsiIHNyYz0iL2ltYWdlcy9pY29uX2luZmluaXRlX2JsYWNrLnBuZyI.','WyIiLCIiXQ',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat gray' data-tippy='Ignored' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>fiber_manual_record</span></div></td>
+                      <td width=20 class=nowrap>Animation Duration</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span ><img loading=lazy style="vertical-align:-1px; margin-right:1px; height:10px; opacity:0.7;" src="/images/icon_infinite_black.png"></span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_has_backup_ad onclick="getinfo('s8e9w-c0dc3-3c345','zip','has_backup_ad','gray','Tm8','WyIiLCIiXQ',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat gray' data-tippy='Ignored' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>fiber_manual_record</span></div></td>
+                      <td width=20 class=nowrap>Backup Ad Found</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >No</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_adblock onclick="getinfo('s8e9w-c0dc3-3c345','zip','adblock','gray','Tm8','WyIiLCIiXQ',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat gray' data-tippy='Ignored' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>fiber_manual_record</span></div></td>
+                      <td width=20 class=nowrap>Blocked by AdBlock</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >No</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_cpu_usage onclick="getinfo('s8e9w-c0dc3-3c345','zip','cpu_usage','green','NTMgbXM','WyI8IixbIjwgNTAwIG1zIl1d',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat green' data-tippy='Passed' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>check</span></div></td>
+                      <td width=20 class=nowrap>CPU Usage</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >53 ms</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_css_embedded onclick="getinfo('s8e9w-c0dc3-3c345','zip','css_embedded','green','WWVz','WyJ0cnVlIixbIlllcyJdXQ',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat green' data-tippy='Passed' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>check</span></div></td>
+                      <td width=20 class=nowrap>CSS Embedded</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >Yes</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_minified_css_js onclick="getinfo('s8e9w-c0dc3-3c345','zip','minified_css_js','green','WWVz','WyJ0cnVlIixbIlllcyJdXQ',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat green' data-tippy='Passed' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>check</span></div></td>
+                      <td width=20 class=nowrap>CSS/JS Minified</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >Yes</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_click_through_type onclick="getinfo('s8e9w-c0dc3-3c345','zip','click_through_type','gray','Y2xpY2tUYWc','WyIiLCIiXQ',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat gray' data-tippy='Ignored' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>fiber_manual_record</span></div></td>
+                      <td width=20 class=nowrap>Click Through</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >clickTag</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_compressed_file_size onclick="getinfo('s8e9w-c0dc3-3c345','zip','compressed_file_size','green','MTE0LjMgS0I','WyI8PSIsWyI8PSA1IE1CIl1d',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat green' data-tippy='Passed' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>check</span></div></td>
+                      <td width=20 class=nowrap>Compressed File Size</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >114.3 KB</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_js_errors onclick="getinfo('s8e9w-c0dc3-3c345','zip','js_errors','green','MA','WyI9IixbIjAgIl1d',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat green' data-tippy='Passed' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>check</span></div></td>
+                      <td width=20 class=nowrap>Console Errors</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >0</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_console_warnings onclick="getinfo('s8e9w-c0dc3-3c345','zip','console_warnings','gray','MA','WyIiLCIiXQ',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat gray' data-tippy='Ignored' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>fiber_manual_record</span></div></td>
+                      <td width=20 class=nowrap>Console Warnings</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >0</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_cookies_dropped onclick="getinfo('s8e9w-c0dc3-3c345','zip','cookies_dropped','green','MA','WyI9IixbIjAgIl1d',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat green' data-tippy='Passed' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>check</span></div></td>
+                      <td width=20 class=nowrap>Cookies Dropped</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >0</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_has_border onclick="getinfo('s8e9w-c0dc3-3c345','zip','has_border','gray','Tm8','WyIiLCIiXQ',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat gray' data-tippy='Ignored' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>fiber_manual_record</span></div></td>
+                      <td width=20 class=nowrap>Creative Border</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >No</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_creative_rendered onclick="getinfo('s8e9w-c0dc3-3c345','zip','creative_rendered','green','WWVz','WyJ0cnVlIixbIlllcyJdXQ',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat green' data-tippy='Passed' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>check</span></div></td>
+                      <td width=20 class=nowrap>Creative Rendered</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >Yes</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_dom_content_loaded onclick="getinfo('s8e9w-c0dc3-3c345','zip','dom_content_loaded','green','NDggbXM','WyI8IixbIjwgMTAwMCBtcyJdXQ',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat green' data-tippy='Passed' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>check</span></div></td>
+                      <td width=20 class=nowrap>DOMContentLoaded</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >48 ms</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            </div><div class=nomargin>
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_dialogs onclick="getinfo('s8e9w-c0dc3-3c345','zip','dialogs','green','MA','WyI9IixbIjAgIl1d',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat green' data-tippy='Passed' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>check</span></div></td>
+                      <td width=20 class=nowrap>Dialogs and Modals</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >0</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_dimensions onclick="getinfo('s8e9w-c0dc3-3c345','zip','dimensions','green','MTYweDYwMA','WyJpbiIsWyI5ODB4NjAwIiwiOTAweDUwMCIsIjF4MSIsIjMyMHgxNTAiLCIzMjB4MjUwIiwiMzAweDUwIiwiMzIweDQ4MCIsIjMwMHg2MCIsIjYwMHgzMDAiLCIxOTIweDEwODAiLCI0Njh4NjAiLCIyMzR4NjAiLCI3Mjh4OTAiLCI5NzB4OTAiLCI5NzB4MjUwIiwiOTgweDEyMCIsIjk4MHg0MDAiLCIxMjB4OTAiLCIxMjB4NjAiLCIxMjB4MjQwIiwiMTI1eDEyNSIsIjg4eDMxIiwiMjAweDIwMCIsIjI1MHgyNTAiLCIzMDB4MjUwIiwiMjQweDQwMCIsIjMzNngyODAiLCIxODB4MTUwIiwiMzAweDEwMCIsIjcyMHgzMDAiLCI1ODB4NDAwIiwiMTIweDYwMCIsIjE2MHg2MDAiLCIzMDB4NjAwIiwiNzI4eDE1IiwiMzIweDUwIiwiMzIweDEwMCIsIjMwMHgxMDUwIl1d',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat green' data-tippy='Passed' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>check</span></div></td>
+                      <td width=20 class=nowrap>Dimensions</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >160x600</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_external_assets onclick="getinfo('s8e9w-c0dc3-3c345','zip','external_assets','gray','Tm8','WyIiLCIiXQ',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat gray' data-tippy='Ignored' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>fiber_manual_record</span></div></td>
+                      <td width=20 class=nowrap>External Assets</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >No</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_file_contents onclick="getinfo('s8e9w-c0dc3-3c345','zip','file_contents','green','WWVz','WyJ0cnVlIixbIlllcyJdXQ',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat green' data-tippy='Passed' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>check</span></div></td>
+                      <td width=20 class=nowrap>File Types Allowed</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >Yes</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_html5_library onclick="getinfo('s8e9w-c0dc3-3c345','zip','html5_library','gray','LQ','WyIiLCIiXQ',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat gray' data-tippy='Ignored' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>fiber_manual_record</span></div></td>
+                      <td width=20 class=nowrap>HTML5 Library</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >- </span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_has_video onclick="getinfo('s8e9w-c0dc3-3c345','zip','has_video','green','Tm8','WyJmYWxzZSIsWyJObyJdXQ',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat green' data-tippy='Passed' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>check</span></div></td>
+                      <td width=20 class=nowrap>Has Video</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >No</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_heavy_ad_intervention onclick="getinfo('s8e9w-c0dc3-3c345','zip','heavy_ad_intervention','green','Tm8','WyJmYWxzZSIsWyJObyJdXQ',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat green' data-tippy='Passed' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>check</span></div></td>
+                      <td width=20 class=nowrap>Heavy Ad Intervention</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >No</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_hosted_file_count onclick="getinfo('s8e9w-c0dc3-3c345','zip','hosted_file_count','green','OQ','WyI8PSIsWyI8PSAxMDAgIl1d',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat green' data-tippy='Passed' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>check</span></div></td>
+                      <td width=20 class=nowrap>Hosted File Count</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >9</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_hosted_file_size onclick="getinfo('s8e9w-c0dc3-3c345','zip','hosted_file_size','green','MjE2LjEgS0I','WyI8PSIsWyI8PSAyLjUgTUIiXV0',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat green' data-tippy='Passed' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>check</span></div></td>
+                      <td width=20 class=nowrap>Hosted File Size</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >216.1 KB</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_iframe_count onclick="getinfo('s8e9w-c0dc3-3c345','zip','iframe_count','green','MA','WyI8PSIsWyI8PSA1ICJdXQ',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat green' data-tippy='Passed' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>check</span></div></td>
+                      <td width=20 class=nowrap>Iframe Count</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >0</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_optimized_images onclick="getinfo('s8e9w-c0dc3-3c345','zip','optimized_images','green','WWVz','WyJ0cnVlIixbIlllcyJdXQ',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat green' data-tippy='Passed' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>check</span></div></td>
+                      <td width=20 class=nowrap>Images Optimized</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >Yes</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_index_file_check onclick="getinfo('s8e9w-c0dc3-3c345','zip','index_file_check','green','WWVz','WyJ0cnVlIixbIlllcyJdXQ',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat green' data-tippy='Passed' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>check</span></div></td>
+                      <td width=20 class=nowrap>Index File Check</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >Yes</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_has_landing_page onclick="getinfo('s8e9w-c0dc3-3c345','zip','has_landing_page','gray','Tm8','WyIiLCIiXQ',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat gray' data-tippy='Ignored' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>fiber_manual_record</span></div></td>
+                      <td width=20 class=nowrap>Landing Page Working</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >No</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_initial_load onclick="getinfo('s8e9w-c0dc3-3c345','zip','initial_load','green','MjEuMiBLQg','WyI8IixbIjwgMTUwIEtCIl1d',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat green' data-tippy='Passed' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>check</span></div></td>
+                      <td width=20 class=nowrap>Load Size: Initial</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >21.2 KB</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            </div><div class=nomargin>
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_host_initiated_subload onclick="getinfo('s8e9w-c0dc3-3c345','zip','host_initiated_subload','green','OTEuNSBLQg','WyI8IixbIjwgMzAwIEtCIl1d',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat green' data-tippy='Passed' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>check</span></div></td>
+                      <td width=20 class=nowrap>Load Size: Subload</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >91.5 KB</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_load_size onclick="getinfo('s8e9w-c0dc3-3c345','zip','load_size','green','MTEyLjcgS0I','WyI8IixbIjwgNTEyIEtCIl1d',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat green' data-tippy='Passed' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>check</span></div></td>
+                      <td width=20 class=nowrap>Load Size: Total</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >112.7 KB</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_local_storage onclick="getinfo('s8e9w-c0dc3-3c345','zip','local_storage','green','MA','WyI9IixbIjAgIl1d',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat green' data-tippy='Passed' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>check</span></div></td>
+                      <td width=20 class=nowrap>Local Storage</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >0</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_measurement_pixels onclick="getinfo('s8e9w-c0dc3-3c345','zip','measurement_pixels','green','MA','WyI8IixbIjwgNSAiXV0',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat green' data-tippy='Passed' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>check</span></div></td>
+                      <td width=20 class=nowrap>Measurement Pixels</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >0</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_memory_usage onclick="getinfo('s8e9w-c0dc3-3c345','zip','memory_usage','green','My4wMCBNQg','WyI8IixbIjwgMTAgTUIiXV0',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat green' data-tippy='Passed' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>check</span></div></td>
+                      <td width=20 class=nowrap>Memory Usage</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >3.00 MB</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_meta_ad_size onclick="getinfo('s8e9w-c0dc3-3c345','zip','meta_ad_size','green','WWVz','WyJ0cnVlIixbIlllcyJdXQ',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat green' data-tippy='Passed' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>check</span></div></td>
+                      <td width=20 class=nowrap>Meta tag ad.size</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >Yes</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_missing_assets onclick="getinfo('s8e9w-c0dc3-3c345','zip','missing_assets','green','MA','WyI9IixbIjAgIl1d',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat green' data-tippy='Passed' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>check</span></div></td>
+                      <td width=20 class=nowrap>Missing Assets</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >0</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_network_requests onclick="getinfo('s8e9w-c0dc3-3c345','zip','network_requests','green','OA','WyI8PSIsWyI8PSAxNSAiXV0',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat green' data-tippy='Passed' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>check</span></div></td>
+                      <td width=20 class=nowrap>Network Requests</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >8</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_ssl_compatibility onclick="getinfo('s8e9w-c0dc3-3c345','zip','ssl_compatibility','green','WWVz','WyJ0cnVlIixbIlllcyJdXQ',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat green' data-tippy='Passed' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>check</span></div></td>
+                      <td width=20 class=nowrap>SSL-Compatibility</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >Yes</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_syntax_errors onclick="getinfo('s8e9w-c0dc3-3c345','zip','syntax_errors','green','MA','WyI9IixbIjAgIl1d',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat green' data-tippy='Passed' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>check</span></div></td>
+                      <td width=20 class=nowrap>Syntax Errors</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >0</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_time_to_visual_start onclick="getinfo('s8e9w-c0dc3-3c345','zip','time_to_visual_start','green','NTkgbXM','WyI8IixbIjwgNTAwIG1zIl1d',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat green' data-tippy='Passed' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>check</span></div></td>
+                      <td width=20 class=nowrap>Time to Visual Start</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >59 ms</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_document_write onclick="getinfo('s8e9w-c0dc3-3c345','zip','document_write','gray','Tm8','WyIiLCIiXQ',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat gray' data-tippy='Ignored' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>fiber_manual_record</span></div></td>
+                      <td width=20 class=nowrap>Uses document.write()</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >No</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            
+                <div style='border-bottom:1px solid #f0f0f0; ' id=div_test_uses_jquery onclick="getinfo('s8e9w-c0dc3-3c345','zip','uses_jquery','green','Tm8','WyJmYWxzZSIsWyJObyJdXQ',0);">
+                    <table width=100% class='table_tests cursor hovericon_wrapper hl' style='padding:5px 0px;'><tr>
+                      <td width=20><div class=ml5><span class='mat green' data-tippy='Passed' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide'>check</span></div></td>
+                      <td width=20 class=nowrap>Uses jQuery</td>
+                      <td align=right class='nowrap bold ellipsis_wrapper '>
+                        <div class='ellipsis mr5'><span >No</span><span class='mat pl5 nomargin nowidth hovericon' style='display:none !important; color:initial;' onclick="event.stopPropagation(); adspecsaction('get');">settings</span></div>
+                      </td>
+                    </tr></table>
+                </div>
+            </div></div><div class='mt15 bggray center p10 rb5 ellipsis'>Ad specification: <b>IAB Ad Guidelines</b> &mdash; <a class=fakea onclick="adspecsaction('get','6z545zsngf');">Change</a></div></div>
+        <div class='mb20 bgwhite p20 bs rb5'>
+          <div class='fr' style='display:none;'>
+            <a class=fakea onclick="backupaction('get','s8e9w-c0dc3-3c345');">Customize</a>
+          </div>
+          <h3 class=inline>Backup Ads</h3> &mdash; HighRes PNG</i>
+          <div id=showdiv_screenshot_s8e9w-c0dc3-3c345></div>
+        </div>
+    
+        <div class='mb20 bgwhite p20 bs rb5'>
+            <h3 class=mb20>Share Link</h3>
+            <div class=relative>
+              <img class='valign mr10 div_hidemobile' style='height:40px; width:40px;' src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIQAAACEAQMAAABrihHkAAAABlBMVEUAAAD///+l2Z/dAAAACXBIWXMAAA7EAAAOxAGVKw4bAAABI0lEQVRIiaWV0Q3EMAhD2YD9t/QGnG24/tfN6RT6KtEAJlRV9fBfDe27AtIzXXzoBq2ZmFS36EAGHz+QIpE5HwkUoM72hfh0IOD+xP6eKNXPemrxnswoTBeQ+R8mLiM6IUNlFZUvVE5o0qAFxZkS2dA29O6PZITu5HE/oTchsXeWD1aVaxoRlUxM/TY2M4KVeF2U+kWE+QZWljqpFJ6RurJJVnC/RER9IkFaThTnB+L0nyZyoqpJlOha9xkB5BaSOQ/qsCOiXuuTpzKPkGy3jLyTuvMyMtaBkn4zJCM7ieDr8dQekb3Zyk1sdYakdnKUT9k3BQKyN7/vSI/amJQzdUyR5mQcrnRVN6kzApdRcuiKyexE9EL9M/aaeDKq28ZXEkLyA0l102Zh9j61AAAAAElFTkSuQmCC'><input type=text readonly class=inline style='width:calc(100% - 50px); padding-right:40px; border-color:#4579e4; box-shadow:0 0 0 3px rgb(84 136 240 / 35%);' onfocus="logshare('s8e9w-c0dc3-3c345');" value='https://www.advalify.io/scans/s8e9w-c0dc3-3c345'>
+              <span class='mat cursor nomargin' data-tippy='Copy link' data-tippy-pos='up' data-tippy-size='small' data-tippy-animate='slide' style='line-height:34px; position:absolute; right:10px; top:4px;' onclick="copyToClipboard('https://www.advalify.io/scans/s8e9w-c0dc3-3c345'); logshare('s8e9w-c0dc3-3c345');">content_copy</span>
+            </div>
+        </div>
+    <div class='mb20 bgwhite p20 bs rb5'><h3>ZIP Archive</h3>
+            <table id=maintable class='valign' style='width:100%;'>
+            <tr class=nowrap>
+              <th>Filename</th>
+              <th class='div_hidemobile right'>Optimized</th>
+              <th class='right'>Savings</th>
+              <th class=div_hidemobile>File Size</th>
+              <th class=div_hidemobile>Percentage</th>
+              <th class=div_hidemobile>Type</th>
+            </tr>
+        <tr ><td class='ellipsis_wrapper small' style='padding:3px 10px 3px 10px;'><div class=ellipsis><span class=mat>folder_open</span><span >assets</span></div></td><td class='nowrap small right div_hidemobile' width=1></td><td class='nowrap small right' width=1></td><td class='nowrap tswhite div_hidemobile' align=right style='padding:3px 10px; width:10px;'></td><td class='nowrap tswhite div_hidemobile' width=100>
+        <div class='rb3' style='background-color:#44420; line-height:12px; font-size:6px; position:relative; height:12px; overflow:hidden; '>
+          <div class='fl rb3 nowrap' style='background-color:#444; width:0%; color:white; text-align:center;'>&nbsp;</div>
+          &nbsp;
+        </div>
+    </td><td class='nowrap small div_hidemobile' style='padding:3px 10px; width:90px;'></td></tr><tr ><td class='ellipsis_wrapper small' style='padding:3px 10px 3px 30px;'><div class=ellipsis><span class=mat>crop_original</span><span >0.svg</span></div></td><td class='nowrap small right div_hidemobile' width=1><div class='green bold'>Optimized</div></td><td class='nowrap small right' width=1></td><td class='nowrap tswhite div_hidemobile' align=right style='padding:3px 10px; width:10px;'><span class='small'>0.45 KB</span></td><td class='nowrap tswhite div_hidemobile' width=100>
+        <div class='rb3' style='background-color:#44420; line-height:12px; font-size:6px; position:relative; height:12px; overflow:hidden; '>
+          <div class='fl rb3 nowrap' style='background-color:#444; width:0%; color:white; text-align:center;'>&nbsp;</div>
+          &nbsp;
+        </div>
+    </td><td class='nowrap small div_hidemobile' style='padding:3px 10px; width:90px;'>Image</td></tr><tr ><td class='ellipsis_wrapper small' style='padding:3px 10px 3px 30px;'><div class=ellipsis><span class=mat>crop_original</span><span >1.svg</span></div></td><td class='nowrap small right div_hidemobile' width=1><div class='green bold'>Optimized</div></td><td class='nowrap small right' width=1></td><td class='nowrap tswhite div_hidemobile' align=right style='padding:3px 10px; width:10px;'><span class='small'>15.29 KB</span></td><td class='nowrap tswhite div_hidemobile' width=100>
+        <div class='rb3' style='background-color:#44420; line-height:12px; font-size:6px; position:relative; height:12px; overflow:hidden; '>
+          <div class='fl rb3 nowrap' style='background-color:#444; width:15%; color:white; text-align:center;'>&nbsp;</div>
+          &nbsp;
+        </div>
+    </td><td class='nowrap small div_hidemobile' style='padding:3px 10px; width:90px;'>Image</td></tr><tr ><td class='ellipsis_wrapper small' style='padding:3px 10px 3px 30px;'><div class=ellipsis><span class=mat>crop_original</span><span >2.jpeg</span></div></td><td class='nowrap small right div_hidemobile' width=1><div class='green bold'>Optimized</div></td><td class='nowrap small right' width=1></td><td class='nowrap tswhite div_hidemobile' align=right style='padding:3px 10px; width:10px;'><span class='small'>27.29 KB</span></td><td class='nowrap tswhite div_hidemobile' width=100>
+        <div class='rb3' style='background-color:#44420; line-height:12px; font-size:6px; position:relative; height:12px; overflow:hidden; '>
+          <div class='fl rb3 nowrap' style='background-color:#444; width:26%; color:white; text-align:center;'>&nbsp;</div>
+          &nbsp;
+        </div>
+    </td><td class='nowrap small div_hidemobile' style='padding:3px 10px; width:90px;'>Image</td></tr><tr ><td class='ellipsis_wrapper small' style='padding:3px 10px 3px 30px;'><div class=ellipsis><span class=mat>crop_original</span><span >3.jpeg</span></div></td><td class='nowrap small right div_hidemobile' width=1><div class='green bold'>Optimized</div></td><td class='nowrap small right' width=1></td><td class='nowrap tswhite div_hidemobile' align=right style='padding:3px 10px; width:10px;'><span class='small'>26.68 KB</span></td><td class='nowrap tswhite div_hidemobile' width=100>
+        <div class='rb3' style='background-color:#44420; line-height:12px; font-size:6px; position:relative; height:12px; overflow:hidden; '>
+          <div class='fl rb3 nowrap' style='background-color:#444; width:25%; color:white; text-align:center;'>&nbsp;</div>
+          &nbsp;
+        </div>
+    </td><td class='nowrap small div_hidemobile' style='padding:3px 10px; width:90px;'>Image</td></tr><tr ><td class='ellipsis_wrapper small' style='padding:3px 10px 3px 30px;'><div class=ellipsis><span class=mat>crop_original</span><span >4.jpeg</span></div></td><td class='nowrap small right div_hidemobile' width=1><div class='green bold'>Optimized</div></td><td class='nowrap small right' width=1></td><td class='nowrap tswhite div_hidemobile' align=right style='padding:3px 10px; width:10px;'><span class='small'>26.11 KB</span></td><td class='nowrap tswhite div_hidemobile' width=100>
+        <div class='rb3' style='background-color:#44420; line-height:12px; font-size:6px; position:relative; height:12px; overflow:hidden; '>
+          <div class='fl rb3 nowrap' style='background-color:#444; width:25%; color:white; text-align:center;'>&nbsp;</div>
+          &nbsp;
+        </div>
+    </td><td class='nowrap small div_hidemobile' style='padding:3px 10px; width:90px;'>Image</td></tr><tr ><td class='ellipsis_wrapper small' style='padding:3px 10px 3px 30px;'><div class=ellipsis><span class=mat>crop_original</span><span >5.svg</span></div></td><td class='nowrap small right div_hidemobile' width=1><div class='green bold'>Optimized</div></td><td class='nowrap small right' width=1></td><td class='nowrap tswhite div_hidemobile' align=right style='padding:3px 10px; width:10px;'><span class='small'>0.58 KB</span></td><td class='nowrap tswhite div_hidemobile' width=100>
+        <div class='rb3' style='background-color:#44420; line-height:12px; font-size:6px; position:relative; height:12px; overflow:hidden; '>
+          <div class='fl rb3 nowrap' style='background-color:#444; width:1%; color:white; text-align:center;'>&nbsp;</div>
+          &nbsp;
+        </div>
+    </td><td class='nowrap small div_hidemobile' style='padding:3px 10px; width:90px;'>Image</td></tr><tr ><td class='ellipsis_wrapper small' style='padding:3px 10px 3px 30px;'><div class=ellipsis><span class=mat>crop_original</span><span >6.svg</span></div></td><td class='nowrap small right div_hidemobile' width=1><div class='green bold'>Optimized</div></td><td class='nowrap small right' width=1></td><td class='nowrap tswhite div_hidemobile' align=right style='padding:3px 10px; width:10px;'><span class='small'>15.29 KB</span></td><td class='nowrap tswhite div_hidemobile' width=100>
+        <div class='rb3' style='background-color:#44420; line-height:12px; font-size:6px; position:relative; height:12px; overflow:hidden; '>
+          <div class='fl rb3 nowrap' style='background-color:#444; width:15%; color:white; text-align:center;'>&nbsp;</div>
+          &nbsp;
+        </div>
+    </td><td class='nowrap small div_hidemobile' style='padding:3px 10px; width:90px;'>Image</td></tr><tr ><td class='ellipsis_wrapper small' style='padding:3px 10px 3px 10px;'><div class=ellipsis><span class=mat>laptop_chromebook</span><span class='bold blue'>index.html</span></div></td><td class='nowrap small right div_hidemobile' width=1></td><td class='nowrap small right' width=1></td><td class='nowrap tswhite div_hidemobile' align=right style='padding:3px 10px; width:10px;'><span class='small'>104.69 KB</span></td><td class='nowrap tswhite div_hidemobile' width=100>
+        <div class='rb3' style='background-color:#44420; line-height:12px; font-size:6px; position:relative; height:12px; overflow:hidden; '>
+          <div class='fl rb3 nowrap' style='background-color:#444; width:100%; color:white; text-align:center;'>&nbsp;</div>
+          &nbsp;
+        </div>
+    </td><td class='nowrap small div_hidemobile' style='padding:3px 10px; width:90px;'>Document</td></tr></table></div>
+        <style>
+            .table_requests .span_open {display:none;}
+            .table_requests tr:hover .span_open {display:block;}
+        </style>
+        <div class='mb20 bgwhite p20 bs rb5'>
+        <h3>Network Requests</h3>
+        <table id=maintable class=table_requests width=100%>
+          <tr class=nowrap>
+            <th width=1 class=div_hidemobile>Timing</th>
+            <th>Resource URL</th>
+            <th width=1% class='textright'>Status</th>
+            <th width=1% class=div_hidemobile>Protocol</th>
+            <th width=1% class=div_hidemobile>Enc</th>
+            <th width=1% class='right nowrap div_hidemobile'>File Size</th>
+            <th width=1% class='div_hidemobile'>Percentage</th>
+            <th width=1% clsas=div_hidemobile>Type</th>
+          </tr>
+        
+                    <tr class='small '>
+                      <td align=right class=div_hidemobile>0.001</td>
+                      <td class=ellipsis_wrapper><div class=ellipsis><span class='mat green' style='vertical-align:-6px;'>lock</span>/index.html</div></td>
+                      <td align=right><span class='rb3 bold' style='background:#18803820; color:#188038; padding:3px 7px;'>200</span></td>
+                      <td class=div_hidemobile>h2</td>
+                      <td align=center class=div_hidemobile>-</td>
+                      <td align=right class='div_hidemobile nowrap'>21.2 KB</td>
+                      <td class='nowrap tswhite div_hidemobile'><span class='inline mt3'>
+        <div class='rb3' style='background-color:#44420; line-height:12px; font-size:6px; position:relative; height:12px; overflow:hidden; width:100px; display:inline-block;'>
+          <div class='fl rb3 nowrap' style='background-color:#444; width:77%; color:white; text-align:center;'>&nbsp;</div>
+          &nbsp;
+        </div>
+    </span></td>
+                      <td class='div_hidemobile nowrap' style='min-width:90px;'>Document</td>
+                    </tr>
+                
+                    <tr class='small '>
+                      <td align=right class=div_hidemobile>0.216</td>
+                      <td class=ellipsis_wrapper><div class=ellipsis><span class='mat green' style='vertical-align:-6px;'>lock</span>/assets/0.svg</div></td>
+                      <td align=right><span class='rb3 bold' style='background:#18803820; color:#188038; padding:3px 7px;'>200</span></td>
+                      <td class=div_hidemobile>h2</td>
+                      <td align=center class=div_hidemobile>-</td>
+                      <td align=right class='div_hidemobile nowrap'>386 B</td>
+                      <td class='nowrap tswhite div_hidemobile'><span class='inline mt3'>
+        <div class='rb3' style='background-color:#44420; line-height:12px; font-size:6px; position:relative; height:12px; overflow:hidden; width:100px; display:inline-block;'>
+          <div class='fl rb3 nowrap' style='background-color:#444; width:1%; color:white; text-align:center;'>&nbsp;</div>
+          &nbsp;
+        </div>
+    </span></td>
+                      <td class='div_hidemobile nowrap' style='min-width:90px;'>Image</td>
+                    </tr>
+                
+                    <tr class='small '>
+                      <td align=right class=div_hidemobile>0.217</td>
+                      <td class=ellipsis_wrapper><div class=ellipsis><span class='mat green' style='vertical-align:-6px;'>lock</span>/assets/1.svg</div></td>
+                      <td align=right><span class='rb3 bold' style='background:#18803820; color:#188038; padding:3px 7px;'>200</span></td>
+                      <td class=div_hidemobile>h2</td>
+                      <td align=center class=div_hidemobile>-</td>
+                      <td align=right class='div_hidemobile nowrap'>5.1 KB</td>
+                      <td class='nowrap tswhite div_hidemobile'><span class='inline mt3'>
+        <div class='rb3' style='background-color:#44420; line-height:12px; font-size:6px; position:relative; height:12px; overflow:hidden; width:100px; display:inline-block;'>
+          <div class='fl rb3 nowrap' style='background-color:#444; width:19%; color:white; text-align:center;'>&nbsp;</div>
+          &nbsp;
+        </div>
+    </span></td>
+                      <td class='div_hidemobile nowrap' style='min-width:90px;'>Image</td>
+                    </tr>
+                
+                    <tr class='small '>
+                      <td align=right class=div_hidemobile>0.218</td>
+                      <td class=ellipsis_wrapper><div class=ellipsis><span class='mat green' style='vertical-align:-6px;'>lock</span>/assets/2.jpeg</div></td>
+                      <td align=right><span class='rb3 bold' style='background:#18803820; color:#188038; padding:3px 7px;'>200</span></td>
+                      <td class=div_hidemobile>h2</td>
+                      <td align=center class=div_hidemobile>-</td>
+                      <td align=right class='div_hidemobile nowrap'>27.4 KB</td>
+                      <td class='nowrap tswhite div_hidemobile'><span class='inline mt3'>
+        <div class='rb3' style='background-color:#44420; line-height:12px; font-size:6px; position:relative; height:12px; overflow:hidden; width:100px; display:inline-block;'>
+          <div class='fl rb3 nowrap' style='background-color:#444; width:100%; color:white; text-align:center;'>&nbsp;</div>
+          &nbsp;
+        </div>
+    </span></td>
+                      <td class='div_hidemobile nowrap' style='min-width:90px;'>Image</td>
+                    </tr>
+                
+                    <tr class='small '>
+                      <td align=right class=div_hidemobile>0.218</td>
+                      <td class=ellipsis_wrapper><div class=ellipsis><span class='mat green' style='vertical-align:-6px;'>lock</span>/assets/3.jpeg</div></td>
+                      <td align=right><span class='rb3 bold' style='background:#18803820; color:#188038; padding:3px 7px;'>200</span></td>
+                      <td class=div_hidemobile>h2</td>
+                      <td align=center class=div_hidemobile>-</td>
+                      <td align=right class='div_hidemobile nowrap'>26.8 KB</td>
+                      <td class='nowrap tswhite div_hidemobile'><span class='inline mt3'>
+        <div class='rb3' style='background-color:#44420; line-height:12px; font-size:6px; position:relative; height:12px; overflow:hidden; width:100px; display:inline-block;'>
+          <div class='fl rb3 nowrap' style='background-color:#444; width:98%; color:white; text-align:center;'>&nbsp;</div>
+          &nbsp;
+        </div>
+    </span></td>
+                      <td class='div_hidemobile nowrap' style='min-width:90px;'>Image</td>
+                    </tr>
+                
+                    <tr class='small '>
+                      <td align=right class=div_hidemobile>0.219</td>
+                      <td class=ellipsis_wrapper><div class=ellipsis><span class='mat green' style='vertical-align:-6px;'>lock</span>/assets/4.jpeg</div></td>
+                      <td align=right><span class='rb3 bold' style='background:#18803820; color:#188038; padding:3px 7px;'>200</span></td>
+                      <td class=div_hidemobile>h2</td>
+                      <td align=center class=div_hidemobile>-</td>
+                      <td align=right class='div_hidemobile nowrap'>26.2 KB</td>
+                      <td class='nowrap tswhite div_hidemobile'><span class='inline mt3'>
+        <div class='rb3' style='background-color:#44420; line-height:12px; font-size:6px; position:relative; height:12px; overflow:hidden; width:100px; display:inline-block;'>
+          <div class='fl rb3 nowrap' style='background-color:#444; width:96%; color:white; text-align:center;'>&nbsp;</div>
+          &nbsp;
+        </div>
+    </span></td>
+                      <td class='div_hidemobile nowrap' style='min-width:90px;'>Image</td>
+                    </tr>
+                
+                    <tr class='small '>
+                      <td align=right class=div_hidemobile>0.220</td>
+                      <td class=ellipsis_wrapper><div class=ellipsis><span class='mat green' style='vertical-align:-6px;'>lock</span>/assets/5.svg</div></td>
+                      <td align=right><span class='rb3 bold' style='background:#18803820; color:#188038; padding:3px 7px;'>200</span></td>
+                      <td class=div_hidemobile>h2</td>
+                      <td align=center class=div_hidemobile>-</td>
+                      <td align=right class='div_hidemobile nowrap'>407 B</td>
+                      <td class='nowrap tswhite div_hidemobile'><span class='inline mt3'>
+        <div class='rb3' style='background-color:#44420; line-height:12px; font-size:6px; position:relative; height:12px; overflow:hidden; width:100px; display:inline-block;'>
+          <div class='fl rb3 nowrap' style='background-color:#444; width:1%; color:white; text-align:center;'>&nbsp;</div>
+          &nbsp;
+        </div>
+    </span></td>
+                      <td class='div_hidemobile nowrap' style='min-width:90px;'>Image</td>
+                    </tr>
+                
+                    <tr class='small '>
+                      <td align=right class=div_hidemobile>0.221</td>
+                      <td class=ellipsis_wrapper><div class=ellipsis><span class='mat green' style='vertical-align:-6px;'>lock</span>/assets/6.svg</div></td>
+                      <td align=right><span class='rb3 bold' style='background:#18803820; color:#188038; padding:3px 7px;'>200</span></td>
+                      <td class=div_hidemobile>h2</td>
+                      <td align=center class=div_hidemobile>-</td>
+                      <td align=right class='div_hidemobile nowrap'>5.1 KB</td>
+                      <td class='nowrap tswhite div_hidemobile'><span class='inline mt3'>
+        <div class='rb3' style='background-color:#44420; line-height:12px; font-size:6px; position:relative; height:12px; overflow:hidden; width:100px; display:inline-block;'>
+          <div class='fl rb3 nowrap' style='background-color:#444; width:19%; color:white; text-align:center;'>&nbsp;</div>
+          &nbsp;
+        </div>
+    </span></td>
+                      <td class='div_hidemobile nowrap' style='min-width:90px;'>Image</td>
+                    </tr>
+                
+        </table>
+    </div>
+        <div class='mb20 bgwhite p20 bs rb5'>
+            <div class=mb20>
+                <h3>Why not use the API? Automate your complete QA workflow!</h3>
+                <div class='p20 rb3 mt20' style='background:#EBF2FF;'>Get the same report as above in JSON format. Integrate <a href='/api-docs/v3/scan-zip' target='_blank'><b>AdValify's API</b></a> into your workflow and <b>automate your complete ad validation process</b>. Reduce mistakes and save huge amounts of time. Discuss this with your team today. Get in touch for a <a href='/contact'>free API Key</a>.</div>
+            </div>
+            
+        <div id=tabs class='relative'>
+          <div class=div_hidemobile style='position:absolute; right:0px; top:0px;'><span class=mat>auto_stories</span><a href='/api-docs/v3/scan-zip' target='_blank'>API Documentation</a></div>
+          <div id=tab1_1 class=on onmousedown='showtab(1,1);'>cURL</div>
+          <div id=tab2_1 onmousedown='showtab(2,1);'>PHP</div>
+          <div id=tab3_1 onmousedown='showtab(3,1);'>Python</div>
+          <div id=tab4_1 onmousedown='showtab(4,1);'>Node.js</div>
+        </div>
+        
+                <div id=tabdiv1_1 class='relative' style=''>
+                  
+                      <div class='iconright2 div_hidemobile' style='position:absolute; right:15px; top:15px; color:white !important; background:transparent !important;' onclick="copyToClipboard(getObject('div_api_curl').innerText);">
+                        <span class=mat>content_copy</span>
+                        <div>Copy Code</div>
+                      </div>
+                  
+                  <div class='mt20 highlight_json_wrapper white myscrollbar_white' style='overflow-x:scroll;'>
+                    <div id=div_api_curl class=highlight_json style='white-space:pre;'>curl "https://{your_name}.api.advalify.io/v3/scanZip"
+  -H "X-ApiKey: TCm2Hd_rT4pRNvSZ2cGYCJ6...(example))"
+  -X POST
+  -d '{
+    "data": "QmFzZTY0IG9mIHppcCBmaWxlIGhlcmU...(example)"
+  }'</div>
+                  </div>
+                </div>
+            
+                <div id=tabdiv2_1 class='relative' style='display:none;'>
+                  
+                      <div class='iconright2 div_hidemobile' style='position:absolute; right:15px; top:15px; color:white !important; background:transparent !important;' onclick="copyToClipboard(getObject('div_api_php').innerText);">
+                        <span class=mat>content_copy</span>
+                        <div>Copy Code</div>
+                      </div>
+                  
+                  <div class='mt20 highlight_json_wrapper white myscrollbar_white' style='overflow-x:scroll;'>
+                    <div id=div_api_php class=highlight_json style='white-space:pre;'>// Define the API endpoint, API key, and payload
+$apiUrl = "https://{your_name}.api.advalify.io/v3/scanZip";
+$apiKey = "TCm2Hd_rT4pRNvSZ2cGYCJ6...(example)"; // Replace with your actual API key
+$payload = [
+    "data" => "QmFzZTY0IG9mIHppcCBmaWxlIGhlcmU...(example)" // Replace with your Base64-encoded file data
+];
+
+// Initialize cURL session
+$ch = curl_init($apiUrl);
+curl_setopt($ch, CURLOPT_HTTPHEADER, [
+    "X-ApiKey: $apiKey",
+    "Content-Type: application/json"
+]);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+$response = curl_exec($ch);
+curl_close($ch);
+$json = json_decode($response,true);
+print_r($json);</div>
+                  </div>
+                </div>
+            
+                <div id=tabdiv3_1 class='relative' style='display:none;'>
+                  
+                      <div class='iconright2 div_hidemobile' style='position:absolute; right:15px; top:15px; color:white !important; background:transparent !important;' onclick="copyToClipboard(getObject('div_api_python').innerText);">
+                        <span class=mat>content_copy</span>
+                        <div>Copy Code</div>
+                      </div>
+                  
+                  <div class='mt20 highlight_json_wrapper white myscrollbar_white' style='overflow-x:scroll;'>
+                    <div id=div_api_python class=highlight_json style='white-space:pre;'>import requests
+
+url = "https://{your_name}.api.advalify.io/v3/scanZip"
+headers = {"X-ApiKey": "TCm2Hd_rT4pRNvSZ2cGYCJ6...(example)", "Content-Type": "application/json"}
+payload = {"data": "QmFzZTY0IG9mIHppcCBmaWxlIGhlcmU...(example)"}
+response = requests.post(url, json=payload, headers=headers)
+
+try:
+    result = response.json()
+    print(result)  # Output the parsed JSON response
+except ValueError:
+    print("Failed to parse response as JSON:", response.text)</div>
+                  </div>
+                </div>
+            
+                <div id=tabdiv4_1 class='relative' style='display:none;'>
+                  
+                      <div class='iconright2 div_hidemobile' style='position:absolute; right:15px; top:15px; color:white !important; background:transparent !important;' onclick="copyToClipboard(getObject('div_api_nodejs').innerText);">
+                        <span class=mat>content_copy</span>
+                        <div>Copy Code</div>
+                      </div>
+                  
+                  <div class='mt20 highlight_json_wrapper white myscrollbar_white' style='overflow-x:scroll;'>
+                    <div id=div_api_nodejs class=highlight_json style='white-space:pre;'>const axios = require('axios');
+
+const url = "https://{your_name}.api.advalify.io/v3/scanZip";
+const headers = {
+  "X-ApiKey": "TCm2Hd_rT4pRNvSZ2cGYCJ6...(example)",
+  "Content-Type": "application/json",
+};
+const payload = {
+  data: "QmFzZTY0IG9mIHppcCBmaWxlIGhlcmU...(example)"
+};
+
+axios.post(url, payload, { headers })
+  .then(response => {
+    console.log(response.data); // Parsed JSON response
+  })
+  .catch(error => {
+    console.error("Error:", error.response ? error.response.data : error.message);
+  });</div>
+                  </div>
+                </div>
+            
+            <div class='highlight_json_wrapper myscrollbar mt20' style='height:400px; overflow-y:auto;'>
+              <div class=highlight_json>
+                {<br/>&nbsp;&nbsp;&nbsp;&nbsp;"animation_duration": -1,<br/>&nbsp;&nbsp;&nbsp;&nbsp;"blocked_by_adblock": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;"compressed_file_size": 117075,<br/>&nbsp;&nbsp;&nbsp;&nbsp;"console": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"errors": [],<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"warnings": []<br/>&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;"cookies": [],<br/>&nbsp;&nbsp;&nbsp;&nbsp;"cpu_usage": 53,<br/>&nbsp;&nbsp;&nbsp;&nbsp;"creative_rendered": true,<br/>&nbsp;&nbsp;&nbsp;&nbsp;"css_embedded": true,<br/>&nbsp;&nbsp;&nbsp;&nbsp;"dialogs": [],<br/>&nbsp;&nbsp;&nbsp;&nbsp;"dimensions": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"height": 600,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"text": "160x600",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"width": 160<br/>&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;"dom_content_loaded": 48,<br/>&nbsp;&nbsp;&nbsp;&nbsp;"file_contents": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"log": [],<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"passed": true,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"types": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"html": 1,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"jpeg": 3,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"svg": 4<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br/>&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;"file_structure": [{<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"content": [{<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"bytes": 458,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "0.svg",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"optimized": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"perc_savings": 0,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": true<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "image"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"bytes": 15660,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "1.svg",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"optimized": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"perc_savings": 0,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": true<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "image"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"bytes": 27947,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "2.jpeg",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "image"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"bytes": 27318,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "3.jpeg",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "image"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"bytes": 26739,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "4.jpeg",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "image"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"bytes": 593,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "5.svg",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"optimized": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"perc_savings": 0,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": true<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "image"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"bytes": 15657,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "6.svg",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"optimized": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"perc_savings": 0,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": true<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "image"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}],<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "assets",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "folder"<br/>&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;{<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"bytes": 107206,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "index.html",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "html"<br/>&nbsp;&nbsp;&nbsp;&nbsp;}],<br/>&nbsp;&nbsp;&nbsp;&nbsp;"has_backup_ad": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;"has_border": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;"has_external_assets": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;"has_video": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;"heavy_ad_intervention": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;"hosted_file_count": 9,<br/>&nbsp;&nbsp;&nbsp;&nbsp;"hosted_file_size": 221270,<br/>&nbsp;&nbsp;&nbsp;&nbsp;"html5_library": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;"iframes": 0,<br/>&nbsp;&nbsp;&nbsp;&nbsp;"index_file": true,<br/>&nbsp;&nbsp;&nbsp;&nbsp;"job_id": "s8e9w-c0dc3-3c345",<br/>&nbsp;&nbsp;&nbsp;&nbsp;"landing_page": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"click_through": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"type": "click_tag"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"screenshot": [],<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"title": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"url": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"working": false<br/>&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;"local_storage": [],<br/>&nbsp;&nbsp;&nbsp;&nbsp;"memory_usage": 3145728,<br/>&nbsp;&nbsp;&nbsp;&nbsp;"meta": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"api_version": "v3",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"cpu": "AMD 16-Core EPYC 7302P",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"creative_type": "zip",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"device": "desktop",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"language": "en-US",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"original_available": true,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"ram": "128GB",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"scan_type": "web",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"server_location": "ams",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"spec_id": 0,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"timestamp": 1758033604,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.127 Safari/537.36",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"duration": 7.312069<br/>&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;"meta_ad_size": true,<br/>&nbsp;&nbsp;&nbsp;&nbsp;"minified": true,<br/>&nbsp;&nbsp;&nbsp;&nbsp;"missing_assets": [],<br/>&nbsp;&nbsp;&nbsp;&nbsp;"mobile_friendly": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;"name": "DCO_09-14-25_ASOR_EVGRN_NA_Sv30Pct_DIS_D-HTML5_160x600_ENG.zip",<br/>&nbsp;&nbsp;&nbsp;&nbsp;"network": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"count": 8,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"load_size": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"host_initiated_subload": 93673,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"initial_load": 21734,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"total": 115407<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"measurement_pixels": 0,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"responses": [{<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"blocked_by_adblock": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"bytes": 21734,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"is_pixel": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"method": "GET",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"mime_type": "text/html",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"protocol": "h2",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"resource_type": "document",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"server_ip": "127.0.0.1",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"ssl": true,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"ssl_info": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"cipher": "AES_128_GCM",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"protocol": "TLS 1.3",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"validFrom": 1607455037,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"validTo": 1922815037<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"status": 200,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"status_text": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"timing": 1.0810010135173798,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"url": "https://www.advalify.io/html5-ad-validator/s8e9w-c0dc3-3c345/index.html"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"blocked_by_adblock": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"bytes": 386,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"is_pixel": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"method": "GET",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"mime_type": "image/svg+xml",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"protocol": "h2",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"resource_type": "image",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"server_ip": "127.0.0.1",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"ssl": true,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"ssl_info": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"cipher": "AES_128_GCM",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"protocol": "TLS 1.3",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"validFrom": 1607455037,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"validTo": 1922815037<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"status": 200,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"status_text": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"timing": 215.77399969100952,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"url": "https://www.advalify.io/html5-ad-validator/s8e9w-c0dc3-3c345/assets/0.svg"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"blocked_by_adblock": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"bytes": 5248,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"is_pixel": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"method": "GET",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"mime_type": "image/svg+xml",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"protocol": "h2",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"resource_type": "image",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"server_ip": "127.0.0.1",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"ssl": true,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"ssl_info": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"cipher": "AES_128_GCM",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"protocol": "TLS 1.3",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"validFrom": 1607455037,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"validTo": 1922815037<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"status": 200,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"status_text": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"timing": 216.53499826788902,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"url": "https://www.advalify.io/html5-ad-validator/s8e9w-c0dc3-3c345/assets/1.svg"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"blocked_by_adblock": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"bytes": 28074,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"is_pixel": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"method": "GET",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"mime_type": "image/jpeg",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"protocol": "h2",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"resource_type": "image",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"server_ip": "127.0.0.1",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"ssl": true,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"ssl_info": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"cipher": "AES_128_GCM",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"protocol": "TLS 1.3",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"validFrom": 1607455037,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"validTo": 1922815037<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"status": 200,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"status_text": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"timing": 218.13099831342697,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"url": "https://www.advalify.io/html5-ad-validator/s8e9w-c0dc3-3c345/assets/2.jpeg"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"blocked_by_adblock": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"bytes": 27445,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"is_pixel": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"method": "GET",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"mime_type": "image/jpeg",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"protocol": "h2",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"resource_type": "image",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"server_ip": "127.0.0.1",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"ssl": true,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"ssl_info": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"cipher": "AES_128_GCM",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"protocol": "TLS 1.3",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"validFrom": 1607455037,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"validTo": 1922815037<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"status": 200,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"status_text": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"timing": 218.47299858927727,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"url": "https://www.advalify.io/html5-ad-validator/s8e9w-c0dc3-3c345/assets/3.jpeg"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"blocked_by_adblock": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"bytes": 26866,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"is_pixel": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"method": "GET",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"mime_type": "image/jpeg",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"protocol": "h2",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"resource_type": "image",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"server_ip": "127.0.0.1",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"ssl": true,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"ssl_info": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"cipher": "AES_128_GCM",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"protocol": "TLS 1.3",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"validFrom": 1607455037,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"validTo": 1922815037<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"status": 200,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"status_text": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"timing": 218.6569981276989,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"url": "https://www.advalify.io/html5-ad-validator/s8e9w-c0dc3-3c345/assets/4.jpeg"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"blocked_by_adblock": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"bytes": 407,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"is_pixel": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"method": "GET",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"mime_type": "image/svg+xml",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"protocol": "h2",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"resource_type": "image",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"server_ip": "127.0.0.1",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"ssl": true,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"ssl_info": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"cipher": "AES_128_GCM",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"protocol": "TLS 1.3",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"validFrom": 1607455037,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"validTo": 1922815037<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"status": 200,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"status_text": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"timing": 220.35500034689903,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"url": "https://www.advalify.io/html5-ad-validator/s8e9w-c0dc3-3c345/assets/5.svg"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"blocked_by_adblock": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"bytes": 5247,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"is_pixel": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"method": "GET",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"mime_type": "image/svg+xml",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"protocol": "h2",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"resource_type": "image",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"server_ip": "127.0.0.1",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"ssl": true,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"ssl_info": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"cipher": "AES_128_GCM",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"protocol": "TLS 1.3",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"validFrom": 1607455037,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"validTo": 1922815037<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"status": 200,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"status_text": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"timing": 220.56299820542336,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"url": "https://www.advalify.io/html5-ad-validator/s8e9w-c0dc3-3c345/assets/6.svg"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}]<br/>&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;"optimized": true,<br/>&nbsp;&nbsp;&nbsp;&nbsp;"scan_results": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"failed": 0,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"passed": 31,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"tests": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"animation_duration": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": -1,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "int",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Animation Duration",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "ignored",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": "ms"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"has_backup_ad": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "boolean",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Backup Ad Found",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "ignored",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": ""<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"adblock": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "boolean",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Blocked by AdBlock",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "ignored",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": ""<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"cpu_usage": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": 53,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "int",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": 500,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "less than 500 ms",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "CPU Usage",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "&lt;",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "passed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": "ms"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"css_embedded": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": true,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "boolean",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "present",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "CSS Embedded",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "true",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "passed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": ""<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"minified_css_js": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": true,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "boolean",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "present",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "CSS/JS Minified",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "true",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "passed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": ""<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"click_through_type": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": "click_tag",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "string",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Click Through",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "ignored",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": ""<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"compressed_file_size": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": 117075,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "int",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": 5248000,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "less than or equal to 5248000 bytes",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Compressed File Size",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "&lt;=",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "passed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": "bytes"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"js_errors": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": 0,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "int",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": 0,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "equals 0",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Console Errors",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "=",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "passed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": ""<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"console_warnings": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": 0,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "int",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": 0,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Console Warnings",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "ignored",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": ""<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"cookies_dropped": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": 0,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "int",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": 0,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "equals 0",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Cookies Dropped",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "=",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "passed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": ""<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"has_border": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "boolean",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Creative Border",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "ignored",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": ""<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"creative_rendered": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": true,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "boolean",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "present",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Creative Rendered",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "true",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "passed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": ""<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"dom_content_loaded": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": 48,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "int",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": 1000,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "less than 1000 ms",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "DOMContentLoaded",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "&lt;",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "passed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": "ms"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"dialogs": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": 0,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "int",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": 0,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "equals 0",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Dialogs and Modals",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "=",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "passed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": ""<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"dimensions": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": "160x600",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "string",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": "980x600, 900x500, 1x1, 320x150, 320x250, 300x50, 320x480, 300x60, 600x300, 1920x1080, 468x60, 234x60, 728x90, 970x90, 970x250, 980x120, 980x400, 120x90, 120x60, 120x240, 125x125, 88x31, 200x200, 250x250, 300x250, 240x400, 336x280, 180x150, 300x100, 720x300, 580x400, 120x600, 160x600, 300x600, 728x15, 320x50, 320x100, 300x1050",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "980x600,  900x500,  1x1,  320x150,  320x250,  300x50,  320x480,  300x60,  600x300,  1920x1080,  468x60,  234x60,  728x90,  970x90,  970x250,  980x120,  980x400,  120x90,  120x60,  120x240,  125x125,  88x31,  200x200,  250x250,  300x250,  240x400,  336x280,  180x150,  300x100,  720x300,  580x400,  120x600,  160x600,  300x600,  728x15,  320x50,  320x100,  300x1050",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Dimensions",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "in",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "passed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": ""<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"external_assets": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "boolean",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "External Assets",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "ignored",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": ""<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"file_contents": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": true,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "boolean",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "present",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "File Types Allowed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "true",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "passed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": ""<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"html5_library": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "string",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "HTML5 Library",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "ignored",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": ""<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"has_video": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "boolean",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "absent",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Has Video",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "false",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "passed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": ""<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"heavy_ad_intervention": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "boolean",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "absent",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Heavy Ad Intervention",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "false",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "passed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": ""<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"hosted_file_count": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": 9,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "int",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": 100,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "less than or equal to 100",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Hosted File Count",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "&lt;=",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "passed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": ""<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"hosted_file_size": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": 221270,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "int",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": 2621440,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "less than or equal to 2621440 bytes",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Hosted File Size",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "&lt;=",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "passed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": "bytes"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"iframe_count": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": 0,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "int",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": 5,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "less than or equal to 5",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Iframe Count",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "&lt;=",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "passed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": ""<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"optimized_images": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": true,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "boolean",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "present",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Images Optimized",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "true",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "passed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": ""<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"index_file_check": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": true,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "boolean",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "present",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Index File Check",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "true",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "passed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": ""<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"has_landing_page": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "boolean",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Landing Page Working",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "ignored",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": ""<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"initial_load": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": 21734,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "int",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": 153600,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "less than or equal to 153600 bytes",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Load Size: Initial",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "&lt;",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "passed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": "bytes"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"host_initiated_subload": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": 93673,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "int",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": 307200,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "less than or equal to 307200 bytes",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Load Size: Subload",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "&lt;",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "passed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": "bytes"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"load_size": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": 115407,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "int",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": 524288,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "less than 524288 bytes",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Load Size: Total",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "&lt;",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "passed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": "bytes"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"local_storage": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": 0,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "int",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": 0,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "equals 0",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Local Storage",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "=",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "passed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": ""<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"measurement_pixels": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": 0,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "int",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": 5,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "less than 5",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Measurement Pixels",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "&lt;",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "passed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": ""<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"memory_usage": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": 3145728,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "int",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": 10485760,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "less than 10485760 bytes",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Memory Usage",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "&lt;",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "passed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": "bytes"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"meta_ad_size": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": true,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "boolean",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "present",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Meta tag ad.size",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "true",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "passed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": ""<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"missing_assets": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": 0,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "int",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": 0,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "equals 0",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Missing Assets",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "=",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "passed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": ""<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"network_requests": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": 8,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "int",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": 15,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "less than or equal to 15",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Network Requests",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "&lt;=",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "passed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": ""<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"ssl_compatibility": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": true,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "boolean",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "present",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "SSL-Compatibility",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "true",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "passed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": ""<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"syntax_errors": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": 0,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "int",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": 0,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "equals 0",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Syntax Errors",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "=",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "passed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": ""<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"time_to_visual_start": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": 59,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "int",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": 500,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "less than 500 ms",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Time to Visual Start",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "&lt;",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "passed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": "ms"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"document_write": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "boolean",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Uses document.write()",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "ignored",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": ""<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"uses_jquery": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"actual": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"data_type": "boolean",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"expected_text": "absent",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"how_to_fix": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"name": "Uses jQuery",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"operator": "false",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"result": "passed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"unit": ""<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br/>&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;"screenshot": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"highres": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"bytes": 138858,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"color": "#578ba3",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"mime_type": "image/png",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"url": "https://try.cdn.advalify.io/img/s8e9w-s8e9w-c0dc3-3c345-5v3qxwfc.png"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"thumbnail": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"bytes": 1663,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"color": "#578ba3",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"mime_type": "image/jpg",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"url": "https://try.cdn.advalify.io/img/s8e9w-s8e9w-c0dc3-3c345-tbpfhzqg.jpg"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br/>&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;"spec_id": "",<br/>&nbsp;&nbsp;&nbsp;&nbsp;"ssl": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"compliant": true<br/>&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;"syntax_errors": [],<br/>&nbsp;&nbsp;&nbsp;&nbsp;"time_to_visual_start": 59,<br/>&nbsp;&nbsp;&nbsp;&nbsp;"uses_document_write": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;"uses_jquery": false,<br/>&nbsp;&nbsp;&nbsp;&nbsp;"video": null,<br/>&nbsp;&nbsp;&nbsp;&nbsp;"zip": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"bytes": 117075,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"index": "https://try.cdn.advalify.io/img/s8e9w-s8e9w-c0dc3-3c345-9wcmzbrh.zip/index.html",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"mime_type": "application/zip",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"url": "https://try.cdn.advalify.io/img/s8e9w-s8e9w-c0dc3-3c345-hw52473d.zip"<br/>&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;"ad_shots": {<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"status": "completed",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"ts": 1758033611,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"items": [{<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"bytes": 124217,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"color": "#83908f",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"mime_type": "image/png",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"time_ms": 1247,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"url": "https://try.cdn.advalify.io/img/s8e9w-s8e9w-f0a23-88b18-hdj2z84k.png"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"bytes": 123902,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"color": "#666761",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"mime_type": "image/png",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"time_ms": 4241,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"url": "https://try.cdn.advalify.io/img/s8e9w-s8e9w-f0a23-88b18-w92x4qf6.png"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"bytes": 124228,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"color": "#578ba3",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"mime_type": "image/png",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"time_ms": 6237,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"url": "https://try.cdn.advalify.io/img/s8e9w-s8e9w-f0a23-88b18-47gmbkn3.png"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"bytes": 9406,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"color": "#667b87",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"mime_type": "image/png",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"time_ms": 8224,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"url": "https://try.cdn.advalify.io/img/s8e9w-s8e9w-f0a23-88b18-r6f8md5h.png"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"bytes": 9406,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"color": "#667b87",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"mime_type": "image/png",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"time_ms": 10226,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"url": "https://try.cdn.advalify.io/img/s8e9w-s8e9w-f0a23-88b18-52cdtbj7.png"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"bytes": 9406,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"color": "#667b87",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"mime_type": "image/png",<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"time_ms": 12223,<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"url": "https://try.cdn.advalify.io/img/s8e9w-s8e9w-f0a23-88b18-4k79gnb6.png"<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}]<br/>&nbsp;&nbsp;&nbsp;&nbsp;}<br/>}
+              </div>
+            </div>
+        </div>    
+    
+        <div class='mb20 bgwhite p20 bs rb5'>
+          <h3>Metadata</h3>
+          <table id=maintable width=100%>
+            <tr><td width=200>Scan Type</td><td>Web scan on AdValify.io</td></tr>
+            <tr><td width=200>API Version</td><td>v3</td></tr>
+            <tr><td width=200>Hardware</td><td>AMD 16-Core EPYC 7302P - 128GB</td></tr>
+            <tr><td width=200>Unix Timestamp</td><td>1758033604 - <span class=disabled>14 min ago</span></td></tr>
+            <tr><td width=200>Scan Duration</td><td>7.31 seconds</td></tr>
+            <tr><td width=200>Creative Type</td><td>HTML5 Zip</td></tr>
+            <tr><td width=200 class=top>Original Name</td><td><div style='word-break:break-all;'>DCO_09-14-25_ASOR_EVGRN_NA_Sv30Pct_DIS_D-HTML5_160x600_ENG.zip</div></td></tr>
+            <tr><td width=200>Device</td><td>Desktop</td></tr>
+            <tr><td width=200>Language</td><td>en-US</td></tr>
+            <tr><td width=200 class=top>User-Agent</td><td>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.7339.127 Safari/537.36</td></tr>
+          </table>
+        </div>
+    </div></div>
+                  
+                  <div class='bgwhite bs' style='display:none; margin-top:6px;'>
+                    <div class=sticky style='margin-top:-6px; height:6px; background:#F5F8FD; z-index:9; top:0px;'></div>
+                    <div class='sticky myscrollbar_white' style='padding:15px 10px 20px 20px; top:7px; height:calc(100vh - 10px); overflow-y:scroll; overflow-x:hidden;'>
+                      <button class='btnhigh w100 mb10' onclick="reviewaction('get','6z545zsngf');">Request Review</button>
+                      <div class='grid pb10 line mt10 mb20'><div class='small bold'>Current Status</div><div><div class='fr'>
+        <div class=statusbar>
+        <div  style='background:#1261A0;' data-tippy='Draft' data-tippy-pos='down' data-tippy-size='small' data-tippy-animate='slide'><div>D</div></div><div  style='background:#999;' data-tippy='Review Pending' data-tippy-pos='down' data-tippy-size='small' data-tippy-animate='slide'><div>R</div></div><div  style='background:#999;' data-tippy='Approved' data-tippy-pos='down' data-tippy-size='small' data-tippy-animate='slide'><div>A</div></div><div  style='background:#999;' data-tippy='Requested Trafficking' data-tippy-pos='down' data-tippy-size='small' data-tippy-animate='slide'><div>T</div></div><div  style='background:#999;' data-tippy='Serving Now' data-tippy-pos='down' data-tippy-size='small' data-tippy-animate='slide'><div>S</div></div><div  style='background:#999;' data-tippy='Completed' data-tippy-pos='down' data-tippy-size='small' data-tippy-animate='slide'><div>C</div></div>
+        </div>
+    </div></div></div>
+                      
+                      <div class='small pb5 line mb5 bold'>Ad Specification</div>
+                      <div>
+        <div class='myradio_wrapper' >
+          <input type=radio name=ad_spec id='ad_spec_0' value='0' checked>
+          <div class='myradio ' onmousedown="getObject('ad_spec_0').checked = true; ">
+            <span class='myradio_box mat'></span><span style='display:inline-block; vertical-align:middle; width:calc(100% - 35px);'>IAB Guidelines</span>
+          </div>
+        </div>
+    </div>
+                      <div>
+        <div class='myradio_wrapper' >
+          <input type=radio name=ad_spec id='ad_spec_1' value='1' >
+          <div class='myradio ' onmousedown="getObject('ad_spec_1').checked = true; ">
+            <span class='myradio_box mat'></span><span style='display:inline-block; vertical-align:middle; width:calc(100% - 35px);'>My Custom Ad Spec</span>
+          </div>
+        </div>
+    </div>
+                      <br>
+                      
+                      <div class='small pb5 line mb5 bold'>Assign Tasks</div>
+                      <div class='small mb20 ellipsis'></div>
+                      
+                      <div class='small pb5 line mb5 bold'>File Versioning</div>
+                      <div class='relative'>
+                        <div style='position:absolute; top:10px; z-index:-1; left:40px; width:4px; background:#c0c0c0; height:100%;'></div>
+                        
+                            <div class='grid mb10 p10 rb3 cursor' style='grid-template-columns:75px 1fr;'>
+                              <div><div class='rb5 relative' style='height:40px; width:65px; background-color:#f0f0f0;'><span class='mat nomargin' style='position:absolute; top:50%; left:50%; transform:translateX(-50%) translateY(-50%);'>add</span></div></div>
+                              <div><div class=bold style='margin-top:-5px;'>v2</div><div class='small gray'>Add new version</div></div>
+                            </div>
+                        
+                                <div class='grid mb10 p10 bgblue rb3 cursor hovericon_wrapper' style='grid-template-columns:75px 1fr 20px; align-items: center;' onclick="localStorage.setItem('version','1'); scanaction('get','s8e9w-c0dc3-3c345');">
+                                  <div><div class='rb5' style='height:40px; width:65px; background-image:url("https://try.cdn.advalify.io/img/s8e9w-s8e9w-c0dc3-3c345-tbpfhzqg.jpg"); background-size:contain; background-position:center center; background-repeat:no-repeat; background-color:#578ba3;'></div></div>
+                                  <div>
+                                    <div class=bold style='margin-top:-5px;'>
+                                      v1
+                                    </div>
+                                    <div class=small>14 min ago</div>
+                                  </div>
+                                  
+                                </div>
+                            
+                      </div>
+                      
+                    </div>
+                  </div>
+                </div>
+              -=-=-{"ok":true,"require_signup":false,"job_id_result":"s8e9w-c0dc3-3c345","open_test":""}

@@ -1,11 +1,11 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo } from 'react';
 import { useAppStore } from '../state/useStore';
 
 const passIcon = (
-  <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-pass text-white text-xs" aria-label="pass">✓</span>
+  <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-pass text-white text-xs" aria-label="pass">âœ“</span>
 );
 const failIcon = (
-  <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-fail text-white text-xs" aria-label="fail">✕</span>
+  <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-fail text-white text-xs" aria-label="fail">âœ•</span>
 );
 const warnIcon = (
   <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-warn text-white text-xs" aria-label="warn">!</span>
@@ -54,7 +54,7 @@ export const FindingList: React.FC = () => {
                     <ul className="mt-1 text-xs font-mono bg-gray-50 p-2 rounded max-h-40 overflow-auto">
                       {f.offenders.map((o, i) => (
                         <li key={i} className="py-0.5">
-                          <span>{o.path}</span>{o.detail && <span className="text-gray-500"> — {o.detail}</span>}
+                          <span>{o.path}</span>{o.detail && <span className="text-gray-500"> â€” {o.detail}</span>}
                           {typeof o.line === 'number' && <span className="text-gray-400"> (line {o.line})</span>}
                         </li>
                       ))}
@@ -101,7 +101,7 @@ const CHECK_DESCRIPTIONS: Record<string, string> = {
   primaryAsset: 'Detects main HTML file & required ad.size meta width/height.',
   assetReferences: 'Ensures all HTML/CSS referenced assets exist in the bundle.',
   orphanAssets: 'Lists files not referenced by primary asset dependency graph.',
-  externalResources: 'Flags external network references outside allow‑list.',
+  externalResources: 'Flags external network references outside allow-list.',
   httpsOnly: 'Requires all external references to use HTTPS.',
   clickTags: 'Detects clickTag variables / exit APIs and hard-coded navigations.',
   gwdEnvironment: 'Identifies Google Web Designer runtime artifacts.',
@@ -132,3 +132,4 @@ const HelpIcon: React.FC<{ checkId: string }> = ({ checkId }) => {
     </span>
   );
 };
+

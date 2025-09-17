@@ -25,21 +25,44 @@ try {
 }
 if (-not $plain -or $plain.Length -lt 30) { Write-Error "Token length suspicious"; exit 2 }
 
-$remoteUrl = "https://$plain@github.com/evschneider-hmi/ps-html5auditor.git"
-Write-Host "Pushing branch $Branch to canonical repo (masked token)" -ForegroundColor Yellow
+$remoteUrl = "https://github.com/evschneider-hmi/ps-html5auditor.git"
+Write-Host "Pushing branch $Branch to canonical repo (token stored via credential helper)" -ForegroundColor Yellow
 
-# Use a temporary remote to avoid storing token in config
-$tempRemote = "hmi-temp-token"
-if (git remote | Select-String -Pattern "^$tempRemote$") { git remote remove $tempRemote | Out-Null }
+# Stage the PAT with git's credential helper so it never appears in a remote URL or on disk.
+$credentialInput = @"
+protocol=https
+host=github.com
+username=evschneider-hmi
+password=$plain
+"@
+$credentialRejectInput = @"
+protocol=https
+host=github.com
+username=evschneider-hmi
+"@
 
-git remote add $tempRemote $remoteUrl
+$credentialPrepared = $false
 try {
-  git push $tempRemote $Branch:main
+  $credentialInput | git credential approve | Out-Null
+  $credentialPrepared = $true
+
+  git push $remoteUrl $Branch:main
   if ($LASTEXITCODE -ne 0) { throw "Push failed" }
   Write-Host "Push succeeded." -ForegroundColor Green
 } catch {
+  if (-not $credentialPrepared) {
+    Write-Error "Failed to register credentials with git credential helper: $_"
+    exit 4
+  }
   Write-Error $_
   exit 3
 } finally {
-  git remote remove $tempRemote | Out-Null
+  if ($credentialPrepared) {
+    $credentialRejectInput | git credential reject | Out-Null
+  }
+  Remove-Variable plain -ErrorAction SilentlyContinue
+  if ($token -is [System.IDisposable]) {
+    $token.Dispose()
+  }
+  Remove-Variable token -ErrorAction SilentlyContinue
 }
