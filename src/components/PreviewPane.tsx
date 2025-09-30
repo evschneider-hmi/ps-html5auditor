@@ -19,26 +19,27 @@ export const PreviewPane: React.FC = () => {
   const [original, setOriginal] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [loading, setLoading] = useState(false);
-   const [clickUrl, setClickUrl] = useState<string | null>(null); 
-  const [debug, setDebug] = useState<string[]>([]); 
+  const [clickUrl, setClickUrl] = useState<string | null>(null);
+  const [debug, setDebug] = useState<string[]>([]);
   const [handshake, setHandshake] = useState<boolean>(false);
-  const [showModal, setShowModal] = useState<boolean>(false); // Only user actions should open
+  const [showModal, setShowModal] = useState<boolean>(false);
   const [lastMeta, setLastMeta] = useState<any>(null);
-  const [iframeHeight, setIframeHeight] = useState<number>(800); // start taller
+  const [iframeHeight, setIframeHeight] = useState<number>(800);
+  const [iframeWidth, setIframeWidth] = useState<number | undefined>(undefined);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
   const bundle = useAppStore(s => s.bundles.find(b => b.id === bundleResult?.bundleId));
 
   // Build preview when bundle or primary changes
   useEffect(() => {
-  if (!bundleResult || !bundleResult.primary || !bundle) return;
+    if (!bundleResult || !bundleResult.primary || !bundle) return;
     let cancelled = false;
     setLoading(true);
     setError('');
     (async () => {
       try {
-  if (!bundleResult.primary) return;
-  const built = await buildPreview(bundle, bundleResult.primary.path);
+        if (!bundleResult.primary) return;
+        const built = await buildPreview(bundle, bundleResult.primary.path);
         if (cancelled) return;
         setHtml(built.html);
         setOriginal(built.originalHtml);
@@ -49,36 +50,79 @@ export const PreviewPane: React.FC = () => {
         if (!cancelled) setLoading(false);
       }
     })();
-    return () => { cancelled = true; /* TODO: revoke blob URLs if needed */ };
+    return () => { cancelled = true; };
   }, [bundleResult?.bundleId, bundleResult?.primary?.path, bundle]);
+
+  // Infer viewport size: prefer parsed adSize, fallback to HTML heuristics
+  const inferredSize = useMemo(() => {
+    try {
+      if (bundleResult?.adSize && typeof bundleResult.adSize.width === 'number' && typeof bundleResult.adSize.height === 'number') {
+        return { width: bundleResult.adSize.width, height: bundleResult.adSize.height };
+      }
+      const src = original || '';
+      // 1) @media (height:600px) and (width:160px)
+      let m = src.match(/@media\s*\(\s*height\s*:\s*(\d{2,4})px\s*\)\s*and\s*\(\s*width\s*:\s*(\d{2,4})px\s*\)/i);
+      if (m) return { width: parseInt(m[2], 10), height: parseInt(m[1], 10) };
+      // 2) token 160x600 in markup
+      m = src.match(/\b(\d{2,4})\s*[xX]\s*(\d{2,4})\b/);
+      if (m) return { width: parseInt(m[1], 10), height: parseInt(m[2], 10) };
+      // 3) an <img> with width/height attributes
+      m = src.match(/<img[^>]*\bwidth=["']?(\d{2,4})[^>]*\bheight=["']?(\d{2,4})/i);
+      if (m) return { width: parseInt(m[1], 10), height: parseInt(m[2], 10) };
+    } catch {}
+    return undefined;
+  }, [bundleResult?.adSize, original]);
+
+  // Apply inferred size to iframe dimensions
+  useEffect(() => {
+    if (inferredSize) {
+      setIframeWidth(inferredSize.width);
+      setIframeHeight(inferredSize.height);
+    } else {
+      setIframeWidth(undefined);
+    }
+  }, [inferredSize?.width, inferredSize?.height]);
 
   // Listen for postMessage from iframe
   useEffect(() => {
-     function handler(ev: MessageEvent) { 
-       const d = ev?.data; 
-       if (!d) return; 
-       if (d.type === 'creative-click') { 
-         if (d.meta?.handshake) { 
-           setHandshake(true); 
-           const meta = d.meta || {}; 
-           setDebug(prev => [ `handshake: clickTagPresent=${meta.clickTagPresent} length=${meta.clickTagLength}`, ...prev ].slice(0,20)); 
-           if (d.url) { 
-             // Capture url silently (don't open modal automatically) 
-             setClickUrl(d.url); 
-           } 
-           return; 
-         } 
-         // Capture subsequent programmatic reports silently; only user clicks (handled in DOM listener) open modal
-         setClickUrl(d.url || ''); 
-         setLastMeta(d.meta || {}); 
-         setDebug(prev => [`async capture: ${d.url || '(empty)'} source=${d.meta?.source} empty=${d.meta?.empty}`, ...prev].slice(0,20)); 
-       } else if (d.type === 'creative-click-debug') { 
-         setDebug(prev => [`debug: ${d.error}`, ...prev].slice(0,20)); 
-       } 
-     } 
-     window.addEventListener('message', handler); 
-     return () => window.removeEventListener('message', handler); 
-  }, []);
+    function handler(ev: MessageEvent) {
+      const d = ev?.data;
+      if (!d) return;
+      if (d.type === 'creative-click') {
+        if (d.meta?.handshake) {
+          setHandshake(true);
+          const meta = d.meta || {};
+          setDebug(prev => [ `handshake: clickTagPresent=${meta.clickTagPresent} length=${meta.clickTagLength}`, ...prev ].slice(0,20));
+          if (d.url) { setClickUrl(d.url); }
+          return;
+        }
+        setClickUrl(d.url || '');
+        setLastMeta(d.meta || {});
+        setDebug(prev => [`async capture: ${d.url || '(empty)'} source=${d.meta?.source} empty=${d.meta?.empty}`, ...prev].slice(0,20));
+      } else if (d.type === 'creative-click-debug') {
+        setDebug(prev => [`debug: ${d.error}`, ...prev].slice(0,20));
+      } else if (d.type === 'runtime-metrics') {
+        try {
+          const id = bundleResult?.bundleId;
+          if (!id) return;
+          useAppStore.setState((s:any) => {
+            const results = (s.results||[]).map((r:any)=>{
+              if (r.bundleId !== id) return r;
+              const runtime = { ...(r.runtime||{}) };
+              if (typeof d.cpuMainThreadBusyPct === 'number') runtime.cpuMainThreadBusyPct = d.cpuMainThreadBusyPct;
+              if (typeof d.animationDurationS === 'number') runtime.animationDurationS = d.animationDurationS;
+              if (typeof d.animationLoops === 'number') runtime.animationLoops = d.animationLoops;
+              if (typeof d.borderDetected === 'string') runtime.borderDetected = d.borderDetected;
+              return { ...r, runtime };
+            });
+            return { results };
+          });
+        } catch {}
+      }
+    }
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, [bundleResult?.bundleId]);
 
   const assetEntries = useMemo(() => Object.entries(blobMap).sort(), [blobMap]);
   if (!bundleResult) return <div className="text-xs text-gray-500">No bundle selected.</div>;
@@ -101,7 +145,7 @@ export const PreviewPane: React.FC = () => {
               title="Creative Preview"
               sandbox="allow-scripts allow-same-origin allow-popups"
               className="w-full border"
-              style={{ height: iframeHeight }}
+              style={{ height: iframeHeight, ...(iframeWidth ? { width: iframeWidth } : {}) }}
               srcDoc={html}
               onLoad={() => {
                 try {
@@ -111,28 +155,26 @@ export const PreviewPane: React.FC = () => {
                   const doc = win?.document;
                   if (!doc) return;
                   setDebug(prev => ['iframe load listener attached', ...prev].slice(0,20));
-                  // Auto-size function
+                  // Auto-size function (skip if fixed size inferred)
                   const resize = () => {
                     try {
+                      if (iframeWidth) return; // respect fixed dimensions
                       const body = doc.body;
-                      const newH = Math.min(Math.max(body.scrollHeight, 800), 1400); // clamp 800-1400
+                      const newH = Math.min(Math.max(body.scrollHeight, 800), 1400);
                       setIframeHeight(h => (Math.abs(h - newH) > 10 ? newH : h));
                     } catch {}
                   };
                   resize();
-                  // Observe mutations to adjust height dynamically
                   const mo = new MutationObserver(() => { requestAnimationFrame(resize); });
                   mo.observe(doc.documentElement, { childList: true, subtree: true, attributes: true, characterData: true });
-                  // Also poll a few times for late assets/animations
                   let resizePolls = 0;
                   const resizeInterval = setInterval(() => { resizePolls++; resize(); if (resizePolls > 10) clearInterval(resizeInterval); }, 500);
-                  // Cleanup when iframe reloads
                   iframe.addEventListener('load', () => { try { mo.disconnect(); clearInterval(resizeInterval); } catch {} });
-          function extractClick(e: Event): string | null {
+                  function extractClick(e: Event): string | null {
                     try {
-            if (!doc) return null;
-            let target = e.target as HTMLElement | null;
-            while (target && target !== doc.body) {
+                      if (!doc) return null;
+                      let target = e.target as HTMLElement | null;
+                      while (target && target !== doc.body) {
                         if (target instanceof HTMLAnchorElement && target.href) {
                           return target.getAttribute('href') || target.href;
                         }
@@ -150,24 +192,22 @@ export const PreviewPane: React.FC = () => {
                     if (url) {
                       setClickUrl(url);
                       setDebug(prev => [`user click captured: ${url}`, ...prev].slice(0,20));
-                      setShowModal(true); // explicit user click triggers modal
+                      setShowModal(true);
                     } else {
                       setDebug(prev => ['user click with no identifiable URL (modal suppressed)', ...prev].slice(0,20));
                     }
                   }, true);
-                  // Hook window.open to catch programmatic opens
                   try {
                     const originalOpen = (win as any).open;
                     (win as any).open = function(url: any, ...rest: any[]) {
                       if (typeof url === 'string') {
-                        setClickUrl(url); // silent capture
+                        setClickUrl(url);
                         setDebug(prev => [`window.open intercepted (silent): ${url}`, ...prev].slice(0,20));
                       }
                       return originalOpen && originalOpen.apply(this, [url, ...rest]);
                     };
                     setDebug(prev => ['window.open hook installed', ...prev].slice(0,20));
                   } catch {}
-                  // Poll for clickTag presence for debugging
                   let polls = 0;
                   const poll = setInterval(() => {
                     polls++;
@@ -199,7 +239,7 @@ export const PreviewPane: React.FC = () => {
           </div>
         )}
         {!loading && !error && tab === 'source' && (
-            <pre className="whitespace-pre-wrap break-all font-mono text-[11px] leading-snug">{original}</pre>
+          <pre className="whitespace-pre-wrap break-all font-mono text-[11px] leading-snug">{original}</pre>
         )}
         {!loading && !error && tab === 'assets' && (
           <div className="space-y-1">
@@ -241,14 +281,14 @@ export const PreviewPane: React.FC = () => {
               {clickUrl && <button onClick={() => { navigator.clipboard.writeText(clickUrl).catch(()=>{}); }} className="px-3 py-1 text-xs rounded bg-gray-200 hover:bg-gray-300">Copy</button>}
               <button onClick={() => { setShowModal(false); }} className="px-3 py-1 text-xs rounded bg-gray-200 hover:bg-gray-300">Close</button>
             </div>
-             {debug.length > 0 && ( 
-               <details className="text-[10px]"> 
-                 <summary className="cursor-pointer text-gray-500">Debug Log ({debug.length})</summary> 
-                 <ul className="mt-1 max-h-32 overflow-auto space-y-0.5"> 
-                   {debug.map((l,i) => <li key={i} className="font-mono">{l}</li>)} 
-                 </ul> 
-               </details> 
-             )} 
+             {debug.length > 0 && (
+               <details className="text-[10px]">
+                 <summary className="cursor-pointer text-gray-500">Debug Log ({debug.length})</summary>
+                 <ul className="mt-1 max-h-32 overflow-auto space-y-0.5">
+                   {debug.map((l,i) => <li key={i} className="font-mono">{l}</li>)}
+                 </ul>
+               </details>
+             )}
           </div>
         </div>
       )}

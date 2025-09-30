@@ -1,10 +1,12 @@
-# HTML5 Creative Auditor
+# HTML5 Creative Auditor (Extended)
 
-Created by Horizon Media's Platform Solutions Team
+From Horizon Media’s Platform Solutions team
 
 [![Pages](https://img.shields.io/badge/Pages-live-brightgreen?logo=github&style=flat-square)](https://evschneider-hmi.github.io/ps-html5auditor/)
 
 Client‑side auditing of HTML5 display creative ZIP bundles (no files uploaded to a server). Provides quick compliance and quality checks aligned with common Campaign Manager 360 (CM360) and IAB HTML5 guidance.
+
+Note: The application in `app-V2/` is the primary and only active app. Root npm scripts (dev/build/preview) delegate to `app-V2`.
 
 ## How To Use
 1. Open the built tool locally or via an approved internal hosting location in a modern desktop browser (Chrome, Edge, Firefox, Safari).
@@ -13,6 +15,12 @@ Client‑side auditing of HTML5 display creative ZIP bundles (no files uploaded 
 4. Click a bundle to inspect detailed findings (Fail / Warn / Pass) and open the preview.
 5. Use the Preview pane to verify rendering and capture clickthrough (CTURL Status button).
 6. Download Excel reports (All Issues or Failed Issues) for sharing or record‑keeping.
+
+### Local development
+- From repo root:
+	- `npm run dev` to start the dev server for app-V2
+	- `npm run build` to build app-V2
+	- `npm run preview` to preview the app-V2 build
 
 ## Key Checks (Abbreviated)
 * Packaging / primary HTML detection
@@ -33,7 +41,9 @@ Client‑side auditing of HTML5 display creative ZIP bundles (no files uploaded 
 * Drop multiple ZIPs to compare bundles side by side.
 * For best accuracy ensure the ZIP root contains the primary HTML file (no nested archives).
 
+Archived: The original root app remains in the repository for reference (`archive/original-app/`).
+
 > Note: GitHub Pages provisioning can take a short time after a successful deploy. If the site does not appear immediately after a workflow completes, wait ~1–2 minutes and refresh.
 
 ## Attribution
-Created by Horizon Media's Platform Solutions Team
+From Horizon Media’s Platform Solutions team

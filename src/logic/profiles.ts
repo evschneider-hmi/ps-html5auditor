@@ -1,6 +1,6 @@
 import { Severity } from './severity';
 
-export type Profile = 'CM360' | 'Ads';
+export type Profile = 'CM360' | 'IAB';
 
 export interface CheckSeverityOverrides {
   [checkId: string]: Severity;
@@ -26,7 +26,7 @@ export interface Settings {
 }
 
 export const defaultSettings: Settings = {
-  profile: 'CM360',
+  profile: 'IAB',
   disallowNestedZips: true,
   dangerousExtensions: ['.exe', '.bat', '.cmd', '.sh', '.msi'],
   externalHostAllowlist: ['fonts.googleapis.com', 'fonts.gstatic.com'],

@@ -4,10 +4,12 @@ import { runChecks, summarize } from '../logic/checks';
 import { discoverPrimary } from '../logic/discovery';
 import { parsePrimary } from '../logic/parse';
 import { buildReport } from '../logic/report';
+import { buildProfileOutput } from '../logic/profile_cm360';
 import { buildWorkbook, downloadWorkbook } from '../logic/excelReport';
 import { worst } from '../logic/severity';
 import { FindingList } from './FindingList';
 import { PreviewPane } from './PreviewPane';
+import type { SizeSourceInfo } from '../logic/types';
 
 export const ResultsTable: React.FC = () => {
   const { bundles, results, settings, setResults, selectBundle, selectedBundleId } = useAppStore((s: any) => ({
@@ -27,12 +29,20 @@ export const ResultsTable: React.FC = () => {
     const bundleResults: any[] = [];
     for (const b of bundles) {
       const discovery = discoverPrimary(b);
-      const primary = discovery.primary;
-      let adSize: { width: number; height: number } | undefined; let references: any[] = [];
+      let primary = discovery.primary;
+  let adSize: { width: number; height: number } | undefined;
+  let adSizeSource: SizeSourceInfo | undefined;
+      let references: any[] = [];
       if (primary) {
         const parsed = parsePrimary(b, primary);
         adSize = parsed.adSize;
+        adSizeSource = parsed.adSizeSource;
         references = parsed.references;
+        primary = {
+          ...primary,
+          adSize,
+          sizeSource: adSizeSource,
+        } as any;
       }
       const totalBytes = (Object.values(b.files) as Uint8Array[]).reduce((acc, u) => acc + u.byteLength, 0);
       // Heuristic: initial assets = primary HTML + directly referenced assets from HTML (excluding deep chain) & CSS referenced by HTML.
@@ -57,6 +67,7 @@ export const ResultsTable: React.FC = () => {
         bundleName: b.name,
         primary,
         adSize,
+        adSizeSource,
         references,
         totalBytes,
         initialBytes,
@@ -98,17 +109,69 @@ export const ResultsTable: React.FC = () => {
 
   return (
     <div className="mt-6">
-      <div className="flex gap-3 mb-2">
+      <div className="flex flex-wrap gap-3 mb-2 items-center">
         <button className="px-3 py-1 bg-gray-800 text-white rounded disabled:opacity-50" onClick={process} disabled={bundles.length===0}>Run Validation</button>
         {results.length > 0 ? (
           <>
             <button className="px-3 py-1 bg-blue-600 text-white rounded" onClick={() => downloadScope('all')}>Download All Bundle Report</button>
             <button className="px-3 py-1 bg-blue-600 text-white rounded" onClick={() => downloadScope('failed')}>Download Failed Bundle Report</button>
+            <button
+              className="px-3 py-1 bg-green-600 text-white rounded"
+              onClick={() => {
+                try {
+                  const sel = results.find((r:any) => r.bundleId === (selectedBundleId || results[0]?.bundleId)) || results[0];
+                  const bundle = bundles.find((b:any) => b.id === sel.bundleId);
+                  if (!sel || !bundle) { alert('No selected bundle'); return; }
+                  const out = buildProfileOutput(bundle, sel, settings);
+                  const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  const base = sel.bundleName.replace(/\.[^.]+$/, '') || 'bundle';
+                  a.href = url; a.download = base + '-cm360_profile.json';
+                  document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 0);
+                } catch (e:any) { alert('Failed to export JSON: ' + (e.message || e)); }
+              }}
+              title="Download JSON output using CM360/IAB profile schema"
+            >Download JSON (Profile)</button>
+            <button
+              className="px-3 py-1 bg-purple-700 text-white rounded"
+              onClick={() => {
+                const w = window.open('', 'iabGuidelines', 'width=980,height=720');
+                if (w) {
+                  w.document.write('<!doctype html><title>IAB HTML5 Guidelines</title><meta charset="utf-8"/><style>body{font:12px system-ui,Segoe UI,Arial;padding:10px}</style><iframe src="https://www.iab.com/guidelines/html5-for-digital-advertising/" style="border:0;width:100%;height:100%"></iframe>');
+                }
+              }}
+            >IAB Guidelines</button>
+            <button
+              className="px-3 py-1 bg-purple-700 text-white rounded"
+              onClick={() => {
+                const w = window.open('', 'cm360Guidelines', 'width=980,height=720');
+                if (w) {
+                  // Link points to Google documentation hub for HTML5 creatives in CM360
+                  w.document.write('<!doctype html><title>CM360 HTML5 Guidelines</title><meta charset="utf-8"/><style>body{font:12px system-ui,Segoe UI,Arial;padding:10px}</style><iframe src="https://support.google.com/campaignmanager/answer/28145?hl=en" style="border:0;width:100%;height:100%"></iframe>');
+                }
+              }}
+            >CM360 Guidelines</button>
           </>
         ) : (
           <>
             <button className="px-3 py-1 bg-blue-600 text-white rounded disabled:opacity-50" onClick={() => downloadScope('all')} disabled={bundles.length===0}>Download All Bundle Report</button>
             <button className="px-3 py-1 bg-blue-600 text-white rounded disabled:opacity-50" onClick={() => downloadScope('failed')} disabled={bundles.length===0}>Download Failed Bundle Report</button>
+            <button className="px-3 py-1 bg-green-600 text-white rounded disabled:opacity-50" disabled title="Run validation first">Download JSON (Profile)</button>
+            <button
+              className="px-3 py-1 bg-purple-700 text-white rounded"
+              onClick={() => {
+                const w = window.open('', 'iabGuidelines', 'width=980,height=720');
+                if (w) w.location.href = 'https://www.iab.com/guidelines/html5-for-digital-advertising/';
+              }}
+            >IAB Guidelines</button>
+            <button
+              className="px-3 py-1 bg-purple-700 text-white rounded"
+              onClick={() => {
+                const w = window.open('', 'cm360Guidelines', 'width=980,height=720');
+                if (w) w.location.href = 'https://support.google.com/campaignmanager/answer/28145?hl=en';
+              }}
+            >CM360 Guidelines</button>
           </>
         )}
       </div>

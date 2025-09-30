@@ -7,7 +7,8 @@ export interface DiscoveryResult {
 }
 
 export function discoverPrimary(bundle: ZipBundle): DiscoveryResult {
-  const htmlFiles = Object.keys(bundle.files).filter(f => f.toLowerCase().endsWith('.html'));
+  // Include .html and .htm (case-insensitive)
+  const htmlFiles = Object.keys(bundle.files).filter(f => /\.(html?)$/i.test(f));
   const messages: string[] = [];
   if (htmlFiles.length === 0) {
     messages.push('No HTML files present');
@@ -34,6 +35,21 @@ export function discoverPrimary(bundle: ZipBundle): DiscoveryResult {
     messages.push('Multiple HTMLs with ad.size meta; chose ' + chosen);
     return { primary: { path: chosen }, htmlCandidates: htmlFiles, messages };
   }
-  messages.push('Multiple HTML files without ad.size meta; ambiguous');
-  return { htmlCandidates: htmlFiles, messages };
+  // Fallback: choose a reasonable primary even without ad.size
+  const chosen = chooseFallbackHTML(htmlFiles);
+  messages.push('Multiple HTML files without ad.size meta; chose fallback ' + chosen);
+  return { primary: { path: chosen }, htmlCandidates: htmlFiles, messages };
+}
+
+function chooseFallbackHTML(paths: string[]): string {
+  // Prefer index.html/htm at shallowest depth, else fewest path segments, else shortest name
+  const byDepth = (p: string) => p.split('/').length;
+  const isIndex = (p: string) => /\/(index\.html?)$/i.test('/' + p);
+  const indexCands = paths.filter(isIndex);
+  if (indexCands.length) {
+    indexCands.sort((a, b) => byDepth(a) - byDepth(b) || a.length - b.length);
+    return indexCands[0];
+  }
+  const sorted = [...paths].sort((a, b) => byDepth(a) - byDepth(b) || a.length - b.length);
+  return sorted[0];
 }

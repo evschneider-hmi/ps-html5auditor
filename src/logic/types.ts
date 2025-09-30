@@ -1,5 +1,11 @@
 ﻿import { Severity } from './severity';
 
+export interface SizeSourceInfo {
+  method: 'meta' | 'gwd-admetadata' | 'css-media' | 'css-rule' | 'inline-style' | 'css-file';
+  snippet?: string;
+  path?: string;
+}
+
 export interface ZipBundle {
   id: string;
   name: string;
@@ -11,6 +17,7 @@ export interface ZipBundle {
 export interface PrimaryAsset {
   path: string;
   adSize?: { width: number; height: number };
+  sizeSource?: SizeSourceInfo;
 }
 
 export type ReferenceType = 'img' | 'css' | 'js' | 'font' | 'media' | 'xhr' | 'anchor';
@@ -56,6 +63,7 @@ export interface BundleResult {
   bundleName: string;
   primary?: PrimaryAsset;
   adSize?: { width: number; height: number };
+  adSizeSource?: SizeSourceInfo;
   findings: Finding[];
   references: Reference[];
   summary: BundleResultSummary;

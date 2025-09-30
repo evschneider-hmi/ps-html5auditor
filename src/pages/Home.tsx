@@ -6,7 +6,7 @@ export default function Home(){
   return (
     <div className="p-4">
   <h1 className="text-lg font-bold">HTML5 Creative Auditor</h1>
-  <p className="text-xs text-gray-600 mb-4">Created by Horizon Media's Platform Solutions Team</p>
+  <p className="text-xs text-gray-600 mb-4">From Horizon Media’s Platform Solutions team</p>
       <DropZone />
       <ResultsTable />
     </div>

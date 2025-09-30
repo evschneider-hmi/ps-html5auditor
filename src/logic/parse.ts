@@ -1,19 +1,134 @@
-import { ZipBundle, Reference, ReferenceType, PrimaryAsset } from './types';
+import { ZipBundle, Reference, ReferenceType, PrimaryAsset, SizeSourceInfo } from './types';
 
 export interface ParseResult {
   adSize?: { width: number; height: number };
+  adSizeSource?: SizeSourceInfo;
   references: Reference[];
+}
+
+interface DetectedSize {
+  size: { width: number; height: number };
+  source: SizeSourceInfo;
 }
 
 const textDecoder = new TextDecoder();
 
-function parseAdSize(doc: Document): { width: number; height: number } | undefined {
+function normalizeSnippet(text: string | undefined, max = 160): string | undefined {
+  if (!text) return undefined;
+  const collapsed = text.replace(/\s+/g, ' ').trim();
+  if (!collapsed) return undefined;
+  return collapsed.length > max ? collapsed.slice(0, max) + '…' : collapsed;
+}
+
+type CssContextType = 'inline-style' | 'css-rule' | 'css-file';
+
+function parseCssAdSize(
+  cssText: string,
+  context: { type: CssContextType; path?: string },
+): DetectedSize | undefined {
+  if (!cssText) return undefined;
+
+  function considerCandidate(
+    source: string,
+    method: SizeSourceInfo['method'],
+    snippetSource?: string,
+  ): DetectedSize | undefined {
+    const widthMatch = /width\s*:\s*(\d{2,4})px/i.exec(source);
+    const heightMatch = /height\s*:\s*(\d{2,4})px/i.exec(source);
+    if (!widthMatch || !heightMatch) return undefined;
+    const width = parseInt(widthMatch[1], 10);
+    const height = parseInt(heightMatch[1], 10);
+    if (!Number.isFinite(width) || !Number.isFinite(height)) return undefined;
+    if (width < 10 || height < 10) return undefined;
+    return {
+      size: { width, height },
+      source: {
+        method,
+        snippet: normalizeSnippet(snippetSource ?? source),
+        path: context.path,
+      },
+    };
+  }
+
+  let best: DetectedSize | undefined;
+  let bestArea = 0;
+
+  const updateBest = (candidate?: DetectedSize) => {
+    if (!candidate) return;
+    const area = candidate.size.width * candidate.size.height;
+    if (area > bestArea) {
+      best = candidate;
+      bestArea = area;
+    }
+  };
+
+  const mediaRegex = /@media[^{}]*\{[^}]*\}/gi;
+  let mediaMatch: RegExpExecArray | null;
+  while ((mediaMatch = mediaRegex.exec(cssText))) {
+    updateBest(considerCandidate(mediaMatch[0], 'css-media'));
+  }
+
+  const blockRegex = /\{[^{}]*\}/g;
+  let blockMatch: RegExpExecArray | null;
+  while ((blockMatch = blockRegex.exec(cssText))) {
+    const method = context.type === 'css-file' ? 'css-file' : 'css-rule';
+    updateBest(considerCandidate(blockMatch[0], method));
+  }
+
+  if (!best) {
+    const method: SizeSourceInfo['method'] =
+      context.type === 'inline-style'
+        ? 'inline-style'
+        : context.type === 'css-file'
+        ? 'css-file'
+        : 'css-rule';
+    updateBest(considerCandidate(cssText, method));
+  }
+
+  return best;
+}
+
+function parseAdSize(doc: Document, path: string): DetectedSize | undefined {
+  // 1) Standard meta tag
   const meta = doc.querySelector('meta[name="ad.size"]');
-  if (!meta) return undefined;
-  const content = meta.getAttribute('content') || '';
-  const m = /width\s*=\s*(\d+)\s*,\s*height\s*=\s*(\d+)/i.exec(content);
-  if (!m) return undefined;
-  return { width: parseInt(m[1], 10), height: parseInt(m[2], 10) };
+  if (meta) {
+    const content = meta.getAttribute('content') || '';
+    const m = /width\s*=\s*(\d+)\s*,\s*height\s*=\s*(\d+)/i.exec(content);
+    if (m) {
+      return {
+        size: { width: parseInt(m[1], 10), height: parseInt(m[2], 10) },
+        source: {
+          method: 'meta',
+          snippet: normalizeSnippet(meta.outerHTML || content),
+          path,
+        },
+      };
+    }
+  }
+  // 2) GWD admetadata fallback: <script type="text/gwd-admetadata">{..."creativeProperties":{"minWidth":970,"minHeight":250,...}}</script>
+  try {
+    const node = doc.querySelector('script[type="text/gwd-admetadata"]');
+    if (node && node.textContent) {
+      const raw = node.textContent.trim();
+      if (raw) {
+        const data = JSON.parse(raw);
+        const cp = (data && data.creativeProperties) || {};
+        const w = Number(cp.maxWidth ?? cp.minWidth);
+        const h = Number(cp.maxHeight ?? cp.minHeight);
+        if (isFinite(w) && isFinite(h) && w > 0 && h > 0) {
+          return {
+            size: { width: Math.round(w), height: Math.round(h) },
+            source: {
+              method: 'gwd-admetadata',
+              snippet: normalizeSnippet(raw),
+              path,
+            },
+          };
+        }
+      }
+    }
+  } catch {}
+  return undefined;
 }
 
 function collectHtmlReferences(doc: Document, path: string): Reference[] {
@@ -23,12 +138,19 @@ function collectHtmlReferences(doc: Document, path: string): Reference[] {
     refs.push({ from: path, type, url, inZip: false, external: /^https?:\/\//i.test(url), secure: /^https:\/\//i.test(url) });
   }
   doc.querySelectorAll('img[src]').forEach(el => push(el, el.getAttribute('src'), 'img'));
+  // GWD: <gwd-image source="..."> emits an image reference used by runtime
+  doc.querySelectorAll('gwd-image[source]').forEach(el => push(el, el.getAttribute('source'), 'img'));
   doc.querySelectorAll('video[src]').forEach(el => push(el, el.getAttribute('src'), 'media'));
   doc.querySelectorAll('audio[src]').forEach(el => push(el, el.getAttribute('src'), 'media'));
   doc.querySelectorAll('source[src]').forEach(el => push(el, el.getAttribute('src'), 'media'));
   doc.querySelectorAll('link[rel="stylesheet"][href]').forEach(el => push(el, el.getAttribute('href'), 'css'));
   doc.querySelectorAll('script[src]').forEach(el => push(el, el.getAttribute('src'), 'js'));
   doc.querySelectorAll('a[href]').forEach(el => push(el, el.getAttribute('href'), 'anchor'));
+  // Inline style url(...) references (background images, etc.)
+  doc.querySelectorAll('[style]').forEach(el => {
+    const styleText = el.getAttribute('style') || '';
+    for (const r of collectCssReferences(styleText, path)) refs.push(r);
+  });
   return refs;
 }
 
@@ -49,12 +171,34 @@ export function parsePrimary(bundle: ZipBundle, primary: PrimaryAsset): ParseRes
   const html = textDecoder.decode(bytes);
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, 'text/html');
-  const adSize = parseAdSize(doc);
+  let detected = parseAdSize(doc, primary.path);
+  let adSize = detected?.size;
+  let adSizeSource = detected?.source;
   const references: Reference[] = collectHtmlReferences(doc, primary.path);
+  const cssSnippets: Array<{ text: string; context: { type: CssContextType; path?: string } }> = [];
   // inline styles
   doc.querySelectorAll('style').forEach(style => {
-    references.push(...collectCssReferences(style.textContent || '', primary.path));
+    const css = style.textContent || '';
+    if (css) {
+  const context = { type: 'css-rule' as const, path: primary.path };
+      cssSnippets.push({ text: css, context });
+      references.push(...collectCssReferences(css, primary.path));
+    }
   });
+  doc.querySelectorAll('[style]').forEach(el => {
+    const css = el.getAttribute('style') || '';
+  if (css) cssSnippets.push({ text: css, context: { type: 'inline-style', path: primary.path } });
+  });
+  if (!adSize) {
+    for (const snippet of cssSnippets) {
+      const candidate = parseCssAdSize(snippet.text, snippet.context);
+      if (candidate) {
+        adSize = candidate.size;
+        adSizeSource = candidate.source;
+        break;
+      }
+    }
+  }
   // linked CSS content
   for (const ref of [...references]) {
     if (ref.type === 'css' && !ref.external) {
@@ -62,6 +206,15 @@ export function parsePrimary(bundle: ZipBundle, primary: PrimaryAsset): ParseRes
       if (target && bundle.files[target]) {
         const cssText = textDecoder.decode(bundle.files[target]);
         references.push(...collectCssReferences(cssText, target));
+        const context = { type: 'css-file' as const, path: target };
+        cssSnippets.push({ text: cssText, context });
+        if (!adSize) {
+          const candidate = parseCssAdSize(cssText, context);
+          if (candidate) {
+            adSize = candidate.size;
+            adSizeSource = candidate.source;
+          }
+        }
       }
     }
   }
@@ -75,7 +228,7 @@ export function parsePrimary(bundle: ZipBundle, primary: PrimaryAsset): ParseRes
       if (key) r.inZip = true;
     }
   }
-  return { adSize, references };
+  return { adSize, adSizeSource, references };
 }
 
 function stripQuery(s: string): string {

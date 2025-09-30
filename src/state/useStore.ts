@@ -33,7 +33,13 @@ function loadSettings(): Settings {
     const raw = localStorage.getItem('auditSettings');
     if (!raw) return defaultSettings;
     const parsed = JSON.parse(raw);
-    return { ...defaultSettings, ...parsed };
+    const merged: Settings = { ...defaultSettings, ...parsed };
+    // Back-compat: legacy value "Ads" now maps to explicit "IAB"
+    if ((merged as any).profile === 'Ads') merged.profile = 'IAB';
+    if (merged.profile !== 'CM360' && merged.profile !== 'IAB') {
+      merged.profile = defaultSettings.profile;
+    }
+    return merged;
   } catch {
     return defaultSettings;
   }
