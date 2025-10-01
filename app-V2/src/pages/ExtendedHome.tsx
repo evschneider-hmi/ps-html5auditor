@@ -59,9 +59,9 @@ export function ExtendedHome() {
     } catch {}
   }, [dark]);
 
-  // Redirect away from disabled tabs (tag, static, video) if currently selected
+  // Redirect away from disabled tabs (static, video) if currently selected
   useEffect(()=>{
-    if (tab === 'tag' || tab === 'static' || tab === 'video') {
+    if (tab === 'static' || tab === 'video') {
       try { setTab('zip'); } catch {}
     }
   }, [tab, setTab]);
@@ -110,7 +110,7 @@ export function ExtendedHome() {
         <nav className="tabs">
           <TabBtn active={tab==='zip'} onClick={() => setTab('zip')}>HTML5</TabBtn>
           <TabBtn active={tab==='vast'} onClick={() => setTab('vast')}>VAST</TabBtn>
-          <TabBtn active={tab==='tag'} onClick={() => setTab('tag')} disabled>Ad Tag</TabBtn>
+          <TabBtn active={tab==='tag'} onClick={() => setTab('tag')}>Ad Tag</TabBtn>
           <TabBtn active={tab==='static'} onClick={() => setTab('static')} disabled>Static</TabBtn>
           <TabBtn active={tab==='video'} onClick={() => setTab('video')} disabled>Video</TabBtn>
         </nav>

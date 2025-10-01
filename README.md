@@ -22,6 +22,11 @@ Note: The application in `app-V2/` is the primary and only active app. Root npm 
 	- `npm run build` to build app-V2
 	- `npm run preview` to preview the app-V2 build
 
+### Testing & quality checks
+- `npm run test:e2e` launches the Playwright suite in headed Chromium against the local dev server. Evidence screenshots and network logs are written to `evidence/` for documentation.
+- `npm run build` (above) exercises the TypeScript project references and Vite production build. Run this before committing to ensure the generated bundle is healthy.
+- Tests expect port `4173` to be available; stop any conflicting dev servers first.
+
 ## Key Checks (Abbreviated)
 * Packaging / primary HTML detection
 * Missing vs orphaned assets
@@ -44,6 +49,15 @@ Note: The application in `app-V2/` is the primary and only active app. Root npm 
 Archived: The original root app remains in the repository for reference (`archive/original-app/`).
 
 > Note: GitHub Pages provisioning can take a short time after a successful deploy. If the site does not appear immediately after a workflow completes, wait ~1–2 minutes and refresh.
+
+## Deploying to Vercel
+1. Push the latest `main` branch to GitHub (see workflow in this README).
+2. In Vercel, choose **Add New Project → Import Git Repository**, then select `evschneider-hmi/ps-html5auditor`.
+3. When prompted for the root directory, leave it at the repo root. The default build command (`npm run build`) already delegates to `app-V2` and the output directory `app-V2/dist` is uploaded automatically.
+4. Set the production and preview build outputs to `app-V2/dist`. No environment variables are required for the static build.
+5. Complete the import. Subsequent pushes to `main` (or PR branches if you enable preview deployments) will trigger automatic builds and Vercel previews.
+
+> Tip: Enable the existing Playwright GitHub Action to guard deployments—Vercel will only receive new builds after the tests succeed on `main`.
 
 ## Attribution
 From Horizon Media’s Platform Solutions team

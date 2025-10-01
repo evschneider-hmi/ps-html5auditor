@@ -6,6 +6,11 @@ import {
   type ProbeEvent,
   type ProbeSummary,
 } from '../logic/runtimeProbe';
+import {
+  ENVIRONMENT_OPTIONS,
+  type AdTagEnvironment,
+  type EnvironmentOption,
+} from '../logic/environment';
 
 type TabKey = 'preview' | 'source' | 'assets' | 'json';
 
@@ -37,6 +42,7 @@ export const ExtendedPreview: React.FC<ExtendedPreviewProps> = ({
   const [clickUrl, setClickUrl] = useState<string>('');
   const [clickPresent, setClickPresent] = useState(false);
   const [showInsights, setShowInsights] = useState(false);
+  const [environment, setEnvironment] = useState<AdTagEnvironment>('web');
   // Bump to force iframe re-mount on reload
   const [reloadTick, setReloadTick] = useState(0);
   const lastSizeRef = useRef<string>('');
@@ -57,6 +63,7 @@ export const ExtendedPreview: React.FC<ExtendedPreviewProps> = ({
       const built = await buildInstrumentedPreview(
         bundle as any,
         (bundleRes as any).primary.path,
+        { environment },
       );
       if (cancelled) return;
       setHtml(built.html);
@@ -66,7 +73,7 @@ export const ExtendedPreview: React.FC<ExtendedPreviewProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [bundleRes?.bundleId, bundleRes?.primary?.path, bundle, reloadTick]);
+  }, [bundleRes?.bundleId, bundleRes?.primary?.path, bundle, reloadTick, environment]);
 
   useEffect(() => {
     function handler(ev: MessageEvent) {
@@ -175,6 +182,18 @@ export const ExtendedPreview: React.FC<ExtendedPreviewProps> = ({
     if (!hasDebugInsights) setShowInsights(false);
   }, [hasDebugInsights]);
 
+  const handleEnvironmentChange = (mode: AdTagEnvironment) => {
+    if (mode === environment) return;
+    setEnvironment(mode);
+    setReloadTick((t) => t + 1);
+    setSummary(null);
+    setEvents([]);
+    setClickUrl('');
+    setClickPresent(false);
+    setShowModal(false);
+    setHeight(800);
+  };
+
   // Compute primary path and entry base early so downstream hooks can safely run every render
   const primaryPath: string = bundleRes?.primary?.path || '';
   const entryBase: string = primaryPath
@@ -263,6 +282,11 @@ export const ExtendedPreview: React.FC<ExtendedPreviewProps> = ({
       ),
     [blobMap],
   );
+
+  const selectedEnvironment = useMemo<EnvironmentOption>(() => {
+    const found = ENVIRONMENT_OPTIONS.find((opt) => opt.value === environment);
+    return found || ENVIRONMENT_OPTIONS[0];
+  }, [environment]);
 
   // Auto-scroll active match into view near top (Source)
   useEffect(() => {
@@ -362,56 +386,121 @@ export const ExtendedPreview: React.FC<ExtendedPreviewProps> = ({
                   marginBottom: 6,
                 }}
               >
-                {/* Left-aligned reload button */}
-                <button
-                  type="button"
-                  aria-label="Reload preview"
-                  title="Reload preview"
-                  onClick={() => {
-                    setReloadTick((t) => t + 1);
-                    setHeight(800);
-                    setEvents([]);
-                    setSummary(null as any);
-                  }}
-                  className="btn"
-                  style={{
-                    fontSize: 11,
-                    padding: '4px 6px',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    color: '#6b7280',
-                  }}
-                >
-                  {/* circular arrow icon */}
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                  >
-                    <path d="M21 2v6h-6" />
-                    <path d="M21 13a9 9 0 1 1-3-7l3 3" />
-                  </svg>
-                  <span style={{ fontWeight: 600, color: '#6b7280' }}>
-                    Reload
-                  </span>
-                </button>
-                {hasDebugInsights && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {/* Left-aligned reload button */}
                   <button
                     type="button"
-                    onClick={() => setShowInsights((v) => !v)}
-                    className={`btn ${showInsights ? 'primary' : ''}`}
-                    style={{ fontSize: 11, padding: '4px 8px' }}
+                    aria-label="Reload preview"
+                    title="Reload preview"
+                    onClick={() => {
+                      setReloadTick((t) => t + 1);
+                      setHeight(800);
+                      setEvents([]);
+                      setSummary(null as any);
+                      setClickUrl('');
+                      setClickPresent(false);
+                      setShowModal(false);
+                    }}
+                    className="btn"
+                    style={{
+                      fontSize: 11,
+                      padding: '4px 6px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      color: '#6b7280',
+                    }}
                   >
-                    {showInsights ? 'Hide Metadata' : 'Metadata'}
+                    {/* circular arrow icon */}
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M21 2v6h-6" />
+                      <path d="M21 13a9 9 0 1 1-3-7l3 3" />
+                    </svg>
+                    <span style={{ fontWeight: 600, color: '#6b7280' }}>
+                      Reload
+                    </span>
                   </button>
-                )}
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'flex-end',
+                    gap: 8,
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: 10,
+                        letterSpacing: 0.6,
+                        textTransform: 'uppercase',
+                        color: '#6b7280',
+                        fontWeight: 600,
+                      }}
+                    >
+                      Environment
+                    </span>
+                    <div
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        flexWrap: 'wrap',
+                      }}
+                    >
+                      {ENVIRONMENT_OPTIONS.map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          className={`btn ${environment === opt.value ? 'primary' : ''}`}
+                          onClick={() => handleEnvironmentChange(opt.value)}
+                          title={opt.hint}
+                          style={{ fontSize: 10, padding: '3px 8px' }}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {hasDebugInsights && (
+                    <button
+                      type="button"
+                      onClick={() => setShowInsights((v) => !v)}
+                      className={`btn ${showInsights ? 'primary' : ''}`}
+                      style={{ fontSize: 11, padding: '4px 8px' }}
+                    >
+                      {showInsights ? 'Hide Metadata' : 'Metadata'}
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div
+                style={{
+                  fontSize: 11,
+                  color: '#6b7280',
+                  marginBottom: 6,
+                }}
+              >
+                {selectedEnvironment.hint}
               </div>
 
               <iframe
@@ -419,7 +508,7 @@ export const ExtendedPreview: React.FC<ExtendedPreviewProps> = ({
                 title="Creative Preview"
                 sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-modals"
                 srcDoc={html}
-                key={`${reloadTick}-${inferredSize ? `${inferredSize.width}x${inferredSize.height}` : 'auto'}`}
+                key={`${reloadTick}-${environment}-${inferredSize ? `${inferredSize.width}x${inferredSize.height}` : 'auto'}`}
                 style={{
                   width: inferredSize ? `${inferredSize.width}px` : '100%',
                   height: inferredSize ? inferredSize.height : height,

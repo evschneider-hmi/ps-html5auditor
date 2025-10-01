@@ -1,5 +1,6 @@
 // @ts-nocheck
 import type { ZipBundle } from '../../../src/logic/types';
+import { createInAppShim, type AdTagEnvironment } from './environment';
 
 export interface ProbeSummary {
 	domContentLoaded?: number;
@@ -55,7 +56,11 @@ export type ProbeEvent =
 
 interface PreviewResult { html: string; blobMap: Record<string,string>; originalHtml: string; }
 
-export async function buildInstrumentedPreview(bundle: ZipBundle, primaryPath: string): Promise<PreviewResult> {
+interface PreviewOptions {
+	environment?: AdTagEnvironment;
+}
+
+export async function buildInstrumentedPreview(bundle: ZipBundle, primaryPath: string, options?: PreviewOptions): Promise<PreviewResult> {
 	const decoder = new TextDecoder();
 	const blobMap: Record<string, string> = {};
 	const sizeByBlobUrl: Record<string, number> = {};
@@ -148,6 +153,19 @@ export async function buildInstrumentedPreview(bundle: ZipBundle, primaryPath: s
 	const probe = buildProbeScript();
 	const body = doc.querySelector('body');
 	if (body) {
+		const envScript = createInAppShim(options?.environment);
+		if (envScript) {
+			try {
+				const shimBlob = new Blob([envScript], { type: 'text/javascript' });
+				const shimUrl = URL.createObjectURL(shimBlob);
+				const shimTag = doc.createElement('script');
+				shimTag.type = 'text/javascript';
+				(shimTag as any).src = shimUrl;
+				shimTag.defer = false;
+				shimTag.async = false;
+				body.insertBefore(shimTag, body.firstChild);
+			} catch {}
+		}
 		// Combine asset map and probe into a single external blob script to avoid inline CSP blocks
 		const combined = `window.__AUDIT_ASSET_MAP = ${JSON.stringify({ primary: primaryPath, map: blobMap, sizes: sizeByBlobUrl })};\n;(${probe})()`;
 		const blob = new Blob([combined], { type: 'text/javascript' });

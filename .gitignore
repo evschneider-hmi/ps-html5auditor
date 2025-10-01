@@ -5,3 +5,10 @@ app-V2/dist/
 .env
 *.log
 *.tsbuildinfo
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
