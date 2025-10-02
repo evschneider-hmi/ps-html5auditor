@@ -59,5 +59,38 @@ Archived: The original root app remains in the repository for reference (`archiv
 
 > Tip: Enable the existing Playwright GitHub Action to guard deployments—Vercel will only receive new builds after the tests succeed on `main`.
 
+## Automated Vercel failure triage
+
+The repository includes two optional pieces that close the loop between Vercel deployments and GitHub triage:
+
+- `.github/workflows/vercel-deploy-watch.yml` listens for either a Vercel webhook (`repository_dispatch` with type `vercel-deployment-error`) or the built-in Vercel GitHub Check. When it detects a failed deployment it:
+	- resolves the failing deployment via the Vercel REST API,
+	- downloads the build/runtime logs,
+	- comments on the associated PR/commit with the truncated logs, and
+	- (optionally) opens a "Fix Vercel deployment failure" issue tagged for automation/Copilot follow-up.
+- `api/github-dispatch.js` is an example Vercel Serverless Function that receives the `deployment.error` webhook, verifies the signature, and forwards a `repository_dispatch` to GitHub. Deploy it to the same Vercel project (or adapt it to any webhook relay service) when you do not want to expose a custom endpoint.
+
+### Secret / environment setup
+
+GitHub → **Settings → Secrets and variables → Actions**:
+
+- `VERCEL_TOKEN` – project-scoped token with access to deployments/logs
+- `VERCEL_PROJECT_ID` – the project identifier shown in Vercel settings
+- `VERCEL_ORG_ID` – team id (omit or leave blank for personal accounts)
+
+Vercel → **Project Settings → Environment Variables** (used by `api/github-dispatch.js`):
+
+- `VERCEL_WEBHOOK_SECRET` – shared secret to verify webhook signatures
+- `GITHUB_OWNER` / `GITHUB_REPO` – overrides if you fork the repo
+- `GITHUB_DISPATCH_TOKEN` – PAT (or fine-grained token) with `repo` scope to call the GitHub `repository_dispatch` API
+
+### Wiring the webhook
+
+1. In Vercel, create a webhook that listens to `deployment.error` (and optionally `deployment.canceled` / `deployment.succeeded`). Point it to `https://<your-app>.vercel.app/api/github-dispatch` (or wherever you host the bridge).
+2. Each failure will trigger the bridge, which calls `POST /repos/{owner}/{repo}/dispatches` with event type `vercel-deployment-error` and sends the deployment id / commit SHA / PR number.
+3. The GitHub Action inspects the payload, pulls the latest logs, and files the comment/issue automatically. If you have Copilot Enterprise or Pro Plus, assign the generated issue to the Copilot agent for a fully automated fix attempt; otherwise, treat the issue as a ready-made work order.
+
+> Quick smoke test: run `vercel deployment list` or `vercel build` locally to produce a failure, then use `curl -X POST` against `api/github-dispatch` with a captured webhook payload to ensure the automation path is wired before relying on production failures.
+
 ## Attribution
 From Horizon Media’s Platform Solutions team

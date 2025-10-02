@@ -1,0 +1,233 @@
+name: Vercel Deploy Watch
+
+on:
+  repository_dispatch:
+    types:
+      - vercel-deployment-error
+  check_run:
+    types:
+      - completed
+
+jobs:
+  handle-vercel-failure:
+    if: >-
+      github.event_name == 'repository_dispatch' ||
+      (github.event_name == 'check_run' &&
+       github.event.check_run.name == 'Vercel' &&
+       github.event.check_run.conclusion == 'failure')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Gather context from event payload
+        id: ctx
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const payload = context.payload;
+            const client = payload.client_payload ?? {};
+
+            const commitSha = client.commitSha
+              ?? payload.check_run?.head_sha
+              ?? payload.check_suite?.head_sha
+              ?? context.sha;
+
+            const prNumber = client.prNumber
+              ?? payload.pull_request?.number
+              ?? payload.check_run?.pull_requests?.[0]?.number
+              ?? null;
+
+            const deploymentId = client.deploymentId ?? null;
+            const deploymentUrl = client.url ?? payload.check_run?.details_url ?? null;
+
+            core.setOutput('commitSha', commitSha);
+            if (prNumber) core.setOutput('prNumber', String(prNumber));
+            if (deploymentId) core.setOutput('deploymentId', deploymentId);
+            if (deploymentUrl) core.setOutput('deploymentUrl', deploymentUrl);
+
+      - name: Resolve deployment metadata
+        id: dep
+        env:
+          CONTEXT_DEPLOYMENT_ID: ${{ steps.ctx.outputs.deploymentId }}
+          CONTEXT_DEPLOYMENT_URL: ${{ steps.ctx.outputs.deploymentUrl }}
+        run: |
+          node <<'NODE'
+          const fetchJson = async (url, headers) => {
+            const res = await fetch(url, { headers });
+            if (!res.ok) {
+              throw new Error(`Failed request ${res.status} ${res.statusText} for ${url}`);
+            }
+            return res.json();
+          };
+
+          (async () => {
+            const headers = { Authorization: `Bearer ${process.env.VERCEL_TOKEN}` };
+            const projectId = process.env.VERCEL_PROJECT_ID;
+            const orgId = process.env.VERCEL_ORG_ID;
+            const existingId = process.env.CONTEXT_DEPLOYMENT_ID;
+            const existingUrl = process.env.CONTEXT_DEPLOYMENT_URL;
+
+            const searchParams = new URLSearchParams({ projectId, limit: '5' });
+            if (orgId) searchParams.set('teamId', orgId);
+
+            let deploymentId = existingId ?? '';
+            let deploymentUrl = existingUrl ?? '';
+
+            if (!deploymentId) {
+              const list = await fetchJson(`https://api.vercel.com/v6/deployments?${searchParams}`, headers);
+              const failing = list.deployments?.find((d) => d.state === 'ERROR');
+              const candidate = failing ?? list.deployments?.[0];
+              if (candidate) {
+                deploymentId = candidate.uid;
+                deploymentUrl = `https://${candidate.url}`;
+              }
+            }
+
+            if (!deploymentId) {
+              throw new Error('Unable to determine Vercel deployment id from payload or API.');
+            }
+
+            const metaParams = new URLSearchParams({ projectId });
+            if (orgId) metaParams.set('teamId', orgId);
+            const deployment = await fetchJson(`https://api.vercel.com/v13/deployments/${deploymentId}?${metaParams}`, headers);
+
+            const gitMeta = deployment.meta ?? {};
+            const commitSha = gitMeta.githubCommitSha ?? gitMeta.commitSha ?? gitMeta['git-commit-sha'] ?? '';
+            const prNumber = gitMeta.githubPrNumber ?? gitMeta.prNumber ?? gitMeta['github-pr-number'] ?? '';
+
+            const outputs = {
+              deploymentId,
+              deploymentUrl: deploymentUrl || `https://${deployment.url}`,
+              commitSha,
+              prNumber,
+            };
+
+            for (const [key, value] of Object.entries(outputs)) {
+              if (value) {
+                console.log(`${key}=${value}`);
+                require('fs').appendFileSync(process.env.GITHUB_OUTPUT, `${key}=${value}\n`);
+              }
+            }
+          })().catch((err) => {
+            console.error(err);
+            process.exit(1);
+          });
+          NODE
+
+      - name: Download build logs
+        id: logs
+        env:
+          DEPLOYMENT_ID: ${{ steps.dep.outputs.deploymentId }}
+        run: |
+          node <<'NODE'
+          (async () => {
+            const deploymentId = process.env.DEPLOYMENT_ID;
+            if (!deploymentId) return;
+            const headers = { Authorization: `Bearer ${process.env.VERCEL_TOKEN}` };
+            const params = new URLSearchParams();
+            params.set('limit', '2000');
+            if (process.env.VERCEL_ORG_ID) params.set('teamId', process.env.VERCEL_ORG_ID);
+            const url = `https://api.vercel.com/v13/deployments/${deploymentId}/events?${params}`;
+            const res = await fetch(url, { headers });
+            if (!res.ok) {
+              throw new Error(`Failed to download logs ${res.status} ${res.statusText}`);
+            }
+            const text = await res.text();
+            const encoded = Buffer.from(text).toString('base64');
+            require('fs').appendFileSync(process.env.GITHUB_OUTPUT, `buildLogs=${encoded}\n`);
+          })().catch((err) => {
+            console.error(err);
+            process.exit(1);
+          });
+          NODE
+
+      - name: Comment with failure details
+        env:
+          BUILD_LOGS_B64: ${{ steps.logs.outputs.buildLogs }}
+          DEPLOYMENT_URL: ${{ steps.dep.outputs.deploymentUrl }}
+          PR_NUMBER: ${{ steps.ctx.outputs.prNumber || steps.dep.outputs.prNumber }}
+          COMMIT_SHA: ${{ steps.ctx.outputs.commitSha || steps.dep.outputs.commitSha }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const buildLog = Buffer.from(process.env.BUILD_LOGS_B64 || '', 'base64').toString('utf8');
+            const trimmed = buildLog.length > 12000 ? `${buildLog.slice(0, 12000)}\n… (truncated)` : buildLog;
+            const deploymentUrl = process.env.DEPLOYMENT_URL || 'unknown';
+            const body = [
+              '❌ **Vercel deployment failed**',
+              '',
+              `**Deployment**: ${deploymentUrl}`,
+              '',
+              '<details><summary>Build / Runtime Logs</summary>\n\n```\n' + (trimmed || 'No logs retrieved') + '\n```\n</details>',
+              '',
+              '> Generated automatically by `.github/workflows/vercel-deploy-watch.yml`.',
+            ].join('\n');
+
+            const prNumber = process.env.PR_NUMBER ? Number(process.env.PR_NUMBER) : null;
+            if (prNumber) {
+              core.info(`Commenting on PR #${prNumber}`);
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: prNumber,
+                body,
+              });
+            } else {
+              const sha = process.env.COMMIT_SHA || context.sha;
+              core.info(`Commenting on commit ${sha}`);
+              await github.rest.repos.createCommitComment({
+                ...context.repo,
+                commit_sha: sha,
+                body,
+              });
+            }
+
+      - name: Create tracking issue (optional automation)
+        uses: actions/github-script@v7
+        env:
+          BUILD_LOGS_B64: ${{ steps.logs.outputs.buildLogs }}
+          DEPLOYMENT_URL: ${{ steps.dep.outputs.deploymentUrl }}
+          DEPLOYMENT_ID: ${{ steps.dep.outputs.deploymentId }}
+        with:
+          script: |
+            const deploymentId = process.env.DEPLOYMENT_ID;
+            if (!deploymentId) {
+              core.info('No deployment id available, skipping issue creation.');
+              return;
+            }
+            const title = `Fix Vercel deployment failure: ${deploymentId}`;
+            const search = await github.rest.search.issuesAndPullRequests({
+              q: `repo:${context.repo.owner}/${context.repo.repo} in:title "${title}" state:open`,
+            });
+            if (search.data.items.length) {
+              core.info('Issue already exists, skipping.');
+              return;
+            }
+            const logs = Buffer.from(process.env.BUILD_LOGS_B64 || '', 'base64').toString('utf8');
+            const url = process.env.DEPLOYMENT_URL || 'unknown';
+            await github.rest.issues.create({
+              ...context.repo,
+              title,
+              labels: ['copilot', 'build-failure'],
+              body: [
+                'Automated report filed from the Vercel failure watcher.',
+                '',
+                `**Deployment**: ${url}`,
+                '',
+                '### Logs',
+                '```',
+                logs.substring(0, 12000) || 'No logs captured',
+                '```',
+                '',
+                '### Acceptance Criteria',
+                '- [ ] CI passes and Vercel deployment succeeds',
+              ].join('\n'),
+            });
