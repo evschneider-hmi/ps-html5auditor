@@ -1,8 +1,9 @@
 name: Deploy to GitHub Pages
 
+# NOTE: Automatic deploys were causing unintended publishes. This workflow
+# now requires a manual run via the Actions UI (workflow_dispatch) to
+# deploy to GitHub Pages. Revert if you want automated deploys again.
 on:
-  push:
-    branches: [ main ]
   workflow_dispatch:
 
 permissions:
