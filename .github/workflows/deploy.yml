@@ -1,9 +1,11 @@
 name: Deploy to GitHub Pages
 
-# NOTE: Automatic deploys were causing unintended publishes. This workflow
-# now requires a manual run via the Actions UI (workflow_dispatch) to
-# deploy to GitHub Pages. Revert if you want automated deploys again.
+# Deployments are guarded: they run on-demand (workflow_dispatch) or when a
+# commit to main includes the token "[pages]" in its message. This prevents
+# accidental publishes while keeping a simple manual trigger.
 on:
+  push:
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
@@ -17,6 +19,7 @@ concurrency:
 
 jobs:
   build:
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[pages]') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
