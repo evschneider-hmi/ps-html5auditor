@@ -3,10 +3,111 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Creative Suite Auditor</title>
+    <title>Creative Suite Auditor</title>
+    <style>
+      :root {
+        color-scheme: dark light;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        background: #0f172a;
+      }
+      body::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.85);
+        filter: grayscale(100%);
+        pointer-events: none;
+        z-index: 9998;
+      }
+      .migration-overlay {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        z-index: 9999;
+        pointer-events: auto;
+      }
+      .migration-overlay__panel {
+        max-width: 460px;
+        width: 100%;
+        background: rgba(15, 23, 42, 0.92);
+        border: 3px solid #7c3aed;
+        border-radius: 16px;
+        box-shadow: 0 24px 60px rgba(76, 29, 149, 0.45);
+        padding: 32px 28px;
+        text-align: center;
+        color: #f9fafb;
+      }
+      .migration-overlay__title {
+        font-size: 1.5rem;
+        font-weight: 800;
+        margin-bottom: 12px;
+        letter-spacing: 0.04em;
+      }
+      .migration-overlay__message {
+        font-size: 1rem;
+        line-height: 1.55;
+        margin-bottom: 18px;
+        color: #e0e7ff;
+      }
+      .migration-overlay__link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+        padding: 10px 18px;
+        border-radius: 999px;
+        border: 2px solid rgba(167, 139, 250, 0.6);
+        background: rgba(79, 70, 229, 0.12);
+        color: #c4b5fd;
+        font-weight: 600;
+        font-size: 0.98rem;
+        text-decoration: none;
+        transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+      }
+      .migration-overlay__link:hover,
+      .migration-overlay__link:focus-visible {
+        border-color: #a855f7;
+        background: rgba(167, 139, 250, 0.2);
+        transform: translateY(-1px);
+        outline: none;
+      }
+      .migration-overlay__link svg {
+        width: 1em;
+        height: 1em;
+      }
+      #root {
+        pointer-events: none;
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root" aria-hidden="true"></div>
+    <div class="migration-overlay" role="dialog" aria-modal="true" aria-labelledby="migration-title" aria-describedby="migration-message">
+      <div class="migration-overlay__panel">
+        <div id="migration-title" class="migration-overlay__title">We’ve moved!</div>
+        <div id="migration-message" class="migration-overlay__message">
+          This tool now lives at our new home. All auditing logic has shifted with it, so please update your bookmarks.
+        </div>
+        <a class="migration-overlay__link" href="https://creative.hmi-platformsolutions.com/" rel="noopener" target="_blank">
+          Visit creative.hmi-platformsolutions.com
+          <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"></path>
+            <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"></path>
+          </svg>
+        </a>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
