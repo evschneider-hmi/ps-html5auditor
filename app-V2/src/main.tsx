@@ -41,6 +41,18 @@ function Boot() {
   }, [showOverlay]);
 
   useEffect(() => {
+    if (!showOverlay) return;
+    try {
+      const { hostname, search } = window.location;
+      const host = (hostname || '').toLowerCase();
+      if (host !== 'evschneider-hmi.github.io') return;
+      const params = new URLSearchParams(search);
+      if (params.get('stay') === '1') return;
+      window.location.replace('https://creative.hmi-platformsolutions.com/');
+    } catch {}
+  }, [showOverlay]);
+
+  useEffect(() => {
     try {
       const params = new URLSearchParams(location.search);
       const strip = params.get('strip');
