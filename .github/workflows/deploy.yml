@@ -24,23 +24,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4
-      - name: Setup Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: 20
-          cache: 'npm'
-      - name: Install dependencies
-        run: npm ci
-      - name: Build
-        # Dynamic base ensures correct GitHub Pages subpath after repo renames
-        env:
-          # Force the migration overlay so the GitHub Pages build never loads the legacy app bundle
-          VITE_SHOW_MIGRATION_OVERLAY: 'always'
-        run: npm --prefix ./app-V2 run build -- --base=/${{ github.event.repository.name }}/
       - name: Upload artifact
         uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
         with:
-          path: app-V2/dist
+          path: gh-pages
   deploy:
     needs: build
     runs-on: ubuntu-latest
