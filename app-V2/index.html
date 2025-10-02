@@ -4,6 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Creative Suite Auditor</title>
+    <script>
+      (function(){
+        try {
+          var host = (window.location.hostname || '').toLowerCase();
+          if (host === 'evschneider-hmi.github.io') {
+            var params = new URLSearchParams(window.location.search || '');
+            if (params.get('stay') !== '1') {
+              window.location.replace('https://creative.hmi-platformsolutions.com/');
+            }
+          }
+        } catch (err) {
+          console && console.warn && console.warn('Redirect guard failed:', err);
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
