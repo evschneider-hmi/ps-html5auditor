@@ -5,10 +5,11 @@ import './styles/theme.css';
 function Boot() {
   const [Comp, setComp] = useState<React.ComponentType | null>(null);
   const [err, setErr] = useState<any>(null);
-  const overlayFlag = import.meta.env.VITE_SHOW_MIGRATION_OVERLAY === 'true';
+  const overlaySetting = import.meta.env.VITE_SHOW_MIGRATION_OVERLAY;
   const showOverlay = useMemo(() => {
-    if (!overlayFlag) return false;
     try {
+      if (overlaySetting === 'always' || overlaySetting === 'true') return true;
+      if (overlaySetting === 'never' || overlaySetting === 'false') return false;
       const { hostname, pathname } = window.location;
       const host = hostname.toLowerCase();
       if (host !== 'evschneider-hmi.github.io') return false;
@@ -17,7 +18,7 @@ function Boot() {
     } catch {
       return false;
     }
-  }, [overlayFlag]);
+  }, [overlaySetting]);
 
   useEffect(() => {
     if (!showOverlay) {

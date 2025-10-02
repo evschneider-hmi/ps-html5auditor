@@ -3,7 +3,7 @@
 The repository publishes two experiences:
 
 - **Production app** at <https://creative.hmi-platformsolutions.com/> — built and deployed by your primary pipeline (outside this repo).
-- **Migration landing page** at <https://evschneider-hmi.github.io/ps-html5auditor/> — built from `app-V2` with an enforced migration overlay.
+- **Migration landing page** at <https://evschneider-hmi.github.io/ps-html5auditor/> — built from `app-V2` and automatically wrapped in a migration overlay when served from GitHub Pages.
 
 ## GitHub Pages publishing
 
@@ -12,7 +12,7 @@ GitHub Pages deployments are intentionally guarded to avoid accidental publishes
 1. You launch it manually from the **Actions → Deploy to GitHub Pages → Run workflow** button.
 2. You push a commit to `main` whose commit message contains the token `[pages]`.
 
-Both execution paths build `app-V2` with `VITE_SHOW_MIGRATION_OVERLAY=true`, so the published Pages site always shows the migration overlay.
+Both execution paths build `app-V2` with `VITE_SHOW_MIGRATION_OVERLAY=true`, so the published Pages site always shows the migration overlay. The runtime also checks the host, so the overlay is only visible on `evschneider-hmi.github.io` by default.
 
 ### Manual run
 
@@ -33,7 +33,7 @@ If you want a different guard (tags, labels, approvals), edit `deploy.yml` accor
 
 ## Verifying the overlay
 
-The overlay is controlled by the Vite build flag `VITE_SHOW_MIGRATION_OVERLAY`. It is set inside the workflow so local builds and the production environment remain unaffected. To preview the overlay locally, run:
+The overlay is controlled by the Vite build flag `VITE_SHOW_MIGRATION_OVERLAY`. When omitted, the runtime automatically shows the gate only on GitHub Pages. Setting the flag to `always`/`true` forces the overlay everywhere; `never`/`false` disables it entirely. To preview the overlay locally, run:
 
 ```powershell
 cd app-V2
