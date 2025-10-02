@@ -1,13 +1,121 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Creative Suite Auditor</title>
-    <script type="module" crossorigin src="./assets/index-Dykb5sAM.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-1Uil1rLK.css">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Creative Suite Auditor — Moved</title>
+    <meta name="robots" content="noindex" />
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+        --bg: #0f172a;
+        --panel: rgba(15, 23, 42, 0.92);
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --accent: #6366f1;
+        --accent-hover: #4f46e5;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, rgba(15, 23, 42, 0.94), rgba(15, 23, 42, 0.88)), url('https://creative.hmi-platformsolutions.com/assets/migration-app-preview-D-SKkTHA.png') center/cover no-repeat fixed;
+        padding: 24px;
+        color: var(--text);
+      }
+
+      .overlay {
+        max-width: 420px;
+        width: 100%;
+        background: var(--panel);
+        border: 1px solid rgba(99, 102, 241, 0.45);
+        border-radius: 20px;
+        padding: 32px 28px;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.55);
+        backdrop-filter: blur(18px);
+        text-align: center;
+      }
+
+      .overlay h1 {
+        margin: 0 0 12px;
+        font-size: 28px;
+        font-weight: 800;
+        letter-spacing: 0.015em;
+      }
+
+      .overlay p {
+        margin: 0 0 24px;
+        font-size: 15px;
+        line-height: 1.6;
+        color: var(--muted);
+      }
+
+      .overlay a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 14px;
+        padding: 12px 20px;
+        border-radius: 999px;
+        background: var(--accent);
+        color: white;
+        box-shadow: 0 10px 30px rgba(79, 70, 229, 0.35);
+        transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+      }
+
+      .overlay a:hover,
+      .overlay a:focus-visible {
+        transform: translateY(-1px);
+        background: var(--accent-hover);
+        box-shadow: 0 16px 38px rgba(79, 70, 229, 0.4);
+        outline: none;
+      }
+
+      .overlay footer {
+        margin-top: 18px;
+        font-size: 12px;
+        color: rgba(148, 163, 184, 0.75);
+      }
+
+      @media (max-width: 520px) {
+        .overlay {
+          padding: 28px 22px;
+        }
+
+        .overlay h1 {
+          font-size: 24px;
+        }
+
+        .overlay p {
+          font-size: 14px;
+        }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <main class="overlay" role="dialog" aria-labelledby="migration-title" aria-describedby="migration-msg">
+      <h1 id="migration-title">We’ve moved!</h1>
+      <p id="migration-msg">
+        The HTML5 Creative Auditor now lives at our production environment. Please update your bookmarks and use the new URL for the latest auditing logic and tool updates.
+      </p>
+      <a href="https://creative.hmi-platformsolutions.com/" rel="noopener" target="_blank">
+        Visit creative.hmi-platformsolutions.com
+        <span aria-hidden="true">↗</span>
+      </a>
+      <footer>
+        This GitHub Pages mirror is intentionally frozen for archival purposes.
+      </footer>
+    </main>
   </body>
-  </html>
+</html>
