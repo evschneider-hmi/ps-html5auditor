@@ -29,6 +29,8 @@ jobs:
         run: npm ci
       - name: Build
         # Dynamic base ensures correct GitHub Pages subpath after repo renames
+        env:
+          VITE_SHOW_MIGRATION_OVERLAY: 'true'
         run: npm --prefix ./app-V2 run build -- --base=/${{ github.event.repository.name }}/
       - name: Upload artifact
         uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3

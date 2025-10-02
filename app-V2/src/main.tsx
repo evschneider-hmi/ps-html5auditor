@@ -1,34 +1,33 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles/theme.css';
 
 function Boot() {
   const [Comp, setComp] = useState<React.ComponentType | null>(null);
   const [err, setErr] = useState<any>(null);
-  const showOverlay = React.useMemo(() => {
+  const overlayFlag = import.meta.env.VITE_SHOW_MIGRATION_OVERLAY === 'true';
+  const showOverlay = useMemo(() => {
+    if (!overlayFlag) return false;
     try {
       const { hostname, pathname } = window.location;
-      if (hostname.toLowerCase() !== 'evschneider-hmi.github.io') return false;
+      const host = hostname.toLowerCase();
+      if (host !== 'evschneider-hmi.github.io') return false;
       const normalizedPath = pathname.replace(/\/+$/, '') || '/';
       return normalizedPath === '/' || normalizedPath.startsWith('/ps-html5auditor');
     } catch {
       return false;
     }
-  }, []);
+  }, [overlayFlag]);
 
   useEffect(() => {
-    if (showOverlay) {
+    if (!showOverlay) {
       try {
-        document.body.classList.add('migration-locked');
+        document.body.classList.remove('migration-locked');
       } catch {}
-      return () => {
-        try {
-          document.body.classList.remove('migration-locked');
-        } catch {}
-      };
+      return;
     }
     try {
-      document.body.classList.remove('migration-locked');
+      document.body.classList.add('migration-locked');
     } catch {}
     return () => {
       try {
