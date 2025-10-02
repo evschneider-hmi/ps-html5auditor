@@ -28,6 +28,7 @@ export function ExtendedHome() {
       return '';
     }
   }, []);
+  const betaTooltipId = 'open-beta-tooltip';
   const tab = useExtStore(s => (s as any).tab as TabKey);
   const setTab = useExtStore(s => (s as any).setTab as (t: TabKey) => void);
   const [dark, setDark] = useState<boolean>(()=>{
@@ -106,6 +107,23 @@ export function ExtendedHome() {
             <ThemeSwitch dark={dark} onToggle={()=>setDark(v=>!v)} />
           </div>
         </header>
+
+        <div className="beta-banner" role="status" aria-describedby={betaTooltipId}>
+          <span className="beta-label">OPEN BETA</span>
+          <span className="beta-message">Logic is still being tuned. Please review insights with care before sharing or acting on them.</span>
+          <button
+            type="button"
+            className="beta-tooltip"
+            aria-describedby={betaTooltipId}
+            aria-label="What does open beta mean?"
+          >
+            <span className="sr-only">Open beta details</span>
+            <span className="beta-icon" aria-hidden>ℹ</span>
+            <span className="beta-tooltip-text" role="tooltip" id={betaTooltipId}>
+              We’re actively fine-tuning the audit logic. Treat every flagged insight as guidance, not a final verdict, and double-check anything critical.
+            </span>
+          </button>
+        </div>
 
         <nav className="tabs">
           <TabBtn active={tab==='zip'} onClick={() => setTab('zip')}>HTML5</TabBtn>
