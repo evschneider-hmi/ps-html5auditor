@@ -5,7 +5,7 @@ const SAMPLE_AD_TAG = "<script>window.clickTag='//example.com/landing';(function
 test('ad tag tester captures clickTag and network activity', async ({ page }) => {
   await page.route('https://example.com/**', (route) => route.fulfill({ status: 204, body: '' }));
 
-  await page.goto('/');
+  await page.goto('/?labs=1');
   await page.getByRole('button', { name: 'Ad Tag' }).click();
 
   const tagInput = page.getByTestId('tag-input');

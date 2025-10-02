@@ -28,6 +28,14 @@ export function ExtendedHome() {
       return '';
     }
   }, []);
+  const labsUnlocked = useMemo(() => {
+    try {
+      return new URLSearchParams(location.search).get('labs') === '1';
+    } catch {
+      return false;
+    }
+  }, []);
+  const labsEnabled = labsUnlocked || import.meta.env.VITE_ENABLE_LABS === 'true';
   const betaTooltipId = 'open-beta-tooltip';
   const tab = useExtStore(s => (s as any).tab as TabKey);
   const setTab = useExtStore(s => (s as any).setTab as (t: TabKey) => void);
@@ -60,12 +68,20 @@ export function ExtendedHome() {
     } catch {}
   }, [dark]);
 
+  const tabAvailability = useMemo(() => ({
+    zip: true,
+    vast: true,
+    tag: labsEnabled,
+    static: false,
+    video: false,
+  } satisfies Record<TabKey, boolean>), [labsEnabled]);
+
   // Redirect away from disabled tabs (static, video, tag) if currently selected
   useEffect(()=>{
-    if (tab === 'static' || tab === 'video' || tab === 'tag') {
+    if (!tabAvailability[tab]) {
       try { setTab('zip'); } catch {}
     }
-  }, [tab, setTab]);
+  }, [tab, setTab, tabAvailability]);
 
   // Strip level 2: render only the header and theme switch to confirm shell mounts
   if (stripLevel === '2') {
@@ -126,11 +142,31 @@ export function ExtendedHome() {
         </div>
 
         <nav className="tabs">
-          <TabBtn active={tab==='zip'} onClick={() => setTab('zip')}>HTML5</TabBtn>
-          <TabBtn active={tab==='vast'} onClick={() => setTab('vast')}>VAST</TabBtn>
-          <TabBtn active={tab==='tag'} onClick={() => setTab('tag')} disabled strike>Ad Tag</TabBtn>
-          <TabBtn active={tab==='static'} onClick={() => setTab('static')} disabled strike>Static</TabBtn>
-          <TabBtn active={tab==='video'} onClick={() => setTab('video')} disabled strike>Video</TabBtn>
+          <TabBtn
+            active={tab==='zip'}
+            onClick={() => setTab('zip')}
+            available={tabAvailability.zip}
+          >HTML5</TabBtn>
+          <TabBtn
+            active={tab==='vast'}
+            onClick={() => setTab('vast')}
+            available={tabAvailability.vast}
+          >VAST</TabBtn>
+          <TabBtn
+            active={tab==='tag'}
+            onClick={() => setTab('tag')}
+            available={tabAvailability.tag}
+          >Ad Tag</TabBtn>
+          <TabBtn
+            active={tab==='static'}
+            onClick={() => setTab('static')}
+            available={tabAvailability.static}
+          >Static</TabBtn>
+          <TabBtn
+            active={tab==='video'}
+            onClick={() => setTab('video')}
+            available={tabAvailability.video}
+          >Video</TabBtn>
         </nav>
 
         <Suspense fallback={<div style={{ padding: 12, fontSize: 12 }}>Loading module…</div>}>
@@ -157,10 +193,10 @@ const TabBtn: React.FC<{
   active?: boolean;
   onClick: () => void;
   children: React.ReactNode;
-  disabled?: boolean;
-  strike?: boolean;
-}> = ({ active, onClick, children, disabled, strike }) => {
-  const showSlash = !!strike || !!disabled;
+  available?: boolean;
+}> = ({ active, onClick, children, available = true }) => {
+  const disabled = !available;
+  const showSlash = disabled;
   return (
     <button
       onClick={disabled ? undefined : onClick}

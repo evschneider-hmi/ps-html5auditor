@@ -106,7 +106,7 @@ test('capture previews and network logs for iOS and Android', async ({ page }) =
 
   await page.route('**artsai.test/**', (route) => route.fulfill({ status: 204, body: '' }));
 
-  await page.goto('/');
+  await page.goto('/?labs=1');
   await page.getByRole('button', { name: 'Ad Tag' }).click();
 
   const tagInput = page.getByTestId('tag-input');
