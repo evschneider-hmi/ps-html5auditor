@@ -34,7 +34,8 @@ jobs:
       - name: Build
         # Dynamic base ensures correct GitHub Pages subpath after repo renames
         env:
-          VITE_SHOW_MIGRATION_OVERLAY: 'true'
+          # Force the migration overlay so the GitHub Pages build never loads the legacy app bundle
+          VITE_SHOW_MIGRATION_OVERLAY: 'always'
         run: npm --prefix ./app-V2 run build -- --base=/${{ github.event.repository.name }}/
       - name: Upload artifact
         uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3

@@ -74,13 +74,44 @@ body.migration-locked::after{
   content:"";
   position:fixed;
   inset:0;
-  background:rgba(15,23,42,0.85);
+  background:rgba(15,23,42,0.6);
   filter:grayscale(100%);
   pointer-events:none;
   z-index:9998;
 }
 
 body.migration-locked .app{
+  pointer-events:none;
+}
+
+.app[data-overlay='true']{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:100vh;
+  padding:40px 24px;
+}
+
+.migration-backdrop{
+  position:relative;
+  width:100%;
+  max-width:1120px;
+  border-radius:28px;
+  overflow:hidden;
+  box-shadow:0 40px 80px rgba(15,23,42,0.55);
+}
+
+.migration-backdrop__image{
+  width:100%;
+  display:block;
+  filter:grayscale(100%);
+  opacity:0.75;
+}
+
+.migration-backdrop__scrim{
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg, rgba(15,23,42,0.25) 0%, rgba(15,23,42,0.55) 100%);
   pointer-events:none;
 }
 

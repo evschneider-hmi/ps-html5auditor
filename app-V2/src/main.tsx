@@ -1,15 +1,18 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles/theme.css';
+import screenshotUrl from './assets/migration-app-preview.png';
 
 function Boot() {
   const [Comp, setComp] = useState<React.ComponentType | null>(null);
   const [err, setErr] = useState<any>(null);
   const overlaySetting = import.meta.env.VITE_SHOW_MIGRATION_OVERLAY;
+  const overlayForced = overlaySetting === 'always' || overlaySetting === 'true';
+  const overlayBlocked = overlaySetting === 'never' || overlaySetting === 'false';
   const showOverlay = useMemo(() => {
     try {
-      if (overlaySetting === 'always' || overlaySetting === 'true') return true;
-      if (overlaySetting === 'never' || overlaySetting === 'false') return false;
+      if (overlayForced) return true;
+      if (overlayBlocked) return false;
       const { hostname, pathname } = window.location;
       const host = hostname.toLowerCase();
       if (host !== 'evschneider-hmi.github.io') return false;
@@ -18,7 +21,7 @@ function Boot() {
     } catch {
       return false;
     }
-  }, [overlaySetting]);
+  }, [overlayBlocked, overlayForced, overlaySetting]);
 
   useEffect(() => {
     if (!showOverlay) {
@@ -53,17 +56,29 @@ function Boot() {
       }
     } catch {}
 
+    if (overlayForced || showOverlay) {
+      setComp(() => null);
+      setErr(null);
+      return;
+    }
+
+    let cancelled = false;
     // Dynamically import the app so any top-level module errors surface here
     import('./pages/ExtendedHome.tsx')
       .then((m) => {
-        setComp(() => m.ExtendedHome);
+        if (!cancelled) setComp(() => m.ExtendedHome);
       })
       .catch((e) => {
+        if (cancelled) return;
         // Surface boot error visibly
         console.error('Failed to load ExtendedHome:', e);
         setErr(e);
       });
-  }, []);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [overlayForced, showOverlay]);
 
   let shell: React.ReactNode;
 
@@ -87,8 +102,8 @@ function Boot() {
 
   return (
     <React.StrictMode>
-      <div className="app" aria-hidden={showOverlay ? 'true' : undefined}>
-        {shell}
+      <div className="app" data-overlay={showOverlay ? 'true' : undefined} aria-hidden={showOverlay ? 'true' : undefined}>
+        {showOverlay ? <MigrationBackdrop /> : shell}
       </div>
       {showOverlay && <MigrationOverlay />}
     </React.StrictMode>
@@ -127,6 +142,19 @@ function MigrationOverlay() {
           </svg>
         </a>
       </div>
+    </div>
+  );
+}
+
+function MigrationBackdrop() {
+  return (
+    <div className="migration-backdrop">
+      <img
+        src={screenshotUrl}
+        alt="Screenshot of the HTML5 Audit Tool interface."
+        className="migration-backdrop__image"
+      />
+      <div className="migration-backdrop__scrim" aria-hidden="true" />
     </div>
   );
 }
