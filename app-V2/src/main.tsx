@@ -5,17 +5,37 @@ import './styles/theme.css';
 function Boot() {
   const [Comp, setComp] = useState<React.ComponentType | null>(null);
   const [err, setErr] = useState<any>(null);
+  const showOverlay = React.useMemo(() => {
+    try {
+      const { hostname, pathname } = window.location;
+      if (hostname.toLowerCase() !== 'evschneider-hmi.github.io') return false;
+      const normalizedPath = pathname.replace(/\/+$/, '') || '/';
+      return normalizedPath === '/' || normalizedPath.startsWith('/ps-html5auditor');
+    } catch {
+      return false;
+    }
+  }, []);
 
   useEffect(() => {
+    if (showOverlay) {
+      try {
+        document.body.classList.add('migration-locked');
+      } catch {}
+      return () => {
+        try {
+          document.body.classList.remove('migration-locked');
+        } catch {}
+      };
+    }
     try {
-      document.body.classList.add('migration-locked');
+      document.body.classList.remove('migration-locked');
     } catch {}
     return () => {
       try {
         document.body.classList.remove('migration-locked');
       } catch {}
     };
-  }, []);
+  }, [showOverlay]);
 
   useEffect(() => {
     try {
@@ -67,10 +87,10 @@ function Boot() {
 
   return (
     <React.StrictMode>
-      <div className="app" aria-hidden="true">
+      <div className="app" aria-hidden={showOverlay ? 'true' : undefined}>
         {shell}
       </div>
-      <MigrationOverlay />
+      {showOverlay && <MigrationOverlay />}
     </React.StrictMode>
   );
 }
