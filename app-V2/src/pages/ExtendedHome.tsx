@@ -60,9 +60,9 @@ export function ExtendedHome() {
     } catch {}
   }, [dark]);
 
-  // Redirect away from disabled tabs (static, video) if currently selected
+  // Redirect away from disabled tabs (static, video, tag) if currently selected
   useEffect(()=>{
-    if (tab === 'static' || tab === 'video') {
+    if (tab === 'static' || tab === 'video' || tab === 'tag') {
       try { setTab('zip'); } catch {}
     }
   }, [tab, setTab]);
@@ -128,9 +128,9 @@ export function ExtendedHome() {
         <nav className="tabs">
           <TabBtn active={tab==='zip'} onClick={() => setTab('zip')}>HTML5</TabBtn>
           <TabBtn active={tab==='vast'} onClick={() => setTab('vast')}>VAST</TabBtn>
-          <TabBtn active={tab==='tag'} onClick={() => setTab('tag')}>Ad Tag</TabBtn>
-          <TabBtn active={tab==='static'} onClick={() => setTab('static')} disabled>Static</TabBtn>
-          <TabBtn active={tab==='video'} onClick={() => setTab('video')} disabled>Video</TabBtn>
+          <TabBtn active={tab==='tag'} onClick={() => setTab('tag')} disabled strike>Ad Tag</TabBtn>
+          <TabBtn active={tab==='static'} onClick={() => setTab('static')} disabled strike>Static</TabBtn>
+          <TabBtn active={tab==='video'} onClick={() => setTab('video')} disabled strike>Video</TabBtn>
         </nav>
 
         <Suspense fallback={<div style={{ padding: 12, fontSize: 12 }}>Loading module…</div>}>
@@ -153,35 +153,49 @@ export function ExtendedHome() {
   );
 }
 
-const TabBtn: React.FC<{ active?: boolean; onClick: () => void; children: React.ReactNode; disabled?: boolean }> = ({ active, onClick, children, disabled }) => (
-  <button
-    onClick={disabled ? undefined : onClick}
-    className={`tab ${active ? 'active' : ''}`}
-    disabled={!!disabled}
-    aria-disabled={!!disabled}
-    style={{ position:'relative', opacity: disabled ? 0.7 : 1, cursor: disabled ? 'not-allowed' : 'pointer', overflow:'hidden' }}
-    title={disabled ? undefined : undefined}
-  >
-    {children}
-    {disabled && (
-      <span
-        aria-hidden
-        style={{
-          position:'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%) rotate(-20deg)',
-          width: '140%',
-          height: 10,
-          background: 'var(--accent)',
-          opacity: 0.18,
-          pointerEvents: 'none',
-          borderRadius: 2
-        }}
-      />
-    )}
-  </button>
-);
+const TabBtn: React.FC<{
+  active?: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+  disabled?: boolean;
+  strike?: boolean;
+}> = ({ active, onClick, children, disabled, strike }) => {
+  const showSlash = !!strike || !!disabled;
+  return (
+    <button
+      onClick={disabled ? undefined : onClick}
+      className={`tab ${active ? 'active' : ''}`}
+      disabled={!!disabled}
+      aria-disabled={!!disabled}
+      style={{
+        position: 'relative',
+        opacity: disabled ? 0.7 : 1,
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        overflow: 'hidden'
+      }}
+      title={disabled ? 'Coming soon' : undefined}
+    >
+      {children}
+      {showSlash && (
+        <span
+          aria-hidden
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%) rotate(-18deg)',
+            width: '150%',
+            height: 11,
+            background: 'linear-gradient(135deg, var(--accent), var(--accent-2))',
+            opacity: 0.32,
+            pointerEvents: 'none',
+            borderRadius: 4
+          }}
+        />
+      )}
+    </button>
+  );
+};
 
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; err?: any }>{
   constructor(props: any){
