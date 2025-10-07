@@ -17,7 +17,11 @@ import { ExtendedPreview } from './ExtendedPreview';
 
 import { buildCm360ReportJson } from '../logic/exportCm360';
 
-import { PRIORITY_IDS, PRIORITY_ORDER } from '../logic/priority';
+import {
+  PRIORITY_ORDER,
+  isPriorityCheck,
+  mergePriorityFindings,
+} from '../logic/priority';
 
 type XLSXModule = typeof import('xlsx/xlsx.mjs');
 let xlsxModulePromise: Promise<XLSXModule> | null = null;
@@ -200,7 +204,7 @@ export const ExtendedResults: React.FC = () => {
 
         // Adjust settings to improve clickTag detection (case-insensitive variants)
         const adjustedSettings = {
-          ...(settings || {}),
+  'allowed-ext': 'CM360: Only typical creative extensions allowed (html, js, css, images, fonts, etc.) and no OS metadata artifacts (e.g., __MACOSX, Thumbs.db, .DS_Store).',
           clickTagPatterns: Array.from(
             new Set([
               ...(((settings as any)?.clickTagPatterns as string[]) || []),
@@ -251,7 +255,7 @@ export const ExtendedResults: React.FC = () => {
         }
 
         const requiredOnly = mainFindings.filter((f: any) =>
-          PRIORITY_IDS.has((f && f.id) || ''),
+          isPriorityCheck((f && f.id) || ''),
         );
 
         let status: 'PASS' | 'WARN' | 'FAIL' = 'PASS';
@@ -515,7 +519,7 @@ const TITLE_OVERRIDES: Record<string, string> = {
 
   'file-limits': 'File Count and Upload Size',
 
-  'allowed-ext': 'Allowed File Extensions',
+  'allowed-ext': 'Allowed File Types & Artifacts',
 
   'iframe-safe': 'Iframe Safe (No Cross-Frame DOM)',
 
@@ -925,18 +929,14 @@ const ResultTable: React.FC = () => {
               ? selectedBundleId === r.bundleId
               : results[0]?.bundleId === r.bundleId;
 
-            // Compute Priority-only issue counts
-
+            // Compute Priority-only issue counts (merged aliases)
             let pf = 0,
               pw = 0;
 
             try {
-              for (const f of r.findings || []) {
-                if (!PRIORITY_IDS.has(f.id)) continue;
-
-                if (f.severity === 'FAIL') pf++;
-                else if (f.severity === 'WARN') pw++;
-              }
+              const mergedPriority = mergePriorityFindings(r.findings || []);
+              pf = mergedPriority.filter((f: any) => f.severity === 'FAIL').length;
+              pw = mergedPriority.filter((f: any) => f.severity === 'WARN').length;
             } catch {}
 
             const removeHover = hoveredRemoveId === r.bundleId;
@@ -1378,18 +1378,7 @@ const PriorityList: React.FC<{ filter?: Set<'PASS' | 'WARN' | 'FAIL'> }> = ({
 
   // Decide which checks are Required vs Optional (Priority set)
 
-  // Display in fixed ad ops relevance order defined in PRIORITY_ORDER
-  const priorityOrder = PRIORITY_ORDER;
-
-  let requiredFindings = res.findings
-    .filter((f: any) => PRIORITY_IDS.has(f.id))
-    .sort((a: any, b: any) => {
-      const ai = priorityOrder.indexOf(a.id);
-      const bi = priorityOrder.indexOf(b.id);
-      const ax = ai < 0 ? Number.MAX_SAFE_INTEGER : ai;
-      const bx = bi < 0 ? Number.MAX_SAFE_INTEGER : bi;
-      return ax - bx;
-    });
+  let requiredFindings = mergePriorityFindings(res.findings || []);
 
   if (filter && filter.size > 0) {
     requiredFindings = requiredFindings.filter((f: any) =>
@@ -1706,9 +1695,6 @@ const OptionalList: React.FC = () => {
     results.find((r: any) => r.bundleId === selectedBundleId) || results[0];
 
   if (!res) return null;
-
-  const REQUIRED_IDS = PRIORITY_IDS;
-
   // Present IDs for duplicate suppression logic
 
   const presentIds = new Set<string>(res.findings.map((f: any) => f.id));
@@ -1766,7 +1752,7 @@ const OptionalList: React.FC = () => {
 
   const optionalFindings = res.findings
 
-    .filter((f: any) => !PRIORITY_IDS.has(f.id))
+    .filter((f: any) => !isPriorityCheck(f.id))
 
     .filter((f: any) => !shouldHideOptional(f.id, presentIds))
 
@@ -2124,9 +2110,7 @@ const ReportActions: React.FC = () => {
     const rows: any[] = [];
     for (const r of results as any[]) {
       // determine if bundle is included based on scope (fail/warn within Priority only)
-      const priority = (r.findings || []).filter((f: any) =>
-        PRIORITY_IDS.has(f.id),
-      );
+      const priority = mergePriorityFindings(r.findings || []);
       const hasFw = priority.some(
         (f: any) => f.severity === 'FAIL' || f.severity === 'WARN',
       );
@@ -2136,7 +2120,7 @@ const ReportActions: React.FC = () => {
           Bundle: prettyBundleName(r.bundleName),
           Status: r.summary?.status || '',
           CheckID: f.id,
-          Check: f.title,
+          Check: (TITLE_OVERRIDES as any)?.[f.id] || f.title,
           Severity: f.severity,
           Messages: (f.messages || []).join(' | '),
         };
@@ -2172,7 +2156,7 @@ const ReportActions: React.FC = () => {
     // Guidelines tab: exact CM360 + IAB guidelines (pull from SPEC_TEXT)
     const guideRows: any[] = [];
     const uniq = new Set<string>();
-    for (const id of Array.from(PRIORITY_IDS)) {
+  for (const id of PRIORITY_ORDER) {
       const text = (SPEC_TEXT as any)[id] || '';
       const srcs = sourcesFor(id);
       // Only include items that are CM360 or IAB per request
@@ -2298,7 +2282,7 @@ const DESCRIPTIONS: Record<string, string> = {
     'Entry HTML: exactly one top-level HTML file acts as the creative’s start file; all other files are referenced from it.\n\nWhy it matters: multiple or missing entry files confuse ad servers and can cause blank or rejected uploads.',
 
   'allowed-ext':
-    'Allowed file types: only typical creative extensions (html, htm, js, css, json, images, fonts, svg) are included.\n\nWhy it matters: unusual or executable types trip security scanners and get uploads quarantined or denied.',
+    'Allowed file types & OS artifacts: only typical creative extensions (html, htm, js, css, json, images, fonts, svg) are included and system metadata (e.g., __MACOSX folders, Thumbs.db, .DS_Store) is stripped.\n\nWhy it matters: unusual or executable types and stray OS artifacts trip security scanners and get uploads quarantined or denied.',
 
   'file-limits':
     'File count and ZIP size: keep total files ≤ 100 and compressed ZIP ≤ 10 MB (CM360 defaults).\n\nWhy it matters: exceeding intake caps slows QA and often blocks upload or serving.',
@@ -2320,7 +2304,7 @@ const DESCRIPTIONS: Record<string, string> = {
     'Counts initial load asset requests vs the configured cap.\n\nWhy it matters: excessive requests drag render performance and fail certification.',
 
   systemArtifacts:
-    'OS metadata (Thumbs.db, .DS_Store) / __MACOSX entries.\n\nWhy it matters: scanning tools flag these as contamination and block uploads.',
+    'OS metadata (Thumbs.db, .DS_Store) / __MACOSX entries.\n\nWhy it matters: scanning tools flag these as contamination and block uploads.\n\nNote: surfaced within the “Allowed File Types & Artifacts” priority check.',
 
   hardcodedClickUrl:
     'Hard-coded absolute clickthrough URL(s) in code/markup.\n\nWhy it matters: bypassing macros removes tracking and causes trafficking rejections.',
@@ -2717,7 +2701,8 @@ const SPEC_TEXT: Record<string, string> = {
   clickTags:
     'CM360: Click-through configured via clickTag/exit API; no hard-coded destinations.',
 
-  systemArtifacts: 'CM360: No OS/system artifacts in ZIP.',
+  systemArtifacts:
+    'CM360: No OS/system artifacts in ZIP (reported via Allowed File Types priority).',
 
   indexFile:
     'CM360: Root entry HTML present (name is flexible; one entry required).',
@@ -2738,7 +2723,7 @@ const SPEC_TEXT: Record<string, string> = {
   'file-limits': 'CM360: ≤ 100 files and ≤ 10 MB upload (compressed).',
 
   'allowed-ext':
-    'CM360: Only typical creative extensions allowed (html, js, css, images, fonts, etc.).',
+    'CM360: Only typical creative extensions allowed (html, js, css, images, fonts, etc.) and no OS metadata artifacts (e.g., __MACOSX, Thumbs.db, .DS_Store).',
 
   'iframe-safe':
     'CM360: No cross-frame DOM access (parent/top/document.domain).',

@@ -1,3 +1,5 @@
+import type { Finding } from '../../../src/logic/types';
+
 // Centralized Priority (required) checks used for gating overall status and the Priority list
 // Keep this as the single source of truth to avoid drift between components.
 
@@ -23,7 +25,6 @@ export const PRIORITY_ORDER: ReadonlyArray<string> = [
   'iframe-safe',
   'no-webstorage',
   'bad-filenames',
-  'systemArtifacts',
   'syntaxErrors',
   'creativeRendered',
   // Performance / IAB caps
@@ -36,3 +37,57 @@ export const PRIORITY_ORDER: ReadonlyArray<string> = [
 ];
 
 export const PRIORITY_IDS: ReadonlySet<string> = new Set<string>(PRIORITY_ORDER);
+
+const PRIORITY_CANONICAL: Record<string, string> = {
+  systemArtifacts: 'allowed-ext',
+};
+
+type Severity = 'PASS' | 'WARN' | 'FAIL';
+
+const SEVERITY_ORDER: Record<Severity, number> = { PASS: 0, WARN: 1, FAIL: 2 };
+
+function worstSeverity(a: Severity, b: Severity): Severity {
+  return SEVERITY_ORDER[a] >= SEVERITY_ORDER[b] ? a : b;
+}
+
+export function canonicalPriorityId(id: string): string {
+  return PRIORITY_CANONICAL[id] ?? id;
+}
+
+export function isPriorityCheck(id: string | undefined | null): boolean {
+  if (!id) return false;
+  return PRIORITY_IDS.has(canonicalPriorityId(id));
+}
+
+export function mergePriorityFindings(findings: ReadonlyArray<Finding>): Finding[] {
+  const map = new Map<string, Finding>();
+  for (const finding of findings) {
+    if (!finding) continue;
+    const canonical = canonicalPriorityId(finding.id);
+    if (!PRIORITY_IDS.has(canonical)) continue;
+    const cloned: Finding = {
+      ...finding,
+      id: canonical,
+      messages: Array.isArray(finding.messages) ? [...finding.messages] : [],
+      offenders: Array.isArray(finding.offenders) ? [...finding.offenders] : [],
+    };
+    const existing = map.get(canonical);
+    if (!existing) {
+      map.set(canonical, cloned);
+      continue;
+    }
+    map.set(canonical, {
+      ...existing,
+      title: cloned.title || existing.title,
+      severity: worstSeverity(existing.severity as Severity, cloned.severity as Severity),
+      messages: Array.from(
+        new Set([...(existing.messages || []), ...(cloned.messages || [])])
+      ),
+      offenders: [...(existing.offenders || []), ...(cloned.offenders || [])],
+    });
+  }
+
+  return PRIORITY_ORDER
+    .map((id) => map.get(id))
+    .filter((f): f is Finding => !!f);
+}

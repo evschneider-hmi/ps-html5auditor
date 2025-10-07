@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { PRIORITY_IDS } from '../logic/priority';
+import { mergePriorityFindings } from '../logic/priority';
 import { useExtStore } from '../state/useStoreExt';
 import {
   buildInstrumentedPreview,
@@ -132,16 +132,12 @@ export const ExtendedPreview: React.FC<ExtendedPreviewProps> = ({
                       else pass++;
                     }
                     // Gate overall status strictly by Priority (required) set: FAIL only if any Priority check FAILs
-                    const requiredOnly = findings.filter((f: any) =>
-                      PRIORITY_IDS.has(f.id),
-                    );
-                    let status: 'PASS' | 'WARN' | 'FAIL' = 'PASS';
-                    for (const f of requiredOnly) {
-                      if (f.severity === 'FAIL') {
-                        status = 'FAIL';
-                        break;
-                      }
-                    }
+                    const requiredOnly = mergePriorityFindings(findings || []);
+                    const status: 'PASS' | 'WARN' | 'FAIL' = requiredOnly.some(
+                      (f: any) => f.severity === 'FAIL',
+                    )
+                      ? 'FAIL'
+                      : 'PASS';
                     const summary = {
                       ...r.summary,
                       totalFindings: findings.length,
