@@ -625,27 +625,30 @@ export async function buildExtendedFindings(bundle: ZipBundle, partial: BundleRe
 		// Creative Border — detect CSS border: ... or four 1px edge lines (common in GWD)
 		{
 		// 1) Look for CSS border declarations in HTML and linked CSS
-		const cssTexts: string[] = [];
+		const cssSources: Array<{ path: string; text: string }> = [];
 		try {
-			// Inline <style> blocks
 			const html = htmlText || '';
-			const styleBlocks = Array.from(html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)).map(m => m[1] || '');
-			cssTexts.push(...styleBlocks);
-			// External CSS files in bundle
+			const styleBlocks = Array.from(html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/gi)).map((m, idx) => ({
+				path: primary ? `${primary} <style #${idx + 1}>` : `<style #${idx + 1}>`,
+				text: m[1] || '',
+			}));
+			cssSources.push(...styleBlocks);
 			for (const p of files) if (/\.css$/i.test(p)) {
-				try { cssTexts.push(new TextDecoder().decode(bundle.files[p])); } catch {}
+				try {
+					const text = new TextDecoder().decode(bundle.files[p]);
+					cssSources.push({ path: p, text });
+				} catch {}
 			}
 		} catch {}
 		let cssHasBorder = false;
 		const cssOffenders: any[] = [];
-		// Scan CSS texts and record exact lines
-		for (const t of cssTexts) {
-			const lines = t.split(/\r?\n/);
-			for (let i=0;i<lines.length;i++){
+		for (const source of cssSources) {
+			const lines = source.text.split(/\r?\n/);
+			for (let i = 0; i < lines.length; i++) {
 				const line = lines[i];
 				if (/\bborder(?:-top|-right|-bottom|-left|)\s*:\s*\d+px\s+(solid|dashed|double)/i.test(line)) {
 					cssHasBorder = true;
-					cssOffenders.push({ path: '(css)', line: i+1, detail: line.trim().slice(0,200) });
+					cssOffenders.push({ path: source.path, line: i + 1, detail: line.trim().slice(0, 200) });
 				}
 			}
 		}
@@ -678,14 +681,18 @@ export async function buildExtendedFindings(bundle: ZipBundle, partial: BundleRe
 				const bg = st['background-color'] || st['background'] || '';
 				const pos = st['position'] || '';
 				if (pos !== 'absolute') continue;
+				const id = el.getAttribute('id');
+				const cls = el.getAttribute('class');
+				const tag = el.tagName.toLowerCase();
+				const marker = [tag, id ? `#${id}` : null, cls ? `.${cls.replace(/\s+/g, '.')}` : null].filter(Boolean).join('');
 				// top line
-				if (isZero(st['top']) && isZero(st['left']) && isFull(st['width']) && isPx1to16(st['height']) && isVisibleColor(bg)) { top = true; edgeOffenders.push({ path: '(inline)', detail: `top line ${st['height']||''} via absolute div` }); continue; }
+				if (isZero(st['top']) && isZero(st['left']) && isFull(st['width']) && isPx1to16(st['height']) && isVisibleColor(bg)) { top = true; edgeOffenders.push({ path: entryName || primary || '(inline)', detail: `${marker || 'element'} top line ${st['height']||''}` }); continue; }
 				// bottom line
-				if (isZero(st['bottom']) && isZero(st['left']) && isFull(st['width']) && isPx1to16(st['height']) && isVisibleColor(bg)) { bottom = true; edgeOffenders.push({ path: '(inline)', detail: `bottom line ${st['height']||''} via absolute div` }); continue; }
+				if (isZero(st['bottom']) && isZero(st['left']) && isFull(st['width']) && isPx1to16(st['height']) && isVisibleColor(bg)) { bottom = true; edgeOffenders.push({ path: entryName || primary || '(inline)', detail: `${marker || 'element'} bottom line ${st['height']||''}` }); continue; }
 				// left line
-				if (isZero(st['left']) && isZero(st['top']) && isFull(st['height']) && isPx1to16(st['width']) && isVisibleColor(bg)) { left = true; edgeOffenders.push({ path: '(inline)', detail: `left line ${st['width']||''} via absolute div` }); continue; }
+				if (isZero(st['left']) && isZero(st['top']) && isFull(st['height']) && isPx1to16(st['width']) && isVisibleColor(bg)) { left = true; edgeOffenders.push({ path: entryName || primary || '(inline)', detail: `${marker || 'element'} left line ${st['width']||''}` }); continue; }
 				// right line
-				if (isZero(st['right']) && isZero(st['top']) && isFull(st['height']) && isPx1to16(st['width']) && isVisibleColor(bg)) { right = true; edgeOffenders.push({ path: '(inline)', detail: `right line ${st['width']||''} via absolute div` }); continue; }
+				if (isZero(st['right']) && isZero(st['top']) && isFull(st['height']) && isPx1to16(st['width']) && isVisibleColor(bg)) { right = true; edgeOffenders.push({ path: entryName || primary || '(inline)', detail: `${marker || 'element'} right line ${st['width']||''}` }); continue; }
 			}
 			const count = [top,bottom,left,right].filter(Boolean).length;
 			if (count >= 3) { hasBorder = true; messages.push(`Detected via ${count} edge lines`); }
@@ -713,8 +720,11 @@ export async function buildExtendedFindings(bundle: ZipBundle, partial: BundleRe
 			`Sides detected: ${sides}`,
 			`CSS rules: ${cssRules}`,
 		];
-		const evidence = hasBorder ? cssOffenders.concat(edgeOffenders).slice(0, 100) : edgeOffenders.slice(0, 4);
-		out.push({ id:'border', title:'Border Present', severity, messages: borderMsgs, offenders: evidence });
+		let evidence = hasBorder ? cssOffenders.concat(edgeOffenders) : edgeOffenders.slice(0, 4);
+		if (hasBorder && evidence.length === 0 && (sides > 0 || cssRules > 0)) {
+			evidence = [{ path: '(runtime)', detail: `Runtime detected ${sides} side(s), ${cssRules} css rule(s)` }];
+		}
+		out.push({ id:'border', title:'Border Present', severity, messages: borderMsgs, offenders: evidence.slice(0, 100) });
 		}
 	}
 
