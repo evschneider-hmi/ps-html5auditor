@@ -204,7 +204,7 @@ export const ExtendedResults: React.FC = () => {
 
         // Adjust settings to improve clickTag detection (case-insensitive variants)
         const adjustedSettings = {
-  'allowed-ext': 'CM360: Only typical creative extensions allowed (html, js, css, images, fonts, etc.) and no OS metadata artifacts (e.g., __MACOSX, Thumbs.db, .DS_Store).',
+          ...(settings || {}),
           clickTagPatterns: Array.from(
             new Set([
               ...(((settings as any)?.clickTagPatterns as string[]) || []),
@@ -1404,9 +1404,9 @@ const PriorityList: React.FC<{ filter?: Set<'PASS' | 'WARN' | 'FAIL'> }> = ({
               className="title-wrap"
               style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
             >
-              <span className="title-text">
+              <h3 className="title-text" style={{ margin: 0 }}>
                 {TITLE_OVERRIDES[f.id] || f.title}
-              </span>
+              </h3>
 
               <SpecBadges checkId={f.id} />
             </div>
@@ -1786,38 +1786,49 @@ const OptionalList: React.FC = () => {
 
   return (
     <div className="panel" style={{ padding: 12 }}>
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
+      <div
         style={{
-          width: '100%',
-          textAlign: 'left',
-          background: 'rgba(255,255,255,0.02)',
-          border: '1px solid var(--border)',
-
-          borderRadius: 8,
-          padding: '8px 10px',
-          fontSize: 12,
-          fontWeight: 700,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 8,
         }}
       >
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-          <span>Additional Checks {open ? '\u25be' : '\u25b8'}</span>
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          style={{
+            flex: 1,
+            textAlign: 'left',
+            background: 'rgba(255,255,255,0.02)',
+            border: '1px solid var(--border)',
 
-          <span style={{ fontWeight: 400, color: '#6b7280' }}>
-            ({optionalFindings.length})
+            borderRadius: 8,
+            padding: '8px 10px',
+            fontSize: 12,
+            fontWeight: 700,
+          }}
+        >
+          <span
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+          >
+            <span>Additional Checks {open ? '\u25be' : '\u25b8'}</span>
+
+            <span style={{ fontWeight: 400, color: '#6b7280' }}>
+              ({optionalFindings.length})
+            </span>
           </span>
+        </button>
 
-          <SectionHelp
-            stopClickPropagation
-            explanation="Checks that are advised for optimal quality, performance, and maintainability."
-            why={
-              'Addressing these can improve reliability and user experience, though needs vary by placement.\n\nNote: These checks do not impact overall PASS/FAIL status.'
-            }
-          />
-        </span>
-      </button>
+        <SectionHelp
+          stopClickPropagation
+          explanation="Checks that are advised for optimal quality, performance, and maintainability."
+          why={
+            'Addressing these can improve reliability and user experience, though needs vary by placement.\n\nNote: These checks do not impact overall PASS/FAIL status.'
+          }
+        />
+      </div>
 
       {open && (
         <div
@@ -1845,9 +1856,9 @@ const OptionalList: React.FC = () => {
                     fontSize: 12,
                   }}
                 >
-                  <span className="title-text">
+                  <h3 className="title-text" style={{ margin: 0 }}>
                     {(TITLE_OVERRIDES as any)?.[f.id] || f.title}
-                  </span>
+                  </h3>
 
                   <SpecBadges checkId={f.id} />
                 </div>
