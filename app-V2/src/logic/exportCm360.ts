@@ -14,7 +14,11 @@ export interface Cm360ReportJson {
     file_count: number;
     initial_kweight_bytes: number;
     subload_kweight_bytes: number;
+    user_kweight_bytes: number;
     initial_host_requests: number;
+    subload_host_requests: number;
+    user_host_requests: number;
+    total_runtime_requests: number;
     animation_duration_s: number;
     cpu_mainthread_busy_pct: number;
     detected_clicktags: string[];
@@ -150,14 +154,27 @@ export function buildCm360ReportJson(res: BundleResult, bundle?: ExtBundle): Cm3
 
   const zipBytes = res.zippedBytes ?? 0;
   const fileCount = bundle ? Object.keys(bundle.files || {}).length : 0;
-  // Prefer runtime probe metrics when present
-  const meta: any = (window as any).__audit_last_summary || {};
-  const rtInitialBytes = typeof meta.initialBytes === 'number' ? meta.initialBytes : undefined;
-  const rtSubloadBytes = typeof meta.subloadBytes === 'number' ? meta.subloadBytes : undefined;
-  const rtInitialReq = typeof meta.initialRequests === 'number' ? meta.initialRequests : undefined;
+  const toNumber = (value: any): number | undefined =>
+    typeof value === 'number' && isFinite(value) ? Number(value) : undefined;
+  const runtime = res.runtime || {};
+  const runtimeSummary = (res.runtimeSummary as any) || {};
+  const lastSummary = (window as any).__audit_last_summary || {};
+  const meta: any = Object.keys(runtimeSummary || {}).length ? runtimeSummary : lastSummary;
+  const rtInitialBytes = runtime.initialBytes ?? toNumber(meta.initialBytes);
+  const rtSubloadBytes = runtime.subloadBytes ?? toNumber(meta.subloadBytes);
+  const rtUserBytes = runtime.userBytes ?? toNumber(meta.userBytes);
+  const rtTotalBytes = runtime.totalBytes ?? toNumber(meta.totalBytes);
+  const rtInitialReq = runtime.initialRequests ?? toNumber(meta.initialRequests);
+  const rtSubloadReq = runtime.subloadRequests ?? toNumber(meta.subloadRequests);
+  const rtUserReq = runtime.userRequests ?? toNumber(meta.userRequests);
+  const rtTotalReq = runtime.totalRequests ?? toNumber(meta.totalRequests);
   const initialBytes = rtInitialBytes ?? (res.initialBytes ?? 0);
-  const subloadBytes = rtSubloadBytes ?? (res.subsequentBytes ?? Math.max(0, (res.totalBytes || 0) - initialBytes));
+  const subloadBytes = rtSubloadBytes ?? (res.subloadBytes ?? res.subsequentBytes ?? Math.max(0, (res.totalBytes || 0) - initialBytes));
+  const userBytes = rtUserBytes ?? (res.userBytes ?? 0);
   const initialReq = rtInitialReq ?? (res.initialRequests ?? 0);
+  const subloadReq = rtSubloadReq ?? (res.subloadRequests ?? Math.max(((rtTotalReq ?? res.totalRequests ?? 0) - initialReq), 0));
+  const userReq = rtUserReq ?? (res.userRequests ?? 0);
+  const totalRuntimeReq = rtTotalReq ?? (runtime.totalRequests ?? res.totalRequests ?? (initialReq + subloadReq + userReq));
 
   // CPU busy percent based on long tasks in first 3s (if captured)
   const longMs = typeof meta.longTasksMs === 'number' ? Math.max(0, Math.min(3000, meta.longTasksMs)) : 0;
@@ -168,7 +185,11 @@ export function buildCm360ReportJson(res: BundleResult, bundle?: ExtBundle): Cm3
     file_count: fileCount,
     initial_kweight_bytes: Math.max(0, initialBytes),
     subload_kweight_bytes: Math.max(0, subloadBytes),
+    user_kweight_bytes: Math.max(0, userBytes),
     initial_host_requests: initialReq,
+    subload_host_requests: subloadReq,
+    user_host_requests: userReq,
+    total_runtime_requests: totalRuntimeReq,
     animation_duration_s: parseAnimSeconds(findings),
     cpu_mainthread_busy_pct: cpuBusyPct,
     detected_clicktags: extractClickTags(findings),

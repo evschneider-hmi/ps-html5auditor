@@ -58,3 +58,7 @@ export const useExtStore = create<ExtState>((set) => ({
   setVastSeed: (seed?: { mode: 'url'|'xml'; value: string }) => set(() => ({ vastSeed: seed })),
   setTagSeed: (seed?: string) => set(() => ({ tagSeed: seed })),
 }));
+
+if (typeof window !== 'undefined') {
+  (window as any).__EXT_STORE__ = useExtStore;
+}

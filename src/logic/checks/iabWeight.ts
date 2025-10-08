@@ -5,9 +5,16 @@ export function checkIabWeight(bundle: ZipBundle, partial: BundleResult, setting
   const initialCap = settings.iabInitialLoadKB || 150; // compressed guideline but we approximate with uncompressed
   const politeCap = settings.iabSubsequentLoadKB || 1000;
   const zippedCap = settings.iabMaxZippedKB || 200;
-  const totalBytes = partial.totalBytes ?? Object.values(bundle.files).reduce((a, u) => a + u.byteLength, 0);
-  const initialBytes = partial.initialBytes ?? totalBytes; // fallback if not computed
-  const subsequentBytes = partial.subsequentBytes ?? Math.max(0, totalBytes - initialBytes);
+  const toNumber = (value: unknown): number | undefined =>
+    typeof value === 'number' && isFinite(value) ? Number(value) : undefined;
+  const runtimeSummary = (partial.runtimeSummary as any) || {};
+  const runtimeInitial = partial.runtime?.initialBytes ?? toNumber(runtimeSummary.initialBytes);
+  const runtimeSubload = partial.runtime?.subloadBytes ?? toNumber(runtimeSummary.subloadBytes);
+  const runtimeTotal = partial.runtime?.totalBytes ?? toNumber(runtimeSummary.totalBytes);
+  const fallbackTotal = Object.values(bundle.files).reduce((a, u) => a + u.byteLength, 0);
+  const initialBytes = runtimeInitial ?? partial.initialBytes ?? fallbackTotal; // fallback if not computed
+  const subsequentBytes = runtimeSubload ?? partial.subsequentBytes ?? Math.max(0, (runtimeTotal ?? partial.totalBytes ?? fallbackTotal) - initialBytes);
+  const totalBytes = runtimeTotal ?? partial.totalBytes ?? (initialBytes + subsequentBytes);
   const totalKB = totalBytes / 1024;
   const initialKB = initialBytes / 1024;
   const subsequentKB = subsequentBytes / 1024;

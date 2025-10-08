@@ -22,5 +22,7 @@ test('Border findings surface CSS evidence for PASS creatives', async ({ page })
 		.filter({ has: page.getByRole('heading', { name: /Border Present/i }) });
 	await expect(borderCard).toBeVisible();
 
-	await expect(borderCard.locator('ul.offenders li')).toContainText(/border:/i);
+	const offenderItems = borderCard.locator('ul.offenders li');
+	await expect(offenderItems).toContainText(/border:\s*\d+/i);
+	await expect(offenderItems).not.toContainText(/border\s*:\s*0\b/i);
 });

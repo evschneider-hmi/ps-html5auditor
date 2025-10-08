@@ -16,7 +16,11 @@ export interface ProfileMetrics {
   file_count: number;
   initial_kweight_bytes: number;
   subload_kweight_bytes: number;
+  user_kweight_bytes: number;
   initial_host_requests: number;
+  subload_host_requests: number;
+  user_host_requests: number;
+  total_runtime_requests: number;
   animation_duration_s: number;
   cpu_mainthread_busy_pct: number;
   detected_clicktags: string[];
@@ -54,9 +58,23 @@ export function buildProfileOutput(bundle: ZipBundle, result: BundleResult, sett
   // Metrics
   const zipBytes = bundle.bytes?.length || 0;
   const fileCount = Object.keys(bundle.files).length;
-  const initialBytes = result.initialBytes || 0;
-  const subloadBytes = result.subsequentBytes || Math.max(0, (result.totalBytes || 0) - initialBytes);
-  const initialReq = result.initialRequests || 0;
+  const toNumber = (value: unknown): number | undefined =>
+    typeof value === 'number' && isFinite(value) ? Number(value) : undefined;
+  const runtime = result.runtime || {};
+  const runtimeSummary = (result.runtimeSummary as any) || {};
+  const initialBytes = runtime.initialBytes ?? result.initialBytes ?? 0;
+  const subloadBytes = runtime.subloadBytes ?? result.subloadBytes ?? result.subsequentBytes ?? Math.max(0, (runtime.totalBytes ?? result.totalBytes ?? 0) - (runtime.initialBytes ?? result.initialBytes ?? 0));
+  const userBytes = runtime.userBytes ?? toNumber(runtimeSummary.userBytes) ?? 0;
+  const initialReq = runtime.initialRequests ?? toNumber(runtimeSummary.initialRequests) ?? result.initialRequests ?? 0;
+  const subloadReq = runtime.subloadRequests ?? toNumber(runtimeSummary.subloadRequests) ?? Math.max(((runtime.totalRequests ?? toNumber(runtimeSummary.totalRequests) ?? result.totalRequests ?? 0) - initialReq), 0);
+  const userReq = runtime.userRequests ?? toNumber(runtimeSummary.userRequests) ?? 0;
+  const totalRuntimeReq = runtime.totalRequests ?? toNumber(runtimeSummary.totalRequests) ?? result.totalRequests ?? (initialReq + subloadReq + userReq);
+  const animationDuration = toNumber(runtimeSummary.animMaxDurationS) ?? 0;
+  const longTasksMs = toNumber(runtimeSummary.longTasksMs) ?? 0;
+  const cpuBusyPct = Math.round(Math.min(3000, Math.max(0, longTasksMs)) / 3000 * 100);
+  const runtimeStorage: string[] = [];
+  if ((toNumber(runtimeSummary.cookies) ?? 0) > 0) runtimeStorage.push('cookies');
+  if ((toNumber(runtimeSummary.localStorage) ?? 0) > 0) runtimeStorage.push('localStorage');
   const hasMetaAdSize = !!result.adSize;
 
   const texts = gatherTextFiles(bundle);
@@ -66,7 +84,7 @@ export function buildProfileOutput(bundle: ZipBundle, result: BundleResult, sett
   if (/\bsessionStorage\b/.test(textAll)) usesStorage.push('sessionStorage');
   if (/\bindexedDB\b/i.test(textAll)) usesStorage.push('indexedDB');
   if (/\bopenDatabase\b/.test(textAll)) usesStorage.push('openDatabase');
-  const usesDocWrite = /\bdocument\.write\s*\(/i.test(textAll);
+  const usesDocWrite = /\bdocument\.write\s*\(/i.test(textAll) || ((toNumber(runtimeSummary.documentWrites) ?? 0) > 0);
   const clickTagMatches = Array.from(textAll.matchAll(/\b(clicktag|clickTag|clickTAG)\b\s*=\s*(["']?)([^\n;\"']{0,512})/gi)).map(m => `${m[1]}=${m[3]}`);
 
   // External domains from references
@@ -128,9 +146,36 @@ export function buildProfileOutput(bundle: ZipBundle, result: BundleResult, sett
   // host-requests-initial: cap 10 (per provided rule) using initialRequests
   const reqCap = 10;
   iab.push({ id: 'host-requests-initial', status: initialReq > reqCap ? 'FAIL' : 'PASS', message: `Initial requests: ${initialReq} / ${reqCap}` });
-  // cpu-budget, animation-cap — not measured here; treat as PASS with note until runtime metrics are implemented
-  iab.push({ id: 'cpu-budget', status: 'PASS', message: 'CPU budget check not collected in this environment' });
-  iab.push({ id: 'animation-cap', status: 'PASS', message: 'Animation duration/loops not collected in this environment' });
+  if (toNumber(runtimeSummary.longTasksMs) !== undefined) {
+    const pct = cpuBusyPct;
+    const longDetail = Math.round(longTasksMs);
+    iab.push({
+      id: 'cpu-budget',
+      status: pct > 30 ? 'FAIL' : 'PASS',
+      message: `Main thread busy ~${pct}% (long tasks ${longDetail} ms / 3000 ms)`
+    });
+  } else {
+    iab.push({ id: 'cpu-budget', status: 'PASS', message: 'CPU budget check not collected in this environment' });
+  }
+  if (
+    toNumber(runtimeSummary.animMaxDurationS) !== undefined ||
+    toNumber(runtimeSummary.animMaxLoops) !== undefined ||
+    runtimeSummary.animInfinite
+  ) {
+    const maxDur = Math.max(0, toNumber(runtimeSummary.animMaxDurationS) ?? 0);
+    const loopsRaw = toNumber(runtimeSummary.animMaxLoops);
+    const infinite = !!runtimeSummary.animInfinite;
+    const loops = infinite ? Infinity : (loopsRaw ?? 1);
+    const violates = (infinite || loops > 3) && maxDur > 15;
+    const loopLabel = infinite ? 'infinite' : `${Math.round(loops)}`;
+    iab.push({
+      id: 'animation-cap',
+      status: violates ? 'FAIL' : 'PASS',
+      message: `Max animation ~${maxDur.toFixed(2)}s, loops ${loopLabel}`
+    });
+  } else {
+    iab.push({ id: 'animation-cap', status: 'PASS', message: 'Animation duration/loops not collected in this environment' });
+  }
   // border — static detection TBD; leaving WARN only if we can heuristically detect lack of border on non-white bg; default PASS with note
   iab.push({ id: 'border', status: 'PASS', message: 'Border/keyline check not collected in this environment' });
 
@@ -161,12 +206,16 @@ export function buildProfileOutput(bundle: ZipBundle, result: BundleResult, sett
     file_count: fileCount,
     initial_kweight_bytes: initialBytes,
     subload_kweight_bytes: subloadBytes,
+    user_kweight_bytes: userBytes,
     initial_host_requests: initialReq,
-    animation_duration_s: 0,
-    cpu_mainthread_busy_pct: 0,
+    subload_host_requests: subloadReq,
+    user_host_requests: userReq,
+    total_runtime_requests: totalRuntimeReq,
+    animation_duration_s: animationDuration,
+    cpu_mainthread_busy_pct: cpuBusyPct,
     detected_clicktags: unique(clickTagMatches).slice(0, 10),
     external_domains: externalDomains,
-    uses_storage_apis: unique(usesStorage),
+    uses_storage_apis: unique([...usesStorage, ...runtimeStorage]),
     uses_document_write: usesDocWrite,
     has_meta_ad_size: hasMetaAdSize,
     border_detected: 'none'

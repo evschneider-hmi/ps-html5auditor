@@ -6,8 +6,13 @@ const DEFAULT_INITIAL_REQUEST_CAP = 15;
 
 export function checkIabRequests(partial: BundleResult, settings: Settings): Finding {
   const cap = DEFAULT_INITIAL_REQUEST_CAP;
-  const initial = partial.initialRequests ?? 0;
-  const total = partial.totalRequests ?? initial;
+  const toNumber = (value: unknown): number | undefined =>
+    typeof value === 'number' && isFinite(value) ? Number(value) : undefined;
+  const runtimeSummary = (partial.runtimeSummary as any) || {};
+  const runtimeInitial = partial.runtime?.initialRequests ?? toNumber(runtimeSummary.initialRequests);
+  const runtimeTotal = partial.runtime?.totalRequests ?? toNumber(runtimeSummary.totalRequests);
+  const initial = runtimeInitial ?? partial.initialRequests ?? 0;
+  const total = runtimeTotal ?? partial.totalRequests ?? initial;
   let severity: 'PASS' | 'WARN' | 'FAIL' = 'PASS';
   const messages: string[] = [];
   if (initial > cap) {

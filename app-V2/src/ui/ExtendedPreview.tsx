@@ -6,11 +6,6 @@ import {
   type ProbeEvent,
   type ProbeSummary,
 } from '../logic/runtimeProbe';
-import {
-  ENVIRONMENT_OPTIONS,
-  type AdTagEnvironment,
-  type EnvironmentOption,
-} from '../logic/environment';
 
 type TabKey = 'preview' | 'source' | 'assets' | 'json';
 
@@ -42,7 +37,6 @@ export const ExtendedPreview: React.FC<ExtendedPreviewProps> = ({
   const [clickUrl, setClickUrl] = useState<string>('');
   const [clickPresent, setClickPresent] = useState(false);
   const [showInsights, setShowInsights] = useState(false);
-  const [environment, setEnvironment] = useState<AdTagEnvironment>('web');
   // Bump to force iframe re-mount on reload
   const [reloadTick, setReloadTick] = useState(0);
   const lastSizeRef = useRef<string>('');
@@ -63,7 +57,6 @@ export const ExtendedPreview: React.FC<ExtendedPreviewProps> = ({
       const built = await buildInstrumentedPreview(
         bundle as any,
         (bundleRes as any).primary.path,
-        { environment },
       );
       if (cancelled) return;
       setHtml(built.html);
@@ -73,7 +66,7 @@ export const ExtendedPreview: React.FC<ExtendedPreviewProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [bundleRes?.bundleId, bundleRes?.primary?.path, bundle, reloadTick, environment]);
+  }, [bundleRes?.bundleId, bundleRes?.primary?.path, bundle, reloadTick]);
 
   useEffect(() => {
     function handler(ev: MessageEvent) {
@@ -87,21 +80,64 @@ export const ExtendedPreview: React.FC<ExtendedPreviewProps> = ({
           try {
             // Persist latest summary for extended checks to read if needed
             (window as any).__audit_last_summary = pe.summary;
-            // Update the corresponding finding in results so Time to Render reflects runtime data
-            const ttr = pe.summary?.visualStart;
-            if (typeof ttr === 'number' && isFinite(ttr)) {
-              const st = (useExtStore as any).getState?.();
-              if (st && st.results && Array.isArray(st.results)) {
-                const bundleId = bundleRes?.bundleId;
-                const idx = st.results.findIndex(
-                  (r: any) => r.bundleId === bundleId,
-                );
-                if (idx >= 0) {
-                  const updated = st.results.map((r: any, i: number) => {
-                    if (i !== idx) return r;
-                    const findings = Array.isArray(r.findings)
-                      ? [...r.findings]
-                      : [];
+            const st = (useExtStore as any).getState?.();
+            if (st && st.results && Array.isArray(st.results)) {
+              // Always prefer the latest selection from the store to avoid
+              // stale closures (the component mounts before results exist).
+              const bundleId = st.selectedBundleId ?? bundleRes?.bundleId;
+              const idx = st.results.findIndex(
+                (r: any) => r.bundleId === bundleId,
+              );
+              if (idx >= 0) {
+                const toNumber = (value: any): number | undefined =>
+                  typeof value === 'number' && isFinite(value)
+                    ? Number(value)
+                    : undefined;
+                const summaryAny: any = pe.summary || {};
+                const summaryMetrics = {
+                  initialRequests: toNumber(pe.summary?.initialRequests),
+                  subloadRequests: toNumber(pe.summary?.subloadRequests),
+                  userRequests: toNumber(pe.summary?.userRequests),
+                  totalRequests: toNumber(pe.summary?.totalRequests),
+                  initialBytes: toNumber(pe.summary?.initialBytes),
+                  subloadBytes: toNumber(pe.summary?.subloadBytes),
+                  userBytes: toNumber(pe.summary?.userBytes),
+                  totalBytes: toNumber(pe.summary?.totalBytes),
+                  loadEventTime: toNumber(pe.summary?.loadEventTime),
+                  borderSides: toNumber(pe.summary?.borderSides),
+                  borderCssRules: toNumber(pe.summary?.borderCssRules),
+                };
+                const shouldApplyTotals =
+                  (summaryMetrics.totalRequests ?? 0) > 0 ||
+                  (summaryMetrics.totalBytes ?? 0) > 0;
+                const shouldApplyInitial =
+                  shouldApplyTotals ||
+                  (summaryMetrics.initialRequests ?? 0) > 0 ||
+                  (summaryMetrics.initialBytes ?? 0) > 0;
+                const shouldApplySubload =
+                  shouldApplyTotals ||
+                  (summaryMetrics.subloadRequests ?? 0) > 0 ||
+                  (summaryMetrics.subloadBytes ?? 0) > 0;
+                const shouldApplyUser =
+                  (summaryMetrics.userRequests ?? 0) > 0 ||
+                  (summaryMetrics.userBytes ?? 0) > 0;
+                const borderDetectedRuntime = (() => {
+                  const explicitRaw = summaryAny?.borderDetected;
+                  const explicit = typeof explicitRaw === 'string'
+                    ? explicitRaw.toLowerCase()
+                    : '';
+                  if (explicit === 'explicit' || explicit === 'yes') return true;
+                  const sides = summaryMetrics.borderSides ?? 0;
+                  const rules = summaryMetrics.borderCssRules ?? 0;
+                  return Number.isFinite(sides) && sides >= 3 || Number.isFinite(rules) && rules > 0;
+                })();
+                const ttr = toNumber(pe.summary?.visualStart);
+                const updated = st.results.map((r: any, i: number) => {
+                  if (i !== idx) return r;
+                  let findings = Array.isArray(r.findings)
+                    ? [...r.findings]
+                    : [];
+                  if (ttr !== undefined) {
                     const fi = findings.findIndex(
                       (f: any) => f.id === 'timeToRender',
                     );
@@ -114,7 +150,7 @@ export const ExtendedPreview: React.FC<ExtendedPreviewProps> = ({
                         messages: [msg, 'Target: < 500 ms'],
                       };
                     } else {
-                      findings.push({
+                      findings = findings.concat({
                         id: 'timeToRender',
                         title: 'Time to Render',
                         severity: sev,
@@ -122,34 +158,164 @@ export const ExtendedPreview: React.FC<ExtendedPreviewProps> = ({
                         offenders: [],
                       });
                     }
-                    // recompute summary counts (counts include all findings) and Status (required only)
-                    let fails = 0,
-                      warns = 0,
-                      pass = 0;
-                    for (const f of findings) {
-                      if (f.severity === 'FAIL') fails++;
-                      else if (f.severity === 'WARN') warns++;
-                      else pass++;
+                  }
+                  const borderSides = summaryMetrics.borderSides ?? 0;
+                  const borderCssRules = summaryMetrics.borderCssRules ?? 0;
+                  if (
+                    borderDetectedRuntime ||
+                    Number.isFinite(borderSides) ||
+                    Number.isFinite(borderCssRules)
+                  ) {
+                    if (import.meta.env.DEV) {
+                      console.log('[ExtendedPreview] border update', {
+                        bundleId,
+                        borderDetectedRuntime,
+                        borderSides,
+                        borderCssRules,
+                        existingFindings: findings.length,
+                      });
                     }
-                    // Gate overall status strictly by Priority (required) set: FAIL only if any Priority check FAILs
-                    const requiredOnly = mergePriorityFindings(findings || []);
-                    const status: 'PASS' | 'WARN' | 'FAIL' = requiredOnly.some(
-                      (f: any) => f.severity === 'FAIL',
-                    )
-                      ? 'FAIL'
-                      : 'PASS';
-                    const summary = {
-                      ...r.summary,
-                      totalFindings: findings.length,
-                      fails,
-                      warns,
-                      pass,
-                      status,
-                    };
-                    return { ...r, findings, summary };
-                  });
-                  st.setResults(updated);
-                }
+                    const borderIdx = findings.findIndex((f: any) => f && f.id === 'border');
+                    const borderMessages = [
+                      `Border detected: ${borderDetectedRuntime ? 'yes' : 'no'}`,
+                      `Sides detected: ${Number.isFinite(borderSides) ? borderSides : 0}`,
+                      `CSS rules: ${Number.isFinite(borderCssRules) ? borderCssRules : 0}`,
+                    ];
+                    const buildRuntimeEvidence = () => ({
+                      path: '(runtime)',
+                      detail: `Runtime detected ${Number.isFinite(borderSides) ? borderSides : 0} side(s), ${Number.isFinite(borderCssRules) ? borderCssRules : 0} css rule(s)`,
+                    });
+                    if (borderIdx >= 0) {
+                      const prev = findings[borderIdx] || {};
+                      const offenders = Array.isArray(prev.offenders)
+                        ? [...prev.offenders]
+                        : [];
+                      const nextOffenders = borderDetectedRuntime
+                        ? offenders.length > 0
+                          ? offenders
+                          : [buildRuntimeEvidence()]
+                        : offenders;
+                      findings[borderIdx] = {
+                        ...prev,
+                        severity: borderDetectedRuntime ? 'PASS' : 'WARN',
+                        messages: borderMessages,
+                        offenders: nextOffenders,
+                      };
+                    } else {
+                      findings = findings.concat({
+                        id: 'border',
+                        title: 'Border Present',
+                        severity: borderDetectedRuntime ? 'PASS' : 'WARN',
+                        messages: borderMessages,
+                        offenders: borderDetectedRuntime ? [buildRuntimeEvidence()] : [],
+                      });
+                    }
+                  }
+
+                  let fails = 0,
+                    warns = 0,
+                    pass = 0;
+                  for (const f of findings) {
+                    if (f.severity === 'FAIL') fails++;
+                    else if (f.severity === 'WARN') warns++;
+                    else pass++;
+                  }
+                  const requiredOnly = mergePriorityFindings(findings || []);
+                  const status: 'PASS' | 'WARN' | 'FAIL' = requiredOnly.some(
+                    (f: any) => f.severity === 'FAIL',
+                  )
+                    ? 'FAIL'
+                    : 'PASS';
+                  const summaryCounts = {
+                    ...r.summary,
+                    totalFindings: findings.length,
+                    fails,
+                    warns,
+                    pass,
+                    status,
+                  };
+                  const now = Date.now();
+                  const runtime = {
+                    ...(r.runtime || {}),
+                    source: 'probe',
+                    capturedAt: now,
+                    loadEventTime:
+                      summaryMetrics.loadEventTime ?? r.runtime?.loadEventTime,
+                    initialRequests:
+                      summaryMetrics.initialRequests ?? r.runtime?.initialRequests,
+                    subloadRequests:
+                      summaryMetrics.subloadRequests ?? r.runtime?.subloadRequests,
+                    userRequests:
+                      summaryMetrics.userRequests ?? r.runtime?.userRequests,
+                    totalRequests:
+                      summaryMetrics.totalRequests ?? r.runtime?.totalRequests,
+                    initialBytes:
+                      summaryMetrics.initialBytes ?? r.runtime?.initialBytes,
+                    subloadBytes:
+                      summaryMetrics.subloadBytes ?? r.runtime?.subloadBytes,
+                    userBytes:
+                      summaryMetrics.userBytes ?? r.runtime?.userBytes,
+                    totalBytes:
+                      summaryMetrics.totalBytes ?? r.runtime?.totalBytes,
+                    borderSides:
+                      summaryMetrics.borderSides ?? r.runtime?.borderSides,
+                    borderCssRules:
+                      summaryMetrics.borderCssRules ?? r.runtime?.borderCssRules,
+                    borderDetected: borderDetectedRuntime
+                      ? 'explicit'
+                      : typeof summaryAny?.borderDetected === 'string'
+                        ? summaryAny.borderDetected
+                        : summaryMetrics.borderSides !== undefined || summaryMetrics.borderCssRules !== undefined
+                          ? 'none'
+                          : r.runtime?.borderDetected,
+                  };
+                  const next = {
+                    ...r,
+                    findings,
+                    summary: summaryCounts,
+                    runtime,
+                    runtimeSummary: pe.summary,
+                  } as any;
+                  if (
+                    shouldApplyInitial &&
+                    summaryMetrics.initialRequests !== undefined
+                  )
+                    next.initialRequests = summaryMetrics.initialRequests;
+                  if (
+                    shouldApplyTotals &&
+                    summaryMetrics.totalRequests !== undefined
+                  )
+                    next.totalRequests = summaryMetrics.totalRequests;
+                  if (
+                    shouldApplySubload &&
+                    summaryMetrics.subloadRequests !== undefined
+                  )
+                    next.subloadRequests = summaryMetrics.subloadRequests;
+                  if (
+                    shouldApplyUser &&
+                    summaryMetrics.userRequests !== undefined
+                  )
+                    next.userRequests = summaryMetrics.userRequests;
+                  if (
+                    shouldApplyInitial &&
+                    summaryMetrics.initialBytes !== undefined
+                  )
+                    next.initialBytes = summaryMetrics.initialBytes;
+                  if (
+                    shouldApplySubload &&
+                    summaryMetrics.subloadBytes !== undefined
+                  ) {
+                    next.subloadBytes = summaryMetrics.subloadBytes;
+                    next.subsequentBytes = summaryMetrics.subloadBytes;
+                  }
+                  if (
+                    shouldApplyUser &&
+                    summaryMetrics.userBytes !== undefined
+                  )
+                    next.userBytes = summaryMetrics.userBytes;
+                  return next;
+                });
+                st.setResults(updated);
               }
             }
           } catch {}
@@ -177,18 +343,6 @@ export const ExtendedPreview: React.FC<ExtendedPreviewProps> = ({
   useEffect(() => {
     if (!hasDebugInsights) setShowInsights(false);
   }, [hasDebugInsights]);
-
-  const handleEnvironmentChange = (mode: AdTagEnvironment) => {
-    if (mode === environment) return;
-    setEnvironment(mode);
-    setReloadTick((t) => t + 1);
-    setSummary(null);
-    setEvents([]);
-    setClickUrl('');
-    setClickPresent(false);
-    setShowModal(false);
-    setHeight(800);
-  };
 
   // Compute primary path and entry base early so downstream hooks can safely run every render
   const primaryPath: string = bundleRes?.primary?.path || '';
@@ -278,11 +432,6 @@ export const ExtendedPreview: React.FC<ExtendedPreviewProps> = ({
       ),
     [blobMap],
   );
-
-  const selectedEnvironment = useMemo<EnvironmentOption>(() => {
-    const found = ENVIRONMENT_OPTIONS.find((opt) => opt.value === environment);
-    return found || ENVIRONMENT_OPTIONS[0];
-  }, [environment]);
 
   // Auto-scroll active match into view near top (Source)
   useEffect(() => {
@@ -422,7 +571,7 @@ export const ExtendedPreview: React.FC<ExtendedPreviewProps> = ({
                       <path d="M21 2v6h-6" />
                       <path d="M21 13a9 9 0 1 1-3-7l3 3" />
                     </svg>
-                    <span style={{ fontWeight: 600, color: '#6b7280' }}>
+                    <span style={{ fontWeight: 600, color: 'var(--text)' }}>
                       Reload
                     </span>
                   </button>
@@ -436,47 +585,6 @@ export const ExtendedPreview: React.FC<ExtendedPreviewProps> = ({
                     flexWrap: 'wrap',
                   }}
                 >
-                  <div
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: 10,
-                        letterSpacing: 0.6,
-                        textTransform: 'uppercase',
-                        color: '#6b7280',
-                        fontWeight: 600,
-                      }}
-                    >
-                      Environment
-                    </span>
-                    <div
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 4,
-                        flexWrap: 'wrap',
-                      }}
-                    >
-                      {ENVIRONMENT_OPTIONS.map((opt) => (
-                        <button
-                          key={opt.value}
-                          type="button"
-                          className={`btn ${environment === opt.value ? 'primary' : ''}`}
-                          onClick={() => handleEnvironmentChange(opt.value)}
-                          title={opt.hint}
-                          style={{ fontSize: 10, padding: '3px 8px' }}
-                        >
-                          {opt.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
                   {hasDebugInsights && (
                     <button
                       type="button"
@@ -489,22 +597,13 @@ export const ExtendedPreview: React.FC<ExtendedPreviewProps> = ({
                   )}
                 </div>
               </div>
-              <div
-                style={{
-                  fontSize: 11,
-                  color: '#6b7280',
-                  marginBottom: 6,
-                }}
-              >
-                {selectedEnvironment.hint}
-              </div>
 
               <iframe
                 ref={iframeRef}
                 title="Creative Preview"
                 sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-modals"
                 srcDoc={html}
-                key={`${reloadTick}-${environment}-${inferredSize ? `${inferredSize.width}x${inferredSize.height}` : 'auto'}`}
+                key={`${reloadTick}-${inferredSize ? `${inferredSize.width}x${inferredSize.height}` : 'auto'}`}
                 style={{
                   width: inferredSize ? `${inferredSize.width}px` : '100%',
                   height: inferredSize ? inferredSize.height : height,
@@ -541,20 +640,22 @@ export const ExtendedPreview: React.FC<ExtendedPreviewProps> = ({
                 }}
               />
               {/* Removed overlay guide to eliminate any visible bounding box */}
-              <button
-                type="button"
-                onClick={() => setShowModal(true)}
-                className="btn primary"
+              <div
                 style={{
-                  position: 'absolute',
-                  right: 8,
-                  bottom: 8,
-                  fontSize: 11,
-                  padding: '2px 6px',
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  marginTop: 8,
                 }}
               >
-                CTURL Status
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setShowModal(true)}
+                  className="btn primary"
+                  style={{ fontSize: 11, padding: '4px 8px' }}
+                >
+                  CTURL Status
+                </button>
+              </div>
               {showInsights && hasDebugInsights && (
                 <div
                   style={{

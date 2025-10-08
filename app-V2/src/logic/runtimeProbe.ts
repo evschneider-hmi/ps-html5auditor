@@ -39,10 +39,20 @@ export interface ProbeSummary {
 	// creative border detection
 	borderSides?: number; // how many sides with visible border
 	borderCssRules?: number; // count of elements with non-zero border width
+	borderDetected?: string;
 	// animation metrics (CSS animations)
 	animMaxDurationS?: number;
 	animMaxLoops?: number;
 	animInfinite?: boolean;
+	initialRequests?: number;
+	subloadRequests?: number;
+	userRequests?: number;
+	totalRequests?: number;
+	initialBytes?: number;
+	subloadBytes?: number;
+	userBytes?: number;
+	totalBytes?: number;
+	loadEventTime?: number;
 }
 
 export type ProbeEvent =
@@ -221,12 +231,75 @@ function buildProbeScript(): any {
 	// eslint-disable-next-line max-len
 	const src = function(){ try { 
 		var post = function(m){ try{ parent.postMessage(Object.assign({__audit_event:1},m), '*'); }catch(e){} };
-		var summary = { domContentLoaded: undefined, visualStart: undefined, frames: 0, consoleErrors:0, consoleWarnings:0, dialogs:0, cookies:0, localStorage:0, errors:0, documentWrites:0, jquery:false, clickUrl:'', memoryMB: undefined, memoryMinMB: undefined, memoryMaxMB: undefined, cpuScore: undefined, network: 0, runtimeIframes: 0, rewrites:0, imgRewrites:0, mediaRewrites:0, scriptRewrites:0, linkRewrites:0, setAttrRewrites:0, styleUrlRewrites:0, styleAttrRewrites:0, domImages:0, domBgUrls:0, enablerStub:false, animMaxDurationS: undefined, animMaxLoops: undefined, animInfinite: false };
-		var summary = { domContentLoaded: undefined, visualStart: undefined, frames: 0, consoleErrors:0, consoleWarnings:0, dialogs:0, cookies:0, localStorage:0, errors:0, documentWrites:0, jquery:false, clickUrl:'', memoryMB: undefined, memoryMinMB: undefined, memoryMaxMB: undefined, cpuScore: undefined, network: 0, runtimeIframes: 0, rewrites:0, imgRewrites:0, mediaRewrites:0, scriptRewrites:0, linkRewrites:0, setAttrRewrites:0, styleUrlRewrites:0, styleAttrRewrites:0, domImages:0, domBgUrls:0, enablerStub:false, animMaxDurationS: undefined, animMaxLoops: undefined, animInfinite: false };
+		var summary = { domContentLoaded: undefined, visualStart: undefined, frames: 0, consoleErrors:0, consoleWarnings:0, dialogs:0, cookies:0, localStorage:0, errors:0, documentWrites:0, jquery:false, clickUrl:'', memoryMB: undefined, memoryMinMB: undefined, memoryMaxMB: undefined, cpuScore: undefined, network: 0, runtimeIframes: 0, rewrites:0, imgRewrites:0, mediaRewrites:0, scriptRewrites:0, linkRewrites:0, setAttrRewrites:0, styleUrlRewrites:0, styleAttrRewrites:0, domImages:0, domBgUrls:0, enablerStub:false, animMaxDurationS: undefined, animMaxLoops: undefined, animInfinite: false, initialRequests: 0, subloadRequests: 0, userRequests: 0, totalRequests: 0, initialBytes: 0, subloadBytes: 0, userBytes: 0, totalBytes: 0, loadEventTime: undefined };
 		// Request/weight accounting
 		try {
-			(summary as any).initialRequests = 0; (summary as any).totalRequests = 0;
-			(summary as any).initialBytes = 0; (summary as any).subloadBytes = 0;
+			(summary as any).initialRequests = 0;
+			(summary as any).subloadRequests = 0;
+			(summary as any).userRequests = 0;
+			(summary as any).totalRequests = 0;
+			(summary as any).initialBytes = 0;
+			(summary as any).subloadBytes = 0;
+			(summary as any).userBytes = 0;
+			(summary as any).totalBytes = 0;
+		} catch(e){}
+		var loadEventTime = Number.POSITIVE_INFINITY;
+		var resourceSeen = {};
+		var userWindows = [];
+		var USER_WINDOW_MS = 2500;
+		function pruneUserWindows(now){ try { for (var i=userWindows.length-1; i>=0; i--){ if (!userWindows[i] || userWindows[i].end + 100 < now) userWindows.splice(i,1); } } catch(e){} }
+		function markUserInteraction(){ try { var now = performance.now(); pruneUserWindows(now); userWindows.push({ start: now, end: now + USER_WINDOW_MS }); if (userWindows.length > 20) userWindows.shift(); } catch(e){} }
+		function isUserInitiated(start){ try { pruneUserWindows(start); for (var i=0;i<userWindows.length;i++){ var w = userWindows[i]; if (!w) continue; if (start >= w.start && start <= w.end) return true; } } catch(e){} return false; }
+		function recordResource(entry){ try {
+			if (!entry) return;
+			var key = String(entry.name || '') + '@' + String(entry.startTime || 0);
+			if (resourceSeen[key]) return;
+			resourceSeen[key] = true;
+			var bytes = 0;
+			if (entry.transferSize && entry.transferSize > 0) bytes = entry.transferSize;
+			else if (entry.encodedBodySize && entry.encodedBodySize > 0) bytes = entry.encodedBodySize;
+			else if (entry.decodedBodySize && entry.decodedBodySize > 0) bytes = entry.decodedBodySize;
+			if (!isFinite(bytes) || bytes < 0) bytes = 0;
+			var start = typeof entry.startTime === 'number' ? entry.startTime : performance.now();
+			var user = isUserInitiated(start);
+			var phase = 'initial';
+			if (user) phase = 'user';
+			else if (isFinite(loadEventTime) && start >= loadEventTime) phase = 'subload';
+			if (phase === 'user') {
+				summary.userRequests = (summary.userRequests||0) + 1;
+				summary.userBytes = (summary.userBytes||0) + bytes;
+			} else if (phase === 'subload') {
+				summary.subloadRequests = (summary.subloadRequests||0) + 1;
+				summary.subloadBytes = (summary.subloadBytes||0) + bytes;
+			} else {
+				summary.initialRequests = (summary.initialRequests||0) + 1;
+				summary.initialBytes = (summary.initialBytes||0) + bytes;
+			}
+			summary.totalRequests = (summary.totalRequests||0) + 1;
+			summary.totalBytes = (summary.totalBytes||0) + bytes;
+		} catch(e){} }
+		try {
+			['click','pointerdown','touchstart'].forEach(function(ev){
+				try { document.addEventListener(ev, markUserInteraction, true); } catch(e){}
+			});
+			document.addEventListener('keydown', function(ev){ try { var key = ev && ev.key ? ev.key : ''; if (key === 'Enter' || key === ' ' || key === 'Spacebar') markUserInteraction(); } catch(e){} }, true);
+		} catch(e){}
+		try {
+			var resourceObserver = typeof PerformanceObserver !== 'undefined' ? new PerformanceObserver(function(list){ try {
+				var entries = list && list.getEntries ? list.getEntries() : [];
+				for (var i=0;i<entries.length;i++) recordResource(entries[i]);
+			} catch(e){} }) : null;
+			if (resourceObserver && resourceObserver.observe) {
+				resourceObserver.observe({ type:'resource', buffered:true });
+				var existing = performance && performance.getEntriesByType ? performance.getEntriesByType('resource') : [];
+				for (var j=0;j<(existing||[]).length;j++) recordResource(existing[j]);
+			}
+		} catch(e){}
+		try {
+			var navEntries = (performance && typeof performance.getEntriesByType === 'function') ? performance.getEntriesByType('navigation') : [];
+			if (navEntries && navEntries[0] && typeof navEntries[0].loadEventStart === 'number' && navEntries[0].loadEventStart >= 0) {
+				loadEventTime = Math.min(loadEventTime, navEntries[0].loadEventStart);
+			}
 		} catch(e){}
 		try { window.addEventListener('error', function(e){ try{ summary.errors++; post({type:'error', message: String((e && e.message) || 'error')}); }catch(e2){} }); } catch(e){}
 		try { var origErr = console.error; console.error = function(){ try{ summary.consoleErrors++; post({type:'console', level:'error', message: Array.prototype.join.call(arguments, ' ')});}catch(e2){} try{return origErr.apply(this, arguments);}catch(e3){} } } catch(e){}
@@ -250,8 +323,101 @@ function buildProbeScript(): any {
 				function matMul(a:number[], b:number[]): number[]{ return [ a[0]*b[0]+a[2]*b[1], a[1]*b[0]+a[3]*b[1], a[0]*b[2]+a[2]*b[3], a[1]*b[2]+a[3]*b[3], a[0]*b[4]+a[2]*b[5]+a[4], a[1]*b[4]+a[3]*b[5]+a[5] ]; }
 				function matApply(m:number[], x:number, y:number): [number, number]{ return [ m[0]*x + m[2]*y + m[4], m[1]*x + m[3]*y + m[5] ]; }
 				function spansCanvas(ctx:any, minX:number, minY:number, maxX:number, maxY:number){ try{ var tol=6; var canvas = ctx && ctx.canvas; if(!canvas) return false; var cw = canvas.width||0, ch = canvas.height||0; if(cw<=0||ch<=0) return false; return (minX<=tol && minY<=tol && maxX>=cw-tol && maxY>=ch-tol); }catch(e){ return false; } }
+				function recordPoint(ctx:any, x:number, y:number){
+					try{
+						ensureMat(ctx);
+						var p = matApply(ctx.__probe_mat, x, y);
+						var pts = ctx.__probe_pts;
+						if (pts) pts.push([p[0], p[1]]);
+						ctx.__probe_lastPoint = [p[0], p[1]];
+						return p;
+					}catch(e){}
+					return null;
+				}
+				function lastPoint(ctx:any){
+					try{
+						if (ctx.__probe_lastPoint) return ctx.__probe_lastPoint.slice();
+						var pts = ctx.__probe_pts;
+						if (pts && pts.length>0) {
+							var tail = pts[pts.length-1];
+							return [tail[0], tail[1]];
+						}
+					}catch(e){}
+					return null;
+				}
+				function sampleQuadratic(ctx:any, cpx:number, cpy:number, x:number, y:number){
+					try{
+						ensureMat(ctx);
+						var start = lastPoint(ctx);
+						var ctrl = matApply(ctx.__probe_mat, cpx, cpy);
+						var end = matApply(ctx.__probe_mat, x, y);
+						var pts = ctx.__probe_pts;
+						if (pts) {
+							if (!start) {
+								start = [ctrl[0], ctrl[1]];
+							}
+							var ts = [0.25, 0.5, 0.75];
+							var sx = start[0]; var sy = start[1];
+							for (var i=0;i<ts.length;i++){
+								var t = ts[i];
+								var inv = 1 - t;
+								var px = inv*inv*sx + 2*inv*t*ctrl[0] + t*t*end[0];
+								var py = inv*inv*sy + 2*inv*t*ctrl[1] + t*t*end[1];
+								pts.push([px, py]);
+							}
+							pts.push([end[0], end[1]]);
+						}
+						ctx.__probe_lastPoint = [end[0], end[1]];
+					}catch(e){}
+				}
+				function sampleCubic(ctx:any, cp1x:number, cp1y:number, cp2x:number, cp2y:number, x:number, y:number){
+					try{
+						ensureMat(ctx);
+						var start = lastPoint(ctx);
+						var cp1 = matApply(ctx.__probe_mat, cp1x, cp1y);
+						var cp2 = matApply(ctx.__probe_mat, cp2x, cp2y);
+						var end = matApply(ctx.__probe_mat, x, y);
+						var pts = ctx.__probe_pts;
+						if (pts) {
+							if (!start) {
+								start = [cp1[0], cp1[1]];
+							}
+							var ts = [0.2, 0.4, 0.6, 0.8];
+							var sx = start[0]; var sy = start[1];
+							for (var i=0;i<ts.length;i++){
+								var t = ts[i];
+								var inv = 1 - t;
+								var px = inv*inv*inv*sx + 3*inv*inv*t*cp1[0] + 3*inv*t*t*cp2[0] + t*t*t*end[0];
+								var py = inv*inv*inv*sy + 3*inv*inv*t*cp1[1] + 3*inv*t*t*cp2[1] + t*t*t*end[1];
+								pts.push([px, py]);
+							}
+							pts.push([end[0], end[1]]);
+						}
+						ctx.__probe_lastPoint = [end[0], end[1]];
+					}catch(e){}
+				}
+				function sampleArc(ctx:any, cx:number, cy:number, radius:number, startAngle:number, endAngle:number, anticlockwise:any){
+					try{
+						ensureMat(ctx);
+						var total = endAngle - startAngle;
+						if (anticlockwise && total > 0) total = total - Math.PI*2;
+						if (!anticlockwise && total < 0) total = total + Math.PI*2;
+						var steps = Math.max(4, Math.ceil(Math.abs(total)/(Math.PI/6)));
+						var pts = ctx.__probe_pts;
+						for (var i=0; i<=steps; i++){
+							var t = i/steps;
+							var ang = startAngle + total * t;
+							var px = cx + Math.cos(ang) * radius;
+							var py = cy + Math.sin(ang) * radius;
+							var p = matApply(ctx.__probe_mat, px, py);
+							if (pts) pts.push([p[0], p[1]]);
+							ctx.__probe_lastPoint = [p[0], p[1]];
+						}
+					}catch(e){}
+				}
 				var origStrokeRect = C.prototype.strokeRect; var origRect = C.prototype.rect; var origStroke = C.prototype.stroke;
 				var origBeginPath = C.prototype.beginPath; var origMoveTo = C.prototype.moveTo; var origLineTo = C.prototype.lineTo; var origClosePath = C.prototype.closePath;
+				var origQuadraticCurveTo = C.prototype.quadraticCurveTo; var origBezierCurveTo = C.prototype.bezierCurveTo; var origArc = C.prototype.arc;
 				var origSave = C.prototype.save, origRestore = C.prototype.restore, origSetTransform = C.prototype.setTransform, origTransform = C.prototype.transform, origTranslate = C.prototype.translate, origScale = C.prototype.scale, origRotate = C.prototype.rotate;
 				C.prototype.save = function(){ try{ ensureMat(this); this.__probe_stack.push(this.__probe_mat.slice()); }catch(e){} return origSave.apply(this, arguments as any); };
 				C.prototype.restore = function(){ try{ ensureMat(this); var m=this.__probe_stack.pop(); if(m) this.__probe_mat = m; }catch(e){} return origRestore.apply(this, arguments as any); };
@@ -277,10 +443,13 @@ function buildProbeScript(): any {
 				} catch(e){} return origStrokeRect.apply(this, arguments as any); };
 				C.prototype.rect = function(x:number,y:number,w:number,h:number){ try{ ensureMat(this); var p1 = matApply(this.__probe_mat, x, y); var p2 = matApply(this.__probe_mat, x+w, y); var p3 = matApply(this.__probe_mat, x+w, y+h); var p4 = matApply(this.__probe_mat, x, y+h); var minX = Math.min(p1[0],p2[0],p3[0],p4[0]); var minY = Math.min(p1[1],p2[1],p3[1],p4[1]); var maxX = Math.max(p1[0],p2[0],p3[0],p4[0]); var maxY = Math.max(p1[1],p2[1],p3[1],p4[1]); (this as any).__probe_lastBounds = {minX:minX, minY:minY, maxX:maxX, maxY:maxY}; }catch(e){} return origRect.apply(this, arguments as any); };
 				// Track generic path points to detect full-canvas rectangle drawn via moveTo/lineTo (CreateJS path string)
-				C.prototype.beginPath = function(){ try{ ensureMat(this); (this as any).__probe_pts = []; }catch(e){} return origBeginPath.apply(this, arguments as any); };
-				C.prototype.moveTo = function(x:number,y:number){ try{ ensureMat(this); var a=(this as any).__probe_pts; if (a) { var p=matApply(this.__probe_mat, x,y); a.push([p[0],p[1]]); } }catch(e){} return origMoveTo.apply(this, arguments as any); };
-				C.prototype.lineTo = function(x:number,y:number){ try{ ensureMat(this); var a=(this as any).__probe_pts; if (a) { var p=matApply(this.__probe_mat, x,y); a.push([p[0],p[1]]); } }catch(e){} return origLineTo.apply(this, arguments as any); };
-				C.prototype.closePath = function(){ try{ var a=(this as any).__probe_pts; if (a) a.closed = true; }catch(e){} return origClosePath.apply(this, arguments as any); };
+				C.prototype.beginPath = function(){ try{ ensureMat(this); (this as any).__probe_pts = []; (this as any).__probe_lastPoint = null; }catch(e){} return origBeginPath.apply(this, arguments as any); };
+				C.prototype.moveTo = function(x:number,y:number){ try{ recordPoint(this, x, y); }catch(e){} return origMoveTo.apply(this, arguments as any); };
+				C.prototype.lineTo = function(x:number,y:number){ try{ recordPoint(this, x, y); }catch(e){} return origLineTo.apply(this, arguments as any); };
+				if (origQuadraticCurveTo) { C.prototype.quadraticCurveTo = function(cpx:number,cpy:number,x:number,y:number){ try{ sampleQuadratic(this, cpx, cpy, x, y); }catch(e){} return origQuadraticCurveTo.apply(this, arguments as any); }; }
+				if (origBezierCurveTo) { C.prototype.bezierCurveTo = function(cp1x:number,cp1y:number,cp2x:number,cp2y:number,x:number,y:number){ try{ sampleCubic(this, cp1x, cp1y, cp2x, cp2y, x, y); }catch(e){} return origBezierCurveTo.apply(this, arguments as any); }; }
+				if (origArc) { C.prototype.arc = function(cx:number, cy:number, radius:number, startAngle:number, endAngle:number, anticlockwise:any){ try{ sampleArc(this, cx, cy, radius, startAngle, endAngle, anticlockwise); }catch(e){} return origArc.apply(this, arguments as any); }; }
+				C.prototype.closePath = function(){ try{ var a=(this as any).__probe_pts; if (a) a.closed = true; if (a && a.length>0) (this as any).__probe_lastPoint = [a[0][0], a[0][1]]; }catch(e){} return origClosePath.apply(this, arguments as any); };
 				C.prototype.stroke = function(){ try{
 					var lw = (this as any).lineWidth||1; var col = (this as any).strokeStyle;
 					var b = (this as any).__probe_lastBounds;
@@ -450,6 +619,7 @@ function buildProbeScript(): any {
 				var d = ev && ev.data; if (!d || !d.__audit_event) return;
 				if (d.type === 'simulate-click') {
 					// Try to click first anchor with href; else click body; else call window.open(clickTag)
+					markUserInteraction();
 					var a = document.querySelector('a[href]');
 					if (a) { try { (a as any).dispatchEvent(new MouseEvent('click', { bubbles:true, cancelable:true })); } catch(e){} }
 					else if (document.body) { try { document.body.dispatchEvent(new MouseEvent('click', { bubbles:true, cancelable:true })); } catch(e){} }
@@ -523,7 +693,7 @@ function buildProbeScript(): any {
 		// Flush summary periodically
 		// Creative border detection: check computed styles on body/html and edge bars (1-4px)
 		// Mark onload then a 5s post-onload window for subload accounting
-		try { window.addEventListener('load', function(){ try{ (window as any).__AUDIT_AFTER_ONLOAD__ = false; setTimeout(function(){ try{ (window as any).__AUDIT_AFTER_ONLOAD__ = true; }catch(e){} }, 0); setTimeout(function(){ try{ (window as any).__AUDIT_AFTER_ONLOAD__ = 'done'; }catch(e){} }, 5000); }catch(e){} }); } catch(e){}
+		try { window.addEventListener('load', function(){ try{ loadEventTime = Math.min(loadEventTime, performance.now()); summary.loadEventTime = loadEventTime; (window as any).__AUDIT_AFTER_ONLOAD__ = false; setTimeout(function(){ try{ (window as any).__AUDIT_AFTER_ONLOAD__ = true; }catch(e){} }, 0); setTimeout(function(){ try{ (window as any).__AUDIT_AFTER_ONLOAD__ = 'done'; }catch(e){} }, 5000); }catch(e){} }); } catch(e){}
 		// Flush summary periodically
 		try {
 			function visibleColor(c){ try{ if(!c) return false; if (/transparent/i.test(c)) return false; var m = c.match(/rgba\(([^)]+)\)/i); if (m){ var parts = m[1].split(',').map(function(x){return parseFloat(x.trim());}); if (parts.length>=4 && parts[3]===0) return false; } return true; }catch(e){ return false; } }

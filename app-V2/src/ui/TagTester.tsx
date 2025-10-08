@@ -2,7 +2,6 @@
 import { useExtStore } from '../state/useStoreExt';
 import { parseBulkInput, HIGHLIGHT_PARAM_PRIORITY } from '../logic/bulk';
 import { buildAdTagDocument } from '../logic/tagPreview';
-import { ENVIRONMENT_OPTIONS, type AdTagEnvironment, type EnvironmentOption } from '../logic/environment';
 
 const MAX_HIGHLIGHT_COLUMNS = 5;
 
@@ -56,7 +55,6 @@ export const TagTester: React.FC = () => {
   const [errors, setErrors] = useState<string[]>([]);
   const [info, setInfo] = useState<string[]>([]);
   const [networkEvents, setNetworkEvents] = useState<NetworkEvent[]>([]);
-  const [environment, setEnvironment] = useState<AdTagEnvironment>('web');
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const eventCounterRef = useRef(0);
   const setVastSeed = useExtStore((s) => (s as any).setVastSeed);
@@ -91,11 +89,6 @@ export const TagTester: React.FC = () => {
     }
     return active.slice(0, MAX_HIGHLIGHT_COLUMNS);
   }, [bulkEntries]);
-
-  const selectedEnvironment = useMemo(
-    () => ENVIRONMENT_OPTIONS.find((opt) => opt.value === environment) ?? ENVIRONMENT_OPTIONS[0],
-    [environment]
-  );
 
   const formatNetworkMeta = (meta: Record<string, unknown> | null | undefined) => {
     if (!meta || typeof meta !== 'object') return '';
@@ -157,24 +150,8 @@ export const TagTester: React.FC = () => {
 
     const iframe = iframeRef.current;
     if (!iframe) return;
-    iframe.srcdoc = buildAdTagDocument(t, { environment });
+    iframe.srcdoc = buildAdTagDocument(t, { environment: 'web' });
   }
-
-  const handleEnvironmentChange = (mode: AdTagEnvironment) => {
-    if (mode === environment) return;
-    setEnvironment(mode);
-    setErrors([]);
-    setInfo([]);
-    setNetworkEvents([]);
-    const iframe = iframeRef.current;
-    if (!iframe) return;
-    const trimmed = (tag || '').trim();
-    if (!multi && trimmed) {
-      iframe.srcdoc = buildAdTagDocument(trimmed, { environment: mode });
-    } else {
-      iframe.srcdoc = buildAdTagDocument('', { environment: mode });
-    }
-  };
 
   function openRow(r: ReturnType<typeof parseBulkInput>[number]) {
     if (r.type === 'VAST XML' || r.type === 'VAST URL') {
@@ -259,25 +236,6 @@ export const TagTester: React.FC = () => {
             {multi ? 'Parse List' : 'Run Tag'}
           </button>
         </div>
-
-        <div className="panel" style={{ padding: 8 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 6 }}>Preview Environment</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-            {ENVIRONMENT_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                className={`btn ${environment === opt.value ? 'primary' : ''}`}
-                onClick={() => handleEnvironmentChange(opt.value)}
-                data-testid={`env-${opt.value}`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-          <div style={{ fontSize: 11, color: '#6b7280', marginTop: 4 }}>{selectedEnvironment.hint}</div>
-        </div>
-
         {multi && (
           <div className="panel" style={{ padding: 8 }}>
             <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 6 }}>
@@ -423,7 +381,7 @@ export const TagTester: React.FC = () => {
             ref={iframeRef}
             title="Tag Preview"
             sandbox="allow-scripts allow-same-origin allow-popups"
-            srcDoc={buildAdTagDocument('', { environment })}
+            srcDoc={buildAdTagDocument('', { environment: 'web' })}
             style={frameStyle}
           />
         )}

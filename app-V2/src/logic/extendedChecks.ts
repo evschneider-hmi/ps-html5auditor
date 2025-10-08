@@ -642,14 +642,39 @@ export async function buildExtendedFindings(bundle: ZipBundle, partial: BundleRe
 		} catch {}
 		let cssHasBorder = false;
 		const cssOffenders: any[] = [];
+		const hasVisibleBorderDecl = (valueRaw: string): boolean => {
+			const value = (valueRaw || '').toLowerCase().replace(/!important/g, '').trim();
+			if (!value) return false;
+			if (/\b(none|hidden)\b/.test(value)) return false;
+			const hasStyle = /\b(solid|dashed|dotted|double|groove|ridge|inset|outset)\b/.test(value);
+			if (!hasStyle) return false;
+			const hasKeywordWidth = /\b(thin|medium|thick)\b/.test(value);
+			const hasPositivePx = /(?:^|[^0-9.])(?:[1-9]\d*(?:\.\d+)?|0*\.\d*[1-9]\d*)px\b/.test(value);
+			return hasKeywordWidth || hasPositivePx;
+		};
 		for (const source of cssSources) {
 			const lines = source.text.split(/\r?\n/);
 			for (let i = 0; i < lines.length; i++) {
 				const line = lines[i];
-				if (/\bborder(?:-top|-right|-bottom|-left|)\s*:\s*\d+px\s+(solid|dashed|double)/i.test(line)) {
+				const declPattern = /\bborder(?:-top|-right|-bottom|-left)?\s*:\s*([^;{}]+)/gi;
+				let match: RegExpExecArray | null;
+				let added = false;
+				while ((match = declPattern.exec(line))) {
+					const declValue = match[1] || '';
+					if (!hasVisibleBorderDecl(declValue)) {
+						continue;
+					}
+					const snippetEnd = Math.min(line.length, match.index + match[0].length + 24);
+					const snippet = line
+						.slice(match.index, snippetEnd)
+						.replace(/\s+/g, ' ')
+						.trim();
 					cssHasBorder = true;
-					cssOffenders.push({ path: source.path, line: i + 1, detail: line.trim().slice(0, 200) });
+					cssOffenders.push({ path: source.path, line: i + 1, detail: snippet.slice(0, 200) });
+					added = true;
+					break;
 				}
+				if (added) continue;
 			}
 		}
 

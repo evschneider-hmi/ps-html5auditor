@@ -6,6 +6,17 @@ app-V2/dist/
 *.log
 *.tsbuildinfo
 
+# Local sample assets (keep tracked baseline zips, ignore new ones)
+SampleZips/*.zip
+SampleZips/*/*.zip
+SampleZips/*/*/*.zip
+SampleZips/HRV_NEW_Spirit/
+SampleZips/SWO_MM/
+
+# Locally downloaded reference PDFs
+docs/assets/*.pdf
+docs/assets/*.txt
+
 # Playwright
 /test-results/
 /playwright-report/

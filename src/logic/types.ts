@@ -58,6 +58,20 @@ export interface BundleResultSummary {
   missingAssetCount: number;
 }
 
+export interface RuntimeMetrics {
+  source?: string;
+  capturedAt?: number;
+  loadEventTime?: number;
+  initialRequests?: number;
+  subloadRequests?: number;
+  userRequests?: number;
+  totalRequests?: number;
+  initialBytes?: number;
+  subloadBytes?: number;
+  userBytes?: number;
+  totalBytes?: number;
+}
+
 export interface BundleResult {
   bundleId: string;
   bundleName: string;
@@ -69,11 +83,19 @@ export interface BundleResult {
   summary: BundleResultSummary;
   totalBytes?: number; // aggregate size of all in-zip files
   // IAB phase metrics (computed heuristically based on direct references from primary HTML & CSS graph)
-  initialBytes?: number; // bytes for primary + directly referenced assets
-  subsequentBytes?: number; // total - initial
+  initialBytes?: number; // compressed bytes for primary + directly referenced assets (initial load)
+  subsequentBytes?: number; // compressed bytes for polite/subload assets
   zippedBytes?: number; // original compressed zip size (bundle.bytes length)
   initialRequests?: number; // count of initial load assets (including primary)
   totalRequests?: number; // total distinct in-zip referenced assets (including primary)
+  subloadRequests?: number;
+  userRequests?: number;
+  subloadBytes?: number;
+  userBytes?: number;
+  initialBytesUncompressed?: number; // raw bytes for primary + referenced assets
+  subsequentBytesUncompressed?: number; // raw bytes for polite/subload assets
+  runtime?: RuntimeMetrics;
+  runtimeSummary?: Record<string, unknown>;
 }
 
 export interface Report {

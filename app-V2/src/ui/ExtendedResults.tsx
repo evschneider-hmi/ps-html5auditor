@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
+import { gzip } from 'pako';
+
 import { compressToEncodedURIComponent } from 'lz-string';
 import { useExtStore } from '../state/useStoreExt';
 
@@ -150,8 +152,30 @@ export const ExtendedResults: React.FC = () => {
         } catch {}
 
         // Size metrics
-        const totalBytes = (Object.values(b.files || {}) as Uint8Array[]).reduce(
-          (a, u) => a + (u?.byteLength || 0),
+        const fileEntries = Object.entries(b.files || {}) as Array<
+          [string, Uint8Array]
+        >;
+
+        const totalBytes = fileEntries.reduce(
+          (a, [, bytes]) => a + (bytes?.byteLength || 0),
+          0,
+        );
+
+        const gzipCache = new Map<string, number>();
+        const computeGzipSize = (path: string, bytes?: Uint8Array): number => {
+          if (!bytes) return 0;
+          const key = path ? path.toLowerCase() : '';
+          if (gzipCache.has(key)) return gzipCache.get(key)!;
+          let size = bytes.byteLength;
+          try {
+            size = gzip(bytes).length;
+          } catch {}
+          gzipCache.set(key, size);
+          return size;
+        };
+
+        const totalGzipBytes = fileEntries.reduce(
+          (a, [path, bytes]) => a + computeGzipSize(path, bytes),
           0,
         );
 
@@ -166,14 +190,29 @@ export const ExtendedResults: React.FC = () => {
           if (pLower) referencedPaths.add(pLower);
         } catch {}
 
-        let initialBytes = 0;
+        let initialRawBytes = 0;
+        let initialGzipBytes = 0;
         for (const p of referencedPaths) {
-          const real = (b as any).lowerCaseIndex?.[p];
-          if (real && b.files[real]) initialBytes += b.files[real].byteLength;
+          const real = (b as any).lowerCaseIndex?.[p] || p;
+          const bytes = real && b.files?.[real];
+          if (bytes) {
+            initialRawBytes += bytes.byteLength;
+            initialGzipBytes += computeGzipSize(real, bytes);
+          }
         }
-        if (initialBytes === 0) initialBytes = totalBytes;
+        if (initialRawBytes === 0) {
+          initialRawBytes = totalBytes;
+          initialGzipBytes = totalGzipBytes;
+        }
 
-        const subsequentBytes = Math.max(0, totalBytes - initialBytes);
+        const uncompressedSubloadBytes = Math.max(
+          0,
+          totalBytes - initialRawBytes,
+        );
+        const subsequentGzipBytes = Math.max(
+          0,
+          totalGzipBytes - initialGzipBytes,
+        );
         const initialRequests = referencedPaths.size || (primary ? 1 : 0);
         const totalRequests = referencedPaths.size;
 
@@ -185,11 +224,17 @@ export const ExtendedResults: React.FC = () => {
           adSizeSource,
           references,
           totalBytes,
-          initialBytes,
-          subsequentBytes,
+          initialBytes: initialGzipBytes,
+          subsequentBytes: subsequentGzipBytes,
+          subloadBytes: subsequentGzipBytes,
+          initialBytesUncompressed: initialRawBytes,
+          subsequentBytesUncompressed: uncompressedSubloadBytes,
+          userBytes: 0,
           zippedBytes: (b.bytes || new Uint8Array()).length,
           initialRequests,
           totalRequests,
+          subloadRequests: Math.max(totalRequests - initialRequests, 0),
+          userRequests: 0,
           findings: [],
           summary: {
             status: 'PASS',
@@ -565,9 +610,11 @@ const ResultTable: React.FC = () => {
     | 'status'
     | 'dim'
     | 'issues'
+    | 'zipkb'
     | 'initialkb'
-    | 'totalkb'
-    | 'initialreqs';
+    | 'subloadkb'
+    | 'userkb'
+    | 'reqs';
 
   const COLUMNS: Array<{ key: ColKey; label: string; min?: number }> = [
     { key: 'creative', label: 'Creative', min: 200 },
@@ -578,14 +625,18 @@ const ResultTable: React.FC = () => {
 
     { key: 'issues', label: 'Issues', min: 90 },
 
-    { key: 'initialkb', label: 'Initial KB', min: 90 },
+  { key: 'zipkb', label: 'Zip KB (Package)', min: 120 },
 
-    { key: 'totalkb', label: 'Total KB', min: 90 },
+  { key: 'initialkb', label: 'Initial KB (Compressed)', min: 150 },
 
-    { key: 'initialreqs', label: 'Initial', min: 80 },
+  { key: 'subloadkb', label: 'Subload KB (Compressed)', min: 170 },
+
+  { key: 'userkb', label: 'User KB (Runtime)', min: 150 },
+
+    { key: 'reqs', label: 'Reqs (I/S/U)', min: 110 },
   ];
 
-  const LS_KEY = 'ext_table_colw_v2';
+  const LS_KEY = 'ext_table_colw_v3';
 
   function sanitizeColMap(
     input: any,
@@ -940,6 +991,29 @@ const ResultTable: React.FC = () => {
             } catch {}
 
             const removeHover = hoveredRemoveId === r.bundleId;
+            const runtime = r.runtime || {};
+            const initialBytes =
+              runtime.initialBytes ?? r.initialBytes ?? undefined;
+            const subloadBytes =
+              runtime.subloadBytes ?? r.subloadBytes ?? r.subsequentBytes ?? undefined;
+            const userBytes = runtime.userBytes ?? r.userBytes ?? undefined;
+            const zippedBytes = (() => {
+              const z = typeof r.zippedBytes === 'number' ? r.zippedBytes : undefined;
+              if (Number.isFinite(z)) return z as number;
+              const bundleBytes = b && typeof b.bytes?.length === 'number' ? b.bytes.length : undefined;
+              return Number.isFinite(bundleBytes) ? (bundleBytes as number) : undefined;
+            })();
+            const totalRuntimeRequests =
+              runtime.totalRequests ?? r.totalRequests ?? undefined;
+            const reqInitial =
+              runtime.initialRequests ?? r.initialRequests ?? 0;
+            const inferredSubload =
+              totalRuntimeRequests !== undefined
+                ? Math.max(totalRuntimeRequests - reqInitial, 0)
+                : 0;
+            const reqSubload =
+              runtime.subloadRequests ?? r.subloadRequests ?? inferredSubload;
+            const reqUser = runtime.userRequests ?? r.userRequests ?? 0;
             return (
               <tr
                 key={r.bundleId}
@@ -1016,11 +1090,43 @@ const ResultTable: React.FC = () => {
                   {`${pf}F / ${pw}W`}
                 </td>
 
-                <td style={td}>{fmtKB(r.initialBytes)}</td>
+                <td
+                  style={td}
+                  title="Compressed ZIP size"
+                  aria-label="Compressed ZIP size"
+                >
+                  {fmtKB(zippedBytes)}
+                </td>
 
-                <td style={td}>{fmtKB(r.totalBytes)}</td>
+                <td
+                  style={td}
+                  title="Compressed initial load size"
+                  aria-label="Compressed initial load size"
+                >
+                  {fmtKB(initialBytes)}
+                </td>
 
-                <td style={td}>{r.initialRequests || 0}</td>
+                <td
+                  style={td}
+                  title="Compressed subload size"
+                  aria-label="Compressed subload size"
+                >
+                  {fmtKB(subloadBytes)}
+                </td>
+
+                <td
+                  style={td}
+                  title="Runtime user-triggered bytes"
+                  aria-label="Runtime user-triggered bytes"
+                >
+                  {fmtKB(userBytes)}
+                </td>
+
+                <td style={{ ...td, whiteSpace: 'nowrap' }}
+                  title="Initial / Subload / User requests"
+                >
+                  {`${reqInitial || 0} / ${reqSubload || 0} / ${reqUser || 0}`}
+                </td>
               </tr>
             );
           })}
@@ -2100,7 +2206,8 @@ function badge(s: 'PASS' | 'WARN' | 'FAIL' | string) {
   return <span className={cls}>{s}</span>;
 }
 
-function fmtKB(n: number) {
+function fmtKB(n?: number | null) {
+  if (typeof n !== 'number' || !isFinite(n)) return '—';
   return (Math.round((n / 1024) * 10) / 10).toFixed(1) + ' KB';
 }
 
@@ -2309,7 +2416,7 @@ const DESCRIPTIONS: Record<string, string> = {
     'Identifies Google Web Designer runtime artifacts.\n\nWhy it matters: leftover runtime can conflict with host pages and bloat load times.',
 
   iabWeight:
-    'Compares initial/polite & compressed weights to the standard IAB display budgets.\n\nWhy it matters: overweight assets violate buyer contracts and get paused by ad servers.',
+    'Compares compressed initial/polite weights to the standard IAB display budgets.\n\nWhy it matters: overweight assets violate buyer contracts and get paused by ad servers.',
 
   iabRequests:
     'Counts initial load asset requests vs the configured cap.\n\nWhy it matters: excessive requests drag render performance and fail certification.',
@@ -2683,7 +2790,7 @@ const SPEC_TEXT: Record<string, string> = {
   // IAB
 
   iabWeight:
-    'IAB: Ad weight budgets (initial/polite/zip) per configured settings. Exceeding caps fails.',
+    'IAB: Ad weight budgets (initial/polite compressed, zip package) per configured settings. Exceeding caps fails.',
 
   // iabRequests legacy text removed (superseded by host-requests-initial)
 

@@ -122,18 +122,6 @@ test('capture previews and network logs for iOS and Android', async ({ page }) =
   await capturePreview(page, 'preview-web.png', 'Env: Web');
   await captureNetworkLog(page, 'network-web.png');
 
-  const envs = [
-    { value: 'inapp-ios', label: 'In-App iOS', expectedText: 'Env: iPhone', infoSnippet: 'In-app WebView shim active: In-App iOS WebView', file: 'preview-ios.png' },
-    { value: 'inapp-android', label: 'In-App Android', expectedText: 'Env: Android', infoSnippet: 'In-app WebView shim active: In-App Android WebView', file: 'preview-android.png' },
-  ] as const;
-
-  for (const env of envs) {
-    await page.getByTestId(`env-${env.value}`).click();
-    await runTagAndWaitForScript(page, () => scriptRequestCount);
-    const infoList = page.getByTestId('info-list');
-    await expect(infoList).toContainText(env.infoSnippet, { timeout: 10000 });
-    await waitForNetworkEntry(page, 'artsai.test');
-    await capturePreview(page, env.file, env.expectedText);
-    await captureNetworkLog(page, `network-${env.value.replace('inapp-', '')}.png`);
-  }
+  await expect(page.getByTestId('env-inapp-ios')).toHaveCount(0);
+  await expect(page.getByTestId('env-inapp-android')).toHaveCount(0);
 });
