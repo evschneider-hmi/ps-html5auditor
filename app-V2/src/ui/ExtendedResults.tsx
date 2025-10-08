@@ -992,28 +992,61 @@ const ResultTable: React.FC = () => {
 
             const removeHover = hoveredRemoveId === r.bundleId;
             const runtime = r.runtime || {};
-            const initialBytes =
-              runtime.initialBytes ?? r.initialBytes ?? undefined;
-            const subloadBytes =
-              runtime.subloadBytes ?? r.subloadBytes ?? r.subsequentBytes ?? undefined;
-            const userBytes = runtime.userBytes ?? r.userBytes ?? undefined;
+            const initialBytes = preferMetric(
+              runtime.initialBytes,
+              r.initialBytes,
+            );
+            const subloadBytes = preferMetric(
+              runtime.subloadBytes,
+              r.subloadBytes ?? r.subsequentBytes,
+            );
+            const userBytes = preferMetric(runtime.userBytes, r.userBytes);
             const zippedBytes = (() => {
               const z = typeof r.zippedBytes === 'number' ? r.zippedBytes : undefined;
               if (Number.isFinite(z)) return z as number;
               const bundleBytes = b && typeof b.bytes?.length === 'number' ? b.bytes.length : undefined;
               return Number.isFinite(bundleBytes) ? (bundleBytes as number) : undefined;
             })();
-            const totalRuntimeRequests =
-              runtime.totalRequests ?? r.totalRequests ?? undefined;
-            const reqInitial =
-              runtime.initialRequests ?? r.initialRequests ?? 0;
-            const inferredSubload =
-              totalRuntimeRequests !== undefined
-                ? Math.max(totalRuntimeRequests - reqInitial, 0)
-                : 0;
-            const reqSubload =
-              runtime.subloadRequests ?? r.subloadRequests ?? inferredSubload;
-            const reqUser = runtime.userRequests ?? r.userRequests ?? 0;
+            const totalRequests = preferMetric(
+              runtime.totalRequests,
+              r.totalRequests,
+            );
+            const baseInitialRequests = normalizeNumber(r.initialRequests);
+            const reqInitial = preferMetric(
+              runtime.initialRequests,
+              baseInitialRequests,
+            );
+            const baseSubloadRequests = (() => {
+              const existing = normalizeNumber(r.subloadRequests);
+              if (existing !== undefined) return existing;
+              const fallbackTotal = normalizeNumber(r.totalRequests);
+              const fallbackInitial = baseInitialRequests;
+              if (
+                fallbackTotal !== undefined &&
+                fallbackInitial !== undefined
+              ) {
+                return Math.max(fallbackTotal - fallbackInitial, 0);
+              }
+              return undefined;
+            })();
+            const reqSubload = preferMetric(
+              runtime.subloadRequests,
+              baseSubloadRequests ??
+                (totalRequests !== undefined && reqInitial !== undefined
+                  ? Math.max(totalRequests - reqInitial, 0)
+                  : undefined),
+            );
+            const reqUser = preferMetric(runtime.userRequests, r.userRequests);
+            const displayInitialReq =
+              reqInitial ?? baseInitialRequests ?? 0;
+            const displaySubloadReq =
+              reqSubload ??
+              baseSubloadRequests ??
+              (totalRequests !== undefined
+                ? Math.max(totalRequests - displayInitialReq, 0)
+                : 0);
+            const displayUserReq =
+              reqUser ?? normalizeNumber(r.userRequests) ?? 0;
             return (
               <tr
                 key={r.bundleId}
@@ -1121,11 +1154,11 @@ const ResultTable: React.FC = () => {
                 >
                   {fmtKB(userBytes)}
                 </td>
-
-                <td style={{ ...td, whiteSpace: 'nowrap' }}
+                <td
+                  style={{ ...td, whiteSpace: 'nowrap' }}
                   title="Initial / Subload / User requests"
                 >
-                  {`${reqInitial || 0} / ${reqSubload || 0} / ${reqUser || 0}`}
+                  {`${Math.round(displayInitialReq)} / ${Math.round(displaySubloadReq)} / ${Math.round(displayUserReq)}`}
                 </td>
               </tr>
             );
@@ -2204,6 +2237,23 @@ function badge(s: 'PASS' | 'WARN' | 'FAIL' | string) {
     s === 'FAIL' ? 'badge fail' : s === 'WARN' ? 'badge warn' : 'badge pass';
 
   return <span className={cls}>{s}</span>;
+}
+
+function normalizeNumber(value: unknown): number | undefined {
+  return typeof value === 'number' && isFinite(value) ? value : undefined;
+}
+
+function preferMetric(
+  runtimeValue?: number | null,
+  fallbackValue?: number | null,
+): number | undefined {
+  const runtime = normalizeNumber(runtimeValue);
+  const fallback = normalizeNumber(fallbackValue);
+  if (runtime !== undefined && runtime > 0) return runtime;
+  if (fallback !== undefined && fallback > 0) return fallback;
+  if (runtime !== undefined) return runtime;
+  if (fallback !== undefined) return fallback;
+  return undefined;
 }
 
 function fmtKB(n?: number | null) {
