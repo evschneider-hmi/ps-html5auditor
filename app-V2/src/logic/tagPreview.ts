@@ -185,6 +185,57 @@ const baseProbe = String.raw`(() => {
       };
     };
 
+    const isNodeLike = (value) => {
+      if (!value || typeof value !== 'object') return false;
+      if (typeof Node === 'function') return value instanceof Node;
+      return typeof value.nodeType === 'number' && typeof value.nodeName === 'string';
+    };
+
+    const observerWarnedNonNode = Object.create(null);
+    const observerWarnedFailure = Object.create(null);
+
+    const patchObserverCtor = (ctor, label) => {
+      if (!ctor || !ctor.prototype) return;
+      if (ctor.prototype.__tagPreviewPatched__) return;
+      const originalObserve = ctor.prototype.observe;
+      if (typeof originalObserve !== 'function') return;
+      ctor.prototype.observe = function patchedObserve(target, options) {
+        if (!isNodeLike(target)) {
+          if (!observerWarnedNonNode[label]) {
+            observerWarnedNonNode[label] = true;
+            try {
+              console.warn('[tag-preview] ' + label + '.observe skipped non-node target', target);
+            } catch (warnErr) {}
+          }
+          return undefined;
+        }
+        try {
+          return originalObserve.call(this, target, options);
+        } catch (observeErr) {
+          if (!observerWarnedFailure[label]) {
+            observerWarnedFailure[label] = true;
+            try {
+              console.warn('[tag-preview] ' + label + '.observe failed', observeErr);
+            } catch (_) {}
+          }
+          return undefined;
+        }
+      };
+      Object.defineProperty(ctor.prototype, '__tagPreviewPatched__', { value: true, configurable: true });
+    };
+
+    const patchMutationObserver = () => {
+      const constructors = [
+        ['MutationObserver', window.MutationObserver],
+        ['WebKitMutationObserver', window.WebKitMutationObserver],
+        ['MozMutationObserver', window.MozMutationObserver],
+      ];
+      for (let i = 0; i < constructors.length; i++) {
+        const entry = constructors[i];
+        patchObserverCtor(entry[1], entry[0]);
+      }
+    };
+
     const scanExisting = () => {
       try {
         Array.from(document.querySelectorAll('img[src]')).forEach((node) => track('pixel', node.currentSrc || node.src, { initial: true }));
@@ -202,6 +253,7 @@ const baseProbe = String.raw`(() => {
     patchXhr();
     patchBeacon();
     patchWindowOpen();
+    patchMutationObserver();
     observeAttributes();
 
     document.addEventListener('DOMContentLoaded', () => {

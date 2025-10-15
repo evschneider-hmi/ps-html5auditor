@@ -79,20 +79,63 @@ export async function buildInstrumentedPreview(bundle: ZipBundle, primaryPath: s
 	for (const k of Object.keys(bundle.files)) {
 		lowerCaseMap[k.toLowerCase()] = k;
 	}
-	const ensureBlob = (path: string): string => {
-		// ensure using exact existing key
-		const exact = bundle.files[path] ? path : lowerCaseMap[path.toLowerCase()] || path;
+	const pending: Record<string, boolean> = {};
+	const ensureBlob = (path: string): string | undefined => {
+		const requested = typeof path === 'string' ? path : '';
+		const exact = bundle.files[requested] ? requested : lowerCaseMap[requested.toLowerCase()] || requested;
+		if (!exact) return undefined;
 		if (blobMap[exact]) return blobMap[exact];
+		if (pending[exact]) return blobMap[exact];
 		const bytes = bundle.files[exact];
-		const arrBuf = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
-		const blob = new Blob([arrBuf], { type: guessMime(path) });
-		const url = URL.createObjectURL(blob);
-		blobMap[exact] = url; sizeByBlobUrl[url] = bytes.byteLength; return url;
+		if (!bytes) return undefined;
+		pending[exact] = true;
+		try {
+			let blob: Blob | undefined;
+			let size = bytes.byteLength;
+			const mime = guessMime(exact);
+			if (/\.css$/i.test(exact)) {
+				try {
+					const originalCss = decoder.decode(bytes);
+					const rewritten = rewriteCss(originalCss, exact, bundle, blobMap, lowerCaseMap, ensureBlob);
+					if (rewritten !== originalCss) {
+						try {
+							const encoded = typeof TextEncoder !== 'undefined' ? new TextEncoder().encode(rewritten) : undefined;
+							if (encoded) {
+								size = encoded.byteLength;
+								blob = new Blob([encoded], { type: mime });
+							} else {
+								size = rewritten.length;
+								blob = new Blob([rewritten], { type: mime });
+							}
+						} catch {
+							const arrBuf = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+							blob = new Blob([arrBuf], { type: mime });
+							size = bytes.byteLength;
+						}
+					}
+				} catch {
+					// fall back to raw bytes if decode/rewrite fails
+				}
+			}
+			if (!blob) {
+				const arrBuf = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+				blob = new Blob([arrBuf], { type: mime });
+				size = bytes.byteLength;
+			}
+			const url = URL.createObjectURL(blob);
+			blobMap[exact] = url;
+			sizeByBlobUrl[url] = size;
+			return url;
+		} finally {
+			delete pending[exact];
+		}
 	};
 	for (const p of Object.keys(bundle.files)) ensureBlob(p);
 
 	const originalHtml = decoder.decode(bundle.files[primaryPath]);
 	const doc = new DOMParser().parseFromString(originalHtml, 'text/html');
+	injectFallbackLibraries(doc);
+	injectEnablerStub(doc);
 	// Ensure GWD containers aren't hidden by default styles in preview
 	try {
 		const head = doc.querySelector('head');
@@ -117,23 +160,26 @@ export async function buildInstrumentedPreview(bundle: ZipBundle, primaryPath: s
 			if (!val) return; const local = resolveLocal(primaryPath, val);
 			if (local) {
 				const exact = bundle.files[local] ? local : lowerCaseMap[local.toLowerCase()];
-				if (exact) el.setAttribute(attr, blobMap[exact]);
+				if (exact) {
+					const mapped = ensureBlob(exact);
+					if (mapped) el.setAttribute(attr, mapped);
+				}
 			}
 		});
 	}
 	// Inline CSS
 	doc.querySelectorAll('[style]').forEach(el => {
 		const style = el.getAttribute('style')||'';
-		el.setAttribute('style', rewriteCss(style, primaryPath, bundle, blobMap, lowerCaseMap));
+		el.setAttribute('style', rewriteCss(style, primaryPath, bundle, blobMap, lowerCaseMap, ensureBlob));
 	});
-	doc.querySelectorAll('style').forEach(styleEl => { styleEl.textContent = rewriteCss(styleEl.textContent||'', primaryPath, bundle, blobMap, lowerCaseMap); });
+	doc.querySelectorAll('style').forEach(styleEl => { styleEl.textContent = rewriteCss(styleEl.textContent||'', primaryPath, bundle, blobMap, lowerCaseMap, ensureBlob); });
 	for (const link of Array.from(doc.querySelectorAll('link[rel="stylesheet"][href]'))) {
 		const href = link.getAttribute('href'); if (!href) continue;
 		const local = resolveLocal(primaryPath, href);
 		const exact = local ? (bundle.files[local] ? local : lowerCaseMap[local.toLowerCase()]) : undefined;
 		if (exact && bundle.files[exact]) {
 			const css = new TextDecoder().decode(bundle.files[exact]);
-			const rewritten = rewriteCss(css, exact, bundle, blobMap, lowerCaseMap);
+			const rewritten = rewriteCss(css, exact, bundle, blobMap, lowerCaseMap, ensureBlob);
 			const styleTag = doc.createElement('style'); styleTag.textContent = rewritten; link.replaceWith(styleTag);
 		}
 	}
@@ -151,8 +197,8 @@ export async function buildInstrumentedPreview(bundle: ZipBundle, primaryPath: s
 				const local = resolveLocal(primaryPath, u);
 				const exact = local ? (bundle.files[local] ? local : lowerCaseMap[local.toLowerCase()]) : undefined;
 				if (exact && bundle.files[exact]) {
-					const b = blobMap[exact];
-					return rest ? `${b} ${rest}` : b;
+					const mapped = ensureBlob(exact) || blobMap[exact];
+					if (mapped) return rest ? `${mapped} ${rest}` : mapped;
 				}
 				return seg;
 			}).join(', ');
@@ -207,12 +253,351 @@ function guessMime(name: string): string {
 	return 'application/octet-stream';
 }
 
-function rewriteCss(css: string, from: string, bundle: ZipBundle, blobMap: Record<string,string>, lowerCaseMap: Record<string,string>): string {
+function injectFallbackLibraries(doc: Document): void {
+	try {
+		const marker = doc.documentElement?.getAttribute('data-audit-fallback-libs');
+		if (marker === '1') return;
+		const head = doc.querySelector('head') || doc.documentElement || doc.body;
+		if (!head) return;
+		const src = buildGsapStubSource();
+		if (!src) return;
+		const blob = new Blob([src], { type: 'text/javascript' });
+		const url = URL.createObjectURL(blob);
+		const script = doc.createElement('script');
+		script.type = 'text/javascript';
+		(script as any).src = url;
+		script.async = false;
+		script.defer = false;
+		head.insertBefore(script, head.firstChild);
+		doc.documentElement?.setAttribute('data-audit-fallback-libs', '1');
+	} catch {}
+}
+
+function injectEnablerStub(doc: Document): void {
+	try {
+		const existingMarker = doc.documentElement?.getAttribute('data-audit-enabler-stub');
+		if (existingMarker === '1') return;
+		const head = doc.querySelector('head') || doc.documentElement || doc.body;
+		if (!head) return;
+		const stubSource = buildEnablerStubSource();
+		const stubBlob = new Blob([stubSource], { type: 'text/javascript' });
+		const stubUrl = URL.createObjectURL(stubBlob);
+		const script = doc.createElement('script');
+		script.type = 'text/javascript';
+		(script as any).src = stubUrl;
+		script.async = false;
+		script.defer = false;
+		const enablerScript = Array.from(doc.getElementsByTagName('script')).find((el) => {
+			const src = el.getAttribute('src') || '';
+			return /enabler\.js/i.test(src);
+		});
+		if (enablerScript && enablerScript.parentNode) {
+			enablerScript.parentNode.insertBefore(script, enablerScript);
+		} else {
+			head.insertBefore(script, head.firstChild);
+		}
+		doc.documentElement?.setAttribute('data-audit-enabler-stub', '1');
+	} catch {}
+}
+
+function buildEnablerStubSource(): string {
+	return `;(function(){
+	try {
+		if (typeof window !== 'undefined' && window.Enabler) {
+			// If Enabler already exists, don't override it.
+			return;
+		}
+		var listeners = {};
+		function listFor(event){
+			var key = typeof event === 'string' ? event : '';
+			if (!listeners[key]) listeners[key] = [];
+			return listeners[key];
+		}
+		function dispatch(event){
+			var list = listeners[event];
+			if (!list) return;
+			for (var i = 0; i < list.length; i++) {
+				var fn = list[i];
+				if (typeof fn === 'function') {
+					try { fn(); } catch(_err) {}
+				}
+			}
+		}
+		function lookupAsset(url){
+			try {
+				var raw = String(url || '');
+				if (!raw) return raw;
+				if (/^https?:/i.test(raw) || /^data:/i.test(raw) || /^blob:/i.test(raw) || /^javascript:/i.test(raw)) return raw;
+				var payload = (window || {}).__AUDIT_ASSET_MAP || {};
+				var primary = typeof payload.primary === 'string' ? payload.primary : '';
+				var mapping = payload.map || {};
+				function normalize(from, target){
+					try {
+						var rel = String(target || '');
+						if (!rel) return undefined;
+						if (rel.charAt(0) === '/') rel = rel.slice(1);
+						if (rel.indexOf('./') === 0) rel = rel.slice(2);
+						var fromDir = from ? from.split('/').slice(0, -1).join('/') : '';
+						var combined = fromDir ? fromDir + '/' + rel : rel;
+						var parts = [];
+						combined.split('/').forEach(function(part){
+							if (!part || part === '.') return;
+							if (part === '..') {
+								if (parts.length) parts.pop();
+							} else {
+								parts.push(part);
+							}
+						});
+						return parts.join('/');
+					} catch(_err) { return undefined; }
+				}
+				var resolved = normalize(primary, raw);
+				if (!resolved) return raw;
+				if (Object.prototype.hasOwnProperty.call(mapping, resolved)) return mapping[resolved];
+				var lower = resolved.toLowerCase();
+				for (var key in mapping) {
+					if (!Object.prototype.hasOwnProperty.call(mapping, key)) continue;
+					if (key.toLowerCase() === lower) return mapping[key];
+				}
+				return raw;
+			} catch(_err) {
+				return String(url || '');
+			}
+		}
+		function fallbackClickTag(){
+			try {
+				if (typeof window === 'undefined') return '';
+				if (typeof window.clickTag === 'string' && window.clickTag) return window.clickTag;
+				if (typeof window.clickTAG === 'string' && window.clickTAG) return window.clickTAG;
+			} catch(_err) {}
+			return '';
+		}
+		var stub = {
+			isInitialized: function(){ return true; },
+			isPageLoaded: function(){ return true; },
+			isVisible: function(){ return true; },
+			addEventListener: function(event, cb){
+				var key = typeof event === 'string' ? event : '';
+				var list = listFor(key);
+				if (typeof cb === 'function' && list.indexOf(cb) === -1) list.push(cb);
+			},
+			removeEventListener: function(event, cb){
+				var key = typeof event === 'string' ? event : '';
+				var list = listeners[key];
+				if (!list) return;
+				listeners[key] = list.filter(function(fn){ return fn !== cb; });
+			},
+			dispatch: function(event){
+				var key = typeof event === 'string' ? event : '';
+				dispatch(key);
+				return true;
+			},
+			exit: function(_name, url){
+				try {
+					var target = (typeof url === 'string' && url.length) ? url : fallbackClickTag();
+					window.open(target || 'about:blank');
+				} catch(_err) {}
+			},
+			exitOverride: function(_name, url){
+				try {
+					var target = (typeof url === 'string' && url.length) ? url : fallbackClickTag();
+					window.open(target || 'about:blank');
+				} catch(_err) {}
+			},
+			dynamicExit: function(_name, url){
+				try {
+					var target = (typeof url === 'string' && url.length) ? url : fallbackClickTag();
+					window.open(target || 'about:blank');
+				} catch(_err) {}
+			},
+			getUrl: function(asset){ return lookupAsset(asset); },
+			loadScript: function(url, cb){
+				try {
+					var resolved = lookupAsset(url);
+					var s = document.createElement('script');
+					s.src = resolved;
+					s.onload = function(){ if (cb) try { cb(); } catch(_err) {}; };
+					s.onerror = function(){ if (cb) try { cb(); } catch(_err) {}; };
+					s.async = false;
+					var parent = document.head || document.body;
+					if (parent) parent.appendChild(s);
+				} catch(_err) {}
+			}
+		};
+		var studio = window.studio = window.studio || {};
+		studio.events = studio.events || {};
+		studio.events.StudioEvent = studio.events.StudioEvent || {
+			INIT: 'init',
+			PAGE_LOADED: 'page_loaded',
+			VISIBLE: 'visible',
+			VISIBILITY_CHANGED: 'visibility_changed'
+		};
+		window.Enabler = stub;
+		window.__AUDIT_ENABLER_STUB__ = true;
+		setTimeout(function(){
+			try {
+				var ev = (window.studio && window.studio.events && window.studio.events.StudioEvent) || {};
+				stub.dispatch(ev.INIT || 'init');
+				stub.dispatch(ev.PAGE_LOADED || 'page_loaded');
+				stub.dispatch(ev.VISIBLE || 'visible');
+				stub.dispatch(ev.VISIBILITY_CHANGED || 'visibility_changed');
+			} catch(_err) {}
+		}, 0);
+	} catch(_err) {}
+})();`;
+}
+
+function buildGsapStubSource(): string {
+	return `;(function(){
+	if (typeof window === 'undefined' || window.gsap) { return; }
+	var now = function(){ try { return window.performance && window.performance.now ? window.performance.now() : Date.now(); } catch(_err){ return Date.now(); } };
+	var toArray = function(targets){
+		if (!targets) return [];
+		if (Array.isArray(targets)) return targets;
+		if ((window.NodeList && targets instanceof NodeList) || (window.HTMLCollection && targets instanceof HTMLCollection)) {
+			return Array.prototype.slice.call(targets);
+		}
+		if (typeof targets === 'string') {
+			try { return Array.prototype.slice.call(document.querySelectorAll(targets)); } catch(_err) { return []; }
+		}
+		return [targets];
+	};
+	var applyProps = function(elements, props){
+		elements.forEach(function(el){
+			if (!el || !el.style) return;
+			for (var key in props) {
+				if (!Object.prototype.hasOwnProperty.call(props, key)) continue;
+				try { el.style[key] = props[key]; } catch(_err) {}
+			}
+		});
+	};
+	var Timeline = function(){
+		this._events = [];
+		this._labels = {};
+		this._playing = false;
+		this._started = false;
+		this._startTime = 0;
+		this._timers = [];
+	};
+	Timeline.prototype._resolve = function(position){
+		if (position == null) return 0;
+		if (typeof position === 'number') return position;
+		if (typeof position === 'string') {
+			var label = position;
+			var offset = 0;
+			var plusIndex = position.indexOf('+=');
+			var minusIndex = position.indexOf('-=');
+			if (plusIndex > -1) {
+				label = position.slice(0, plusIndex);
+				offset = parseFloat(position.slice(plusIndex + 2)) || 0;
+			}
+			if (minusIndex > -1) {
+				label = position.slice(0, minusIndex);
+				offset = -1 * (parseFloat(position.slice(minusIndex + 2)) || 0);
+			}
+			var base = this._labels[label] != null ? this._labels[label] : 0;
+			return base + offset;
+		}
+		return 0;
+	};
+	Timeline.prototype._schedule = function(){
+		var self = this;
+		if (!self._started) {
+			self._started = true;
+			setTimeout(function(){ self._restart(); }, 0);
+		} else if (self._playing) {
+			self._restart();
+		}
+	};
+	Timeline.prototype._restart = function(){
+		this._clearTimers();
+		this._playing = true;
+		this._startTime = now();
+		var events = this._events.slice().sort(function(a,b){ return a.time - b.time; });
+		var self = this;
+		events.forEach(function(evt){
+			var delay = Math.max(0, evt.time * 1000);
+			var timer = setTimeout(function(){
+				if (!self._playing) return;
+				self._execute(evt);
+			}, delay);
+			self._timers.push(timer);
+		});
+	};
+	Timeline.prototype._clearTimers = function(){
+		while (this._timers.length) {
+			var id = this._timers.pop();
+			try { clearTimeout(id); } catch(_err) {}
+		}
+	};
+	Timeline.prototype._execute = function(evt){
+		if (evt.type === 'to') {
+			applyProps(evt.targets, evt.props);
+		} else if (evt.type === 'callback') {
+			try { evt.fn.apply(null, evt.args || []); } catch(_err) {}
+		}
+	};
+	Timeline.prototype.add = function(arg, position){
+		var t = this._resolve(position);
+		if (typeof arg === 'string') {
+			this._labels[arg] = t;
+		} else if (typeof arg === 'function') {
+			this._events.push({ type: 'callback', time: t, fn: arg, args: [] });
+		}
+		this._schedule();
+		return this;
+	};
+	Timeline.prototype.to = function(targets, vars, position){
+		var t = this._resolve(position);
+		var duration = 0;
+		if (vars && typeof vars.duration === 'number') duration = vars.duration;
+		else if (vars && typeof vars.duration === 'string') duration = parseFloat(vars.duration) || 0;
+		var props = {};
+		if (vars) {
+			for (var key in vars) {
+				if (!Object.prototype.hasOwnProperty.call(vars, key)) continue;
+				if (key === 'duration' || key === 'delay' || key === 'ease') continue;
+				props[key] = vars[key];
+			}
+		}
+		this._events.push({ type: 'to', time: t, duration: duration, targets: toArray(targets), props: props });
+		this._schedule();
+		return this;
+	};
+	Timeline.prototype.call = function(fn, params, position){
+		var t = this._resolve(position);
+		this._events.push({ type: 'callback', time: t, fn: fn, args: Array.isArray(params) ? params : [] });
+		this._schedule();
+		return this;
+	};
+	Timeline.prototype.play = function(){
+		if (this._playing) return this;
+		this._playing = true;
+		this._started = false;
+		this._schedule();
+		return this;
+	};
+	Timeline.prototype.pause = function(){
+		this._playing = false;
+		this._clearTimers();
+		return this;
+	};
+	var gsap = {
+		timeline: function(){ return new Timeline(); }
+	};
+	window.gsap = gsap;
+	})();`;
+}
+
+function rewriteCss(css: string, from: string, bundle: ZipBundle, blobMap: Record<string,string>, lowerCaseMap: Record<string,string>, ensureBlob?: (path: string) => string | undefined): string {
 	return css.replace(/url\(([^)]+)\)/gi, (m, g1) => {
 		let raw = String(g1).trim().replace(/^[\'"]|[\'"]$/g, '');
 		const local = resolveLocal(from, raw);
 		const exact = local ? (bundle.files[local] ? local : lowerCaseMap[local.toLowerCase()]) : undefined;
-		if (exact && bundle.files[exact]) return `url(${blobMap[exact]})`;
+		if (exact && bundle.files[exact]) {
+			const mapped = ensureBlob ? (ensureBlob(exact) || blobMap[exact]) : blobMap[exact];
+			if (mapped) return `url(${mapped})`;
+		}
 		return m;
 	});
 }
@@ -232,6 +617,49 @@ function buildProbeScript(): any {
 	const src = function(){ try { 
 		var post = function(m){ try{ parent.postMessage(Object.assign({__audit_event:1},m), '*'); }catch(e){} };
 		var summary = { domContentLoaded: undefined, visualStart: undefined, frames: 0, consoleErrors:0, consoleWarnings:0, dialogs:0, cookies:0, localStorage:0, errors:0, documentWrites:0, jquery:false, clickUrl:'', memoryMB: undefined, memoryMinMB: undefined, memoryMaxMB: undefined, cpuScore: undefined, network: 0, runtimeIframes: 0, rewrites:0, imgRewrites:0, mediaRewrites:0, scriptRewrites:0, linkRewrites:0, setAttrRewrites:0, styleUrlRewrites:0, styleAttrRewrites:0, domImages:0, domBgUrls:0, enablerStub:false, animMaxDurationS: undefined, animMaxLoops: undefined, animInfinite: false, initialRequests: 0, subloadRequests: 0, userRequests: 0, totalRequests: 0, initialBytes: 0, subloadBytes: 0, userBytes: 0, totalBytes: 0, loadEventTime: undefined };
+		try { if (typeof window !== 'undefined' && window.__AUDIT_ENABLER_STUB__) summary.enablerStub = true; } catch(_err){}
+		function __audit_isNodeLike(value){ try { if (!value || typeof value !== 'object') return false; if (typeof Node === 'function' && Node) return value instanceof Node; return typeof value.nodeType === 'number' && typeof value.nodeName === 'string'; } catch(_e){ return false; } }
+		var __auditObserverWarnedNonNode = {};
+		var __auditObserverWarnedFailure = {};
+		function __audit_patchObserverCtor(ctor, label){ try {
+			if (!ctor || !ctor.prototype) return;
+			if (ctor.prototype.__auditObserverPatched) return;
+			var originalObserve = ctor.prototype.observe;
+			if (typeof originalObserve !== 'function') return;
+			ctor.prototype.observe = function(target, options){
+				try {
+					if (!__audit_isNodeLike(target)) {
+						if (!__auditObserverWarnedNonNode[label]) {
+							__auditObserverWarnedNonNode[label] = true;
+							try { console.warn('[audit-preview] ' + label + '.observe skipped non-node target', target); } catch(_warn){}
+						}
+						return undefined;
+					}
+				} catch(_validate){}
+				try {
+					return originalObserve.call(this, target, options);
+				} catch(err) {
+					if (!__auditObserverWarnedFailure[label]) {
+						__auditObserverWarnedFailure[label] = true;
+						try { console.warn('[audit-preview] ' + label + '.observe failed', err); } catch(_warn2){}
+					}
+					return undefined;
+				}
+			};
+			try { Object.defineProperty(ctor.prototype, '__auditObserverPatched', { value: true, configurable: true }); } catch(_define){}
+		} catch(_patchErr){} }
+		try {
+			var __audit_observerCtors = [
+				['MutationObserver', window.MutationObserver],
+				['WebKitMutationObserver', window.WebKitMutationObserver],
+				['MozMutationObserver', window.MozMutationObserver],
+				['WebkitMutationObserver', (window as any).WebkitMutationObserver]
+			];
+			for (var __audit_i = 0; __audit_i < __audit_observerCtors.length; __audit_i++){
+				var __audit_pair = __audit_observerCtors[__audit_i];
+				__audit_patchObserverCtor(__audit_pair[1], __audit_pair[0]);
+			}
+		} catch(_patchList){}
 		// Request/weight accounting
 		try {
 			(summary as any).initialRequests = 0;
@@ -515,6 +943,30 @@ function buildProbeScript(): any {
 			setTimeout(function(){ try {
 				if (!(window as any).Enabler) {
 					var listeners = {} as any;
+					function lookupAsset(url){ try {
+						var raw = String(url || '');
+						if (!raw) return raw;
+						var mapPayload = (window && window.__AUDIT_ASSET_MAP) || {};
+						var primary = typeof mapPayload.primary === 'string' ? mapPayload.primary : '';
+						var mapping = mapPayload.map || {};
+						function normalizePath(from, target){ try {
+							if (/^https?:/i.test(target) || /^data:/i.test(target) || /^blob:/i.test(target) || /^javascript:/i.test(target)) return undefined;
+							var rel = String(target);
+							if (rel.indexOf('/') === 0) rel = rel.slice(1);
+							if (rel.indexOf('./') === 0) rel = rel.slice(2);
+							var baseDir = from ? from.split('/').slice(0, -1).join('/') : '';
+							var combined = baseDir ? baseDir + '/' + rel : rel;
+							var parts = [];
+							combined.split('/').forEach(function(part){ if(!part || part==='.') return; if (part==='..') { if (parts.length) parts.pop(); } else { parts.push(part); } });
+							return parts.join('/');
+						} catch(err){ return undefined; } }
+						var resolved = normalizePath(primary, raw);
+						if (!resolved) return raw;
+						if (mapping[resolved]) return mapping[resolved];
+						var lower = resolved.toLowerCase();
+						for (var key in mapping){ if (Object.prototype.hasOwnProperty.call(mapping, key) && key.toLowerCase() === lower) return mapping[key]; }
+						return raw;
+					} catch(err){ return String(url || ''); } }
 					(window as any).studio = { events: { StudioEvent: { INIT:'init', PAGE_LOADED:'page_loaded', VISIBLE:'visible', VISIBILITY_CHANGED:'visible' } } };
 					(window as any).Enabler = {
 						isInitialized: function(){ return true; },
@@ -526,7 +978,8 @@ function buildProbeScript(): any {
 						exit: function(name, url){ try { window.open(url || (window as any).clickTag || 'about:blank'); } catch(e){} },
 						exitOverride: function(name, url){ try { window.open(url || (window as any).clickTag || 'about:blank'); } catch(e){} },
 						dynamicExit: function(name, url){ try { window.open(url || (window as any).clickTag || 'about:blank'); } catch(e){} },
-						loadScript: function(u, cb){ try { var s=document.createElement('script'); s.src=String(u); s.onload=function(){ if(cb) cb(); }; document.head.appendChild(s);} catch(e){} }
+						getUrl: function(asset){ return lookupAsset(asset); },
+						loadScript: function(u, cb){ try { var s=document.createElement('script'); s.src=lookupAsset(u); s.onload=function(){ if(cb) cb(); }; document.head.appendChild(s);} catch(e){} }
 					};
 					summary.enablerStub = true;
 					// fire init/page loaded/visible right away

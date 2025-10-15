@@ -1,7 +1,7 @@
 import React, { useId, useRef, useState } from 'react';
-import JSZip from 'jszip';
 import { useExtStore, type InputMode } from '../state/useStoreExt';
 import type { ZipBundle } from '../../../src/logic/types';
+import { listEntries, findFirstIndexHtml } from '../utils/zip';
 
 export const ExtendedDropZone: React.FC<{ mode: InputMode }> = ({ mode }) => {
   const addBundle = useExtStore((s) => s.addBundle);
@@ -41,20 +41,19 @@ export const ExtendedDropZone: React.FC<{ mode: InputMode }> = ({ mode }) => {
             continue;
           }
           const bytes = new Uint8Array(await f.arrayBuffer());
-          const zip = await JSZip.loadAsync(bytes);
+          const entries = await listEntries(f);
           const filesRec: Record<string, Uint8Array> = {};
           const lower: Record<string, string> = {};
-          const entries = Object.keys(zip.files);
           let hasSheet = false;
-          for (const path of entries) {
-            const entry = zip.file(path);
-            if (!entry || entry.dir) continue;
-            const arr = new Uint8Array(await entry.async('uint8array'));
-            const norm = path.replace(/^\/+/, '');
+          for (const entry of entries) {
+            if (entry.dir) continue;
+            const norm = entry.path.replace(/^\/+/, '');
+            const arr = await entry.getData();
             filesRec[norm] = arr;
             lower[norm.toLowerCase()] = norm;
-            if (/\.(xlsx|xlsm|xlsb|xls|csv)$/i.test(norm)) hasSheet = true;
+            if (/(\.xlsx|\.xlsm|\.xlsb|\.xls|\.csv)$/i.test(norm)) hasSheet = true;
           }
+          const firstIndex = findFirstIndexHtml(entries);
           const bundle: ZipBundle = {
             id: String(Date.now()) + Math.random().toString(36).slice(2),
             name: f.name,
@@ -62,7 +61,10 @@ export const ExtendedDropZone: React.FC<{ mode: InputMode }> = ({ mode }) => {
             files: filesRec,
             lowerCaseIndex: lower,
           };
-          addBundle({ ...(bundle as any), mode });
+          const preview = firstIndex
+            ? { baseDir: firstIndex.baseDir, indexPath: firstIndex.indexPath }
+            : undefined;
+          addBundle({ ...(bundle as any), mode, preview });
           if (hasSheet) {
             try {
               setVastAutoPayload(bytes);

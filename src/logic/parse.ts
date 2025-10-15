@@ -180,25 +180,15 @@ export function parsePrimary(bundle: ZipBundle, primary: PrimaryAsset): ParseRes
   doc.querySelectorAll('style').forEach(style => {
     const css = style.textContent || '';
     if (css) {
-  const context = { type: 'css-rule' as const, path: primary.path };
+      const context = { type: 'css-rule' as const, path: primary.path };
       cssSnippets.push({ text: css, context });
       references.push(...collectCssReferences(css, primary.path));
     }
   });
   doc.querySelectorAll('[style]').forEach(el => {
     const css = el.getAttribute('style') || '';
-  if (css) cssSnippets.push({ text: css, context: { type: 'inline-style', path: primary.path } });
+    if (css) cssSnippets.push({ text: css, context: { type: 'inline-style', path: primary.path } });
   });
-  if (!adSize) {
-    for (const snippet of cssSnippets) {
-      const candidate = parseCssAdSize(snippet.text, snippet.context);
-      if (candidate) {
-        adSize = candidate.size;
-        adSizeSource = candidate.source;
-        break;
-      }
-    }
-  }
   // linked CSS content
   for (const ref of [...references]) {
     if (ref.type === 'css' && !ref.external) {
@@ -208,14 +198,24 @@ export function parsePrimary(bundle: ZipBundle, primary: PrimaryAsset): ParseRes
         references.push(...collectCssReferences(cssText, target));
         const context = { type: 'css-file' as const, path: target };
         cssSnippets.push({ text: cssText, context });
-        if (!adSize) {
-          const candidate = parseCssAdSize(cssText, context);
-          if (candidate) {
-            adSize = candidate.size;
-            adSizeSource = candidate.source;
-          }
-        }
       }
+    }
+  }
+  if (!adSize) {
+    let bestCandidate: DetectedSize | undefined;
+    let bestArea = 0;
+    for (const snippet of cssSnippets) {
+      const candidate = parseCssAdSize(snippet.text, snippet.context);
+      if (!candidate) continue;
+      const area = candidate.size.width * candidate.size.height;
+      if (area > bestArea) {
+        bestCandidate = candidate;
+        bestArea = area;
+      }
+    }
+    if (bestCandidate) {
+      adSize = bestCandidate.size;
+      adSizeSource = bestCandidate.source;
     }
   }
   // Normalize and mark inZip

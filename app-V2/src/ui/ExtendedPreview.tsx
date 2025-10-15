@@ -1,1188 +1,863 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { mergePriorityFindings } from '../logic/priority';
-import { useExtStore } from '../state/useStoreExt';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  buildInstrumentedPreview,
-  type ProbeEvent,
-  type ProbeSummary,
-} from '../logic/runtimeProbe';
+  useExtStore,
+  type PreviewDiagnostics,
+  type PreviewInfo,
+} from '../state/useStoreExt';
+import { buildPreviewHtml } from '../preview/buildIframeHtml';
+import { inferMimeType } from '../utils/mime';
+
+const buildErrorDoc = (message: string): string => `<!doctype html>
+<html><head><meta charset="utf-8" />
+<style>body{margin:0;background:#0f172a;color:#e2e8f0;font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;}div{padding:28px;border-radius:16px;background:rgba(15,23,42,0.85);max-width:520px;box-shadow:0 24px 48px rgba(2,6,23,0.45);}h1{margin:0 0 12px;font-size:18px;}p{margin:0;font-size:14px;line-height:1.5;white-space:pre-wrap;}</style>
+</head><body><div><h1>Preview unavailable</h1><p>${message
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')}</p></div></body></html>`;
+
+const decodeHtml = (bytes?: Uint8Array): string => {
+  if (!bytes) return '';
+  try {
+    return new TextDecoder('utf-8', { fatal: false }).decode(bytes);
+  } catch {
+    return '';
+  }
+};
+
+const cleanupObjectUrls = (map: Record<string, string>): void => {
+  for (const value of Object.values(map)) {
+    try {
+      URL.revokeObjectURL(value);
+    } catch {}
+  }
+};
+
+const derivePreviewInfo = (candidate?: string): PreviewInfo | undefined => {
+  if (!candidate) return undefined;
+  const normalized = candidate.replace(/^\/+/, '');
+  const parts = normalized.split('/');
+  if (parts.length <= 1) return { baseDir: '', indexPath: normalized };
+  parts.pop();
+  return { baseDir: `${parts.join('/')}/`, indexPath: normalized };
+};
+
+const formatBaseDir = (info?: PreviewInfo): string => {
+  if (!info) return '—';
+  const raw = `/${info.baseDir || ''}`;
+  return raw.replace(/\\/g, '/').replace(/\/+/g, '/');
+};
 
 type TabKey = 'preview' | 'source' | 'assets' | 'json';
 
-export interface ExtendedPreviewProps {
-  maxBodyHeight?: number;
-}
+const TABS: Array<{ key: TabKey; label: string }> = [
+  { key: 'preview', label: 'Preview' },
+  { key: 'source', label: 'Source' },
+  { key: 'assets', label: 'Assets' },
+  { key: 'json', label: 'JSON' },
+];
 
-export const ExtendedPreview: React.FC<ExtendedPreviewProps> = ({
+export const ExtendedPreview: React.FC<{ maxBodyHeight?: number }> = ({
   maxBodyHeight,
 }) => {
-  const { results, selectedBundleId } = useExtStore((s: any) => ({
-    results: s.results,
-    selectedBundleId: s.selectedBundleId,
+  const {
+    results,
+    bundles,
+    selectedBundleId,
+    previewDiagnostics,
+    setPreviewDiagnostics,
+  } = useExtStore((state) => ({
+    results: state.results,
+    bundles: state.bundles,
+    selectedBundleId: state.selectedBundleId,
+    previewDiagnostics: state.previewDiagnostics,
+    setPreviewDiagnostics: state.setPreviewDiagnostics,
   }));
-  const bundleRes: any =
-    results.find((r: any) => r.bundleId === selectedBundleId) || results[0];
-  const bundle = useExtStore((s: any) =>
-    s.bundles.find((b: any) => b.id === bundleRes?.bundleId),
-  );
+
+  const bundleRes = useMemo(() => {
+    if (!results?.length) return undefined;
+    return (
+      results.find((entry: any) => entry.bundleId === selectedBundleId) ||
+      results[0]
+    );
+  }, [results, selectedBundleId]);
+
+  const bundle = useMemo(() => {
+    if (!bundleRes) return undefined;
+    return bundles.find((item: any) => item.id === bundleRes.bundleId);
+  }, [bundleRes, bundles]);
+
+  const previewInfo = useMemo<PreviewInfo | undefined>(() => {
+    if (!bundle) return undefined;
+    if (bundle.preview) return bundle.preview;
+    return derivePreviewInfo((bundleRes as any)?.primary?.path);
+  }, [bundle, bundleRes]);
+
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const assetsRef = useRef<Record<string, string>>({});
+
+  const baselineHeight = useMemo(
+    () => Math.min(Math.max(maxBodyHeight ?? 720, 360), 960),
+    [maxBodyHeight],
+  );
+
   const [tab, setTab] = useState<TabKey>('preview');
   const [html, setHtml] = useState('');
+  const [iframeKey, setIframeKey] = useState(0);
   const [original, setOriginal] = useState('');
-  const [blobMap, setBlobMap] = useState<Record<string, string>>({});
-  const [summary, setSummary] = useState<ProbeSummary | null>(null);
-  const [events, setEvents] = useState<ProbeEvent[]>([]);
-  const [height, setHeight] = useState(800);
-  const [showModal, setShowModal] = useState(false);
-  const [clickUrl, setClickUrl] = useState<string>('');
+  const [assetUrls, setAssetUrls] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+  const [height, setHeight] = useState(baselineHeight);
+  const [clickUrl, setClickUrl] = useState('');
   const [clickPresent, setClickPresent] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [showInsights, setShowInsights] = useState(false);
-  // Bump to force iframe re-mount on reload
-  const [reloadTick, setReloadTick] = useState(0);
-  const lastSizeRef = useRef<string>('');
-  // Search queries + navigation state for Source and JSON tabs
-  const [sourceQuery, setSourceQuery] = useState('');
-  const [jsonQuery, setJsonQuery] = useState('');
-  const [sourceIndex, setSourceIndex] = useState(0);
-  const [jsonIndex, setJsonIndex] = useState(0);
-  const sourceContainerRef = useRef<HTMLDivElement | null>(null);
-  const jsonContainerRef = useRef<HTMLDivElement | null>(null);
-  const debugFindings = bundleRes?.debugFindings ?? [];
+  const [localDiag, setLocalDiag] = useState<PreviewDiagnostics | undefined>();
+  const [debugLog, setDebugLog] = useState<string[]>([]);
+
+  const debugFindings = (bundleRes as any)?.debugFindings ?? [];
   const hasDebugInsights = debugFindings.length > 0;
 
+  useEffect(() => () => cleanupObjectUrls(assetsRef.current), []);
+
   useEffect(() => {
-    if (!bundleRes || !bundleRes.primary || !bundle) return;
-    let cancelled = false;
-    (async () => {
-      const built = await buildInstrumentedPreview(
-        bundle as any,
-        (bundleRes as any).primary.path,
+    setHeight(baselineHeight);
+    setShowInsights(false);
+    setClickUrl('');
+    setClickPresent(false);
+    setShowModal(false);
+    setLocalDiag(undefined);
+    setDebugLog([]);
+  }, [bundle?.id, baselineHeight]);
+
+  useEffect(() => {
+    setHeight(baselineHeight);
+  }, [baselineHeight]);
+
+  useEffect(() => {
+    if (!bundle?.id) {
+      setLocalDiag(undefined);
+      return;
+    }
+    const existing = previewDiagnostics[bundle.id];
+    setLocalDiag(existing);
+  }, [bundle?.id, previewDiagnostics]);
+
+  useEffect(() => {
+    cleanupObjectUrls(assetsRef.current);
+    assetsRef.current = {};
+    setAssetUrls({});
+
+    if (!bundle || !previewInfo) {
+      setHtml(
+        buildErrorDoc(
+          'Upload a creative bundle with an index.html to render the CM360 preview.',
+        ),
       );
-      if (cancelled) return;
-      setHtml(built.html);
-      setOriginal(built.originalHtml);
-      setBlobMap(built.blobMap);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [bundleRes?.bundleId, bundleRes?.primary?.path, bundle, reloadTick]);
+      setOriginal('');
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setHtml(
+      buildPreviewHtml({
+        bundleId: bundle.id,
+        baseDir: previewInfo.baseDir,
+        indexPath: previewInfo.indexPath,
+      }),
+    );
+    setIframeKey((prev) => prev + 1);
+
+    const lowerPath = previewInfo.indexPath.toLowerCase();
+    const canonicalIndex =
+      bundle.lowerCaseIndex?.[lowerPath] ?? previewInfo.indexPath;
+    setOriginal(decodeHtml(bundle.files?.[canonicalIndex]));
+
+    const next: Record<string, string> = {};
+    for (const [path, bytes] of Object.entries(bundle.files ?? {})) {
+      try {
+        const view =
+          bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes as ArrayBufferLike);
+        const copy = new Uint8Array(view.byteLength);
+        copy.set(view);
+        const blob = new Blob([copy.buffer], { type: inferMimeType(path) });
+        next[path] = URL.createObjectURL(blob);
+      } catch {}
+    }
+    assetsRef.current = next;
+    setAssetUrls(next);
+  }, [bundle, previewInfo]);
+
+  const sendEntries = useCallback(() => {
+    if (!bundle || !previewInfo) return;
+    const target = iframeRef.current?.contentWindow;
+    if (!target) return;
+    const entries = Object.entries(bundle.files || {}).map(([path, bytes]) => {
+      const arr =
+        bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes as any);
+      const buffer = arr.buffer.slice(
+        arr.byteOffset,
+        arr.byteOffset + arr.byteLength,
+      );
+      return {
+        path,
+        buffer,
+        contentType: inferMimeType(path),
+      };
+    });
+    target.postMessage(
+      {
+        type: 'CM360_BUNDLE_ENTRIES',
+        bundleId: bundle.id,
+        baseDir: previewInfo.baseDir,
+        indexPath: previewInfo.indexPath,
+        entries,
+      },
+      '*',
+      entries.map((entry) => entry.buffer),
+    );
+  }, [bundle, previewInfo]);
 
   useEffect(() => {
-    function handler(ev: MessageEvent) {
-      const d = ev?.data as any;
-      if (!d) return;
-      if (d.__audit_event) {
-        const pe = d as ProbeEvent;
-        setEvents((prev) => [pe, ...prev].slice(0, 200));
-        if (pe.type === 'summary') {
-          setSummary(pe.summary);
-          try {
-            // Persist latest summary for extended checks to read if needed
-            (window as any).__audit_last_summary = pe.summary;
-            const st = (useExtStore as any).getState?.();
-            if (st && st.results && Array.isArray(st.results)) {
-              // Always prefer the latest selection from the store to avoid
-              // stale closures (the component mounts before results exist).
-              const bundleId = st.selectedBundleId ?? bundleRes?.bundleId;
-              const idx = st.results.findIndex(
-                (r: any) => r.bundleId === bundleId,
-              );
-              if (idx >= 0) {
-                const toNumber = (value: any): number | undefined =>
-                  typeof value === 'number' && isFinite(value)
-                    ? Number(value)
-                    : undefined;
-                const summaryAny: any = pe.summary || {};
-                const summaryMetrics = {
-                  initialRequests: toNumber(pe.summary?.initialRequests),
-                  subloadRequests: toNumber(pe.summary?.subloadRequests),
-                  userRequests: toNumber(pe.summary?.userRequests),
-                  totalRequests: toNumber(pe.summary?.totalRequests),
-                  initialBytes: toNumber(pe.summary?.initialBytes),
-                  subloadBytes: toNumber(pe.summary?.subloadBytes),
-                  userBytes: toNumber(pe.summary?.userBytes),
-                  totalBytes: toNumber(pe.summary?.totalBytes),
-                  loadEventTime: toNumber(pe.summary?.loadEventTime),
-                  borderSides: toNumber(pe.summary?.borderSides),
-                  borderCssRules: toNumber(pe.summary?.borderCssRules),
-                };
-                const shouldApplyTotals =
-                  (summaryMetrics.totalRequests ?? 0) > 0 ||
-                  (summaryMetrics.totalBytes ?? 0) > 0;
-                const shouldApplyInitial =
-                  shouldApplyTotals ||
-                  (summaryMetrics.initialRequests ?? 0) > 0 ||
-                  (summaryMetrics.initialBytes ?? 0) > 0;
-                const shouldApplySubload =
-                  shouldApplyTotals ||
-                  (summaryMetrics.subloadRequests ?? 0) > 0 ||
-                  (summaryMetrics.subloadBytes ?? 0) > 0;
-                const shouldApplyUser =
-                  (summaryMetrics.userRequests ?? 0) > 0 ||
-                  (summaryMetrics.userBytes ?? 0) > 0;
-                const borderDetectedRuntime = (() => {
-                  const explicitRaw = summaryAny?.borderDetected;
-                  const explicit = typeof explicitRaw === 'string'
-                    ? explicitRaw.toLowerCase()
-                    : '';
-                  if (explicit === 'explicit' || explicit === 'yes') return true;
-                  const sides = summaryMetrics.borderSides ?? 0;
-                  const rules = summaryMetrics.borderCssRules ?? 0;
-                  return Number.isFinite(sides) && sides >= 3 || Number.isFinite(rules) && rules > 0;
-                })();
-                const ttr = toNumber(pe.summary?.visualStart);
-                const updated = st.results.map((r: any, i: number) => {
-                  if (i !== idx) return r;
-                  let findings = Array.isArray(r.findings)
-                    ? [...r.findings]
-                    : [];
-                  if (ttr !== undefined) {
-                    const fi = findings.findIndex(
-                      (f: any) => f.id === 'timeToRender',
-                    );
-                    const sev = ttr > 500 ? 'WARN' : 'PASS';
-                    const msg = `Render start ~${Math.round(ttr)} ms`;
-                    if (fi >= 0) {
-                      findings[fi] = {
-                        ...findings[fi],
-                        severity: sev,
-                        messages: [msg, 'Target: < 500 ms'],
-                      };
-                    } else {
-                      findings = findings.concat({
-                        id: 'timeToRender',
-                        title: 'Time to Render',
-                        severity: sev,
-                        messages: [msg, 'Target: < 500 ms'],
-                        offenders: [],
-                      });
-                    }
-                  }
-                  const borderSides = summaryMetrics.borderSides ?? 0;
-                  const borderCssRules = summaryMetrics.borderCssRules ?? 0;
-                  if (
-                    borderDetectedRuntime ||
-                    Number.isFinite(borderSides) ||
-                    Number.isFinite(borderCssRules)
-                  ) {
-                    if (import.meta.env.DEV) {
-                      console.log('[ExtendedPreview] border update', {
-                        bundleId,
-                        borderDetectedRuntime,
-                        borderSides,
-                        borderCssRules,
-                        existingFindings: findings.length,
-                      });
-                    }
-                    const borderIdx = findings.findIndex((f: any) => f && f.id === 'border');
-                    const borderMessages = [
-                      `Border detected: ${borderDetectedRuntime ? 'yes' : 'no'}`,
-                      `Sides detected: ${Number.isFinite(borderSides) ? borderSides : 0}`,
-                      `CSS rules: ${Number.isFinite(borderCssRules) ? borderCssRules : 0}`,
-                    ];
-                    const buildRuntimeEvidence = () => ({
-                      path: '(runtime)',
-                      detail: `Runtime detected ${Number.isFinite(borderSides) ? borderSides : 0} side(s), ${Number.isFinite(borderCssRules) ? borderCssRules : 0} css rule(s)`,
-                    });
-                    if (borderIdx >= 0) {
-                      const prev = findings[borderIdx] || {};
-                      const offenders = Array.isArray(prev.offenders)
-                        ? [...prev.offenders]
-                        : [];
-                      const nextOffenders = borderDetectedRuntime
-                        ? offenders.length > 0
-                          ? offenders
-                          : [buildRuntimeEvidence()]
-                        : offenders;
-                      findings[borderIdx] = {
-                        ...prev,
-                        severity: borderDetectedRuntime ? 'PASS' : 'WARN',
-                        messages: borderMessages,
-                        offenders: nextOffenders,
-                      };
-                    } else {
-                      findings = findings.concat({
-                        id: 'border',
-                        title: 'Border Present',
-                        severity: borderDetectedRuntime ? 'PASS' : 'WARN',
-                        messages: borderMessages,
-                        offenders: borderDetectedRuntime ? [buildRuntimeEvidence()] : [],
-                      });
-                    }
-                  }
+    const handleMessage = (event: MessageEvent) => {
+      const data = event.data as any;
+      if (!data || typeof data !== 'object') return;
+      if (bundle && data.bundleId && data.bundleId !== bundle.id) return;
 
-                  let fails = 0,
-                    warns = 0,
-                    pass = 0;
-                  for (const f of findings) {
-                    if (f.severity === 'FAIL') fails++;
-                    else if (f.severity === 'WARN') warns++;
-                    else pass++;
-                  }
-                  const requiredOnly = mergePriorityFindings(findings || []);
-                  const status: 'PASS' | 'WARN' | 'FAIL' = requiredOnly.some(
-                    (f: any) => f.severity === 'FAIL',
-                  )
-                    ? 'FAIL'
-                    : 'PASS';
-                  const summaryCounts = {
-                    ...r.summary,
-                    totalFindings: findings.length,
-                    fails,
-                    warns,
-                    pass,
-                    status,
-                  };
-                  const now = Date.now();
-                  const runtime = {
-                    ...(r.runtime || {}),
-                    source: 'probe',
-                    capturedAt: now,
-                    loadEventTime:
-                      summaryMetrics.loadEventTime ?? r.runtime?.loadEventTime,
-                    initialRequests:
-                      summaryMetrics.initialRequests ?? r.runtime?.initialRequests,
-                    subloadRequests:
-                      summaryMetrics.subloadRequests ?? r.runtime?.subloadRequests,
-                    userRequests:
-                      summaryMetrics.userRequests ?? r.runtime?.userRequests,
-                    totalRequests:
-                      summaryMetrics.totalRequests ?? r.runtime?.totalRequests,
-                    initialBytes:
-                      summaryMetrics.initialBytes ?? r.runtime?.initialBytes,
-                    subloadBytes:
-                      summaryMetrics.subloadBytes ?? r.runtime?.subloadBytes,
-                    userBytes:
-                      summaryMetrics.userBytes ?? r.runtime?.userBytes,
-                    totalBytes:
-                      summaryMetrics.totalBytes ?? r.runtime?.totalBytes,
-                    borderSides:
-                      summaryMetrics.borderSides ?? r.runtime?.borderSides,
-                    borderCssRules:
-                      summaryMetrics.borderCssRules ?? r.runtime?.borderCssRules,
-                    borderDetected: borderDetectedRuntime
-                      ? 'explicit'
-                      : typeof summaryAny?.borderDetected === 'string'
-                        ? summaryAny.borderDetected
-                        : summaryMetrics.borderSides !== undefined || summaryMetrics.borderCssRules !== undefined
-                          ? 'none'
-                          : r.runtime?.borderDetected,
-                  };
-                  const next = {
-                    ...r,
-                    findings,
-                    summary: summaryCounts,
-                    runtime,
-                    runtimeSummary: pe.summary,
-                  } as any;
-                  if (
-                    shouldApplyInitial &&
-                    summaryMetrics.initialRequests !== undefined
-                  )
-                    next.initialRequests = summaryMetrics.initialRequests;
-                  if (
-                    shouldApplyTotals &&
-                    summaryMetrics.totalRequests !== undefined
-                  )
-                    next.totalRequests = summaryMetrics.totalRequests;
-                  if (
-                    shouldApplySubload &&
-                    summaryMetrics.subloadRequests !== undefined
-                  )
-                    next.subloadRequests = summaryMetrics.subloadRequests;
-                  if (
-                    shouldApplyUser &&
-                    summaryMetrics.userRequests !== undefined
-                  )
-                    next.userRequests = summaryMetrics.userRequests;
-                  if (
-                    shouldApplyInitial &&
-                    summaryMetrics.initialBytes !== undefined
-                  )
-                    next.initialBytes = summaryMetrics.initialBytes;
-                  if (
-                    shouldApplySubload &&
-                    summaryMetrics.subloadBytes !== undefined
-                  ) {
-                    next.subloadBytes = summaryMetrics.subloadBytes;
-                    next.subsequentBytes = summaryMetrics.subloadBytes;
-                  }
-                  if (
-                    shouldApplyUser &&
-                    summaryMetrics.userBytes !== undefined
-                  )
-                    next.userBytes = summaryMetrics.userBytes;
-                  return next;
-                });
-                st.setResults(updated);
-              }
-            }
-          } catch {}
+      if (data.type === 'CM360_DEBUG') {
+        const message = data.stage
+          ? `${new Date().toISOString()} — ${data.stage} ${data.payload ? JSON.stringify(data.payload) : ''}`
+          : `${new Date().toISOString()} — ${JSON.stringify(data)}`;
+        setDebugLog((prev) => [...prev.slice(-50), message]);
+        return;
+      }
+
+      if (data.type === 'CM360_REQUEST_ENTRIES') {
+        sendEntries();
+        return;
+      }
+
+      if (data.type === 'CM360_DIAGNOSTICS' && bundle) {
+        const diag = data.diagnostics as PreviewDiagnostics;
+        if (diag) {
+          setLocalDiag(diag);
+          setPreviewDiagnostics(bundle.id, diag);
+          if (diag.dimension?.height) {
+            setHeight(
+              Math.min(
+                Math.max(diag.dimension.height + 60, 320),
+                maxBodyHeight ?? 960,
+              ),
+            );
+          }
+          setLoading(false);
         }
-      } else if (d.type === 'creative-click') {
-        const url = typeof d.url === 'string' ? d.url : '';
-        const present = !!(d.meta && (d.meta.present || d.meta.source));
-        setClickPresent((prev) => prev || present || !!url);
-        setSummary((prev) => ({ ...(prev || {}), clickUrl: url }) as any);
+        return;
+      }
+
+      if (data.type === 'creative-click') {
+        const url = typeof data.url === 'string' ? data.url : '';
         setClickUrl(url);
-        // If runtime already opened a window (Enabler hook), we still show the modal
+        setClickPresent((prev) => prev || !!url || !!data.meta?.present);
         setShowModal(true);
       }
-    }
-    window.addEventListener('message', handler);
-    return () => window.removeEventListener('message', handler);
-  }, []);
+    };
 
-  useEffect(() => {
-    setShowInsights(false);
-  }, [bundleRes?.bundleId]);
-  useEffect(() => {
-    if (tab !== 'preview') setShowInsights(false);
-  }, [tab]);
-  useEffect(() => {
-    if (!hasDebugInsights) setShowInsights(false);
-  }, [hasDebugInsights]);
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [bundle, sendEntries, setPreviewDiagnostics, maxBodyHeight]);
 
-  // Compute primary path and entry base early so downstream hooks can safely run every render
-  const primaryPath: string = bundleRes?.primary?.path || '';
-  const entryBase: string = primaryPath
-    ? primaryPath.split('/')?.pop() || primaryPath
-    : '';
+  const diagnostics = useMemo(() => {
+    if (!bundle?.id) return undefined;
+    return localDiag || previewDiagnostics[bundle.id];
+  }, [bundle?.id, localDiag, previewDiagnostics]);
 
-  // Infer fixed viewport size to satisfy strict @media(width/height) creatives
-  const inferredSize = useMemo(() => {
-    // 1) Prefer parsed adSize from discovery/parse
-    const fromAdSize = (() => {
-      try {
-        const as: any = (bundleRes as any)?.adSize;
-        const w = Number(as?.width);
-        const h = Number(as?.height);
-        if (isFinite(w) && isFinite(h) && w > 0 && h > 0) return { width: w, height: h };
-      } catch {}
-      return null as { width: number; height: number } | null;
-    })();
-    if (fromAdSize) return fromAdSize;
-
-    const src = String(original || '');
-
-    // 2) <meta name="ad.size" content="width=160,height=600">
-    try {
-      const m = src.match(/<meta[^>]+name=["']ad\.size["'][^>]+content=["'][^"']*width\s*=\s*(\d+)\s*,\s*height\s*=\s*(\d+)[^"']*["'][^>]*>/i);
-      if (m) {
-        const w = Number(m[1]);
-        const h = Number(m[2]);
-        if (isFinite(w) && isFinite(h) && w > 0 && h > 0) return { width: w, height: h };
-      }
-    } catch {}
-
-    // 3) Strict CSS media query: @media (height: 600px) and (width: 160px) or reversed
-    try {
-      const mq1 = src.match(/@media[^\{]*\(\s*height\s*:\s*(\d+)px\s*\)[^\{]*\(\s*width\s*:\s*(\d+)px\s*\)/i);
-      if (mq1) {
-        const h = Number(mq1[1]);
-        const w = Number(mq1[2]);
-        if (isFinite(w) && isFinite(h) && w > 0 && h > 0) return { width: w, height: h };
-      }
-      const mq2 = src.match(/@media[^\{]*\(\s*width\s*:\s*(\d+)px\s*\)[^\{]*\(\s*height\s*:\s*(\d+)px\s*\)/i);
-      if (mq2) {
-        const w = Number(mq2[1]);
-        const h = Number(mq2[2]);
-        if (isFinite(w) && isFinite(h) && w > 0 && h > 0) return { width: w, height: h };
-      }
-    } catch {}
-
-    // 4) Token in filename like 160x600
-    try {
-      const t = (entryBase || (bundleRes as any)?.bundleName || '').match(/(\d{2,4})\s*[xX]\s*(\d{2,4})/);
-      if (t) {
-        const w = Number(t[1]);
-        const h = Number(t[2]);
-        if (isFinite(w) && isFinite(h) && w > 0 && h > 0 && w <= 4000 && h <= 4000)
-          return { width: w, height: h };
-      }
-    } catch {}
-
-    // 5) First <img> width/height as last resort (often matches ad size in simple creatives)
-    try {
-      const im = src.match(/<img[^>]*width=["']?(\d{2,4})["']?[^>]*height=["']?(\d{2,4})["']?[^>]*>/i);
-      if (im) {
-        const w = Number(im[1]);
-        const h = Number(im[2]);
-        if (isFinite(w) && isFinite(h) && w > 0 && h > 0) return { width: w, height: h };
-      }
-    } catch {}
-
-    return null;
-  }, [bundleRes?.adSize, original, entryBase]);
-
-  // If we discover a fixed size after initial load, force a remount so @media queries re-evaluate on exact viewport
-  useEffect(() => {
-    const key = inferredSize ? `${inferredSize.width}x${inferredSize.height}` : '';
-    if (key && key !== lastSizeRef.current) {
-      lastSizeRef.current = key;
-      setReloadTick((t) => t + 1);
-    }
-  }, [inferredSize?.width, inferredSize?.height]);
+  const dimension = diagnostics?.dimension;
+  const networkFailures = diagnostics?.networkFailures ?? [];
+  const uniqueFailures = Array.from(new Set(networkFailures));
 
   const assetEntries = useMemo(
-    () =>
-      Object.entries(blobMap).sort(
-        ([a]: [string, string], [b]: [string, string]) => a.localeCompare(b),
-      ),
-    [blobMap],
+    () => Object.entries(assetUrls).sort(([pathA], [pathB]) => pathA.localeCompare(pathB)),
+    [assetUrls],
   );
 
-  // Auto-scroll active match into view near top (Source)
-  useEffect(() => {
-    if (tab !== 'source') return;
-    const root = sourceContainerRef.current;
-    if (!root) return;
-    const el = root.querySelector(
-      `mark[data-match-index="${sourceIndex}"]`,
-    ) as HTMLElement | null;
-    if (!el) return;
-    try {
-      // Compute element position relative to the scroll container
-      const rootRect = root.getBoundingClientRect();
-      const elRect = el.getBoundingClientRect();
-      const delta = elRect.top - rootRect.top; // element's top within the visible area
-      const margin = Math.max(60, Math.round(root.clientHeight * 0.25));
-      const desiredTop = Math.max(root.scrollTop + delta - margin, 0);
-      root.scrollTo({ top: desiredTop, behavior: 'smooth' });
-    } catch {}
-  }, [tab, sourceIndex, sourceQuery]);
-
-  // Auto-scroll active match into view near top (JSON)
-  useEffect(() => {
-    if (tab !== 'json') return;
-    const root = jsonContainerRef.current;
-    if (!root) return;
-    const el = root.querySelector(
-      `mark[data-match-index="${jsonIndex}"]`,
-    ) as HTMLElement | null;
-    if (!el) return;
-    try {
-      const rootRect = root.getBoundingClientRect();
-      const elRect = el.getBoundingClientRect();
-      const delta = elRect.top - rootRect.top;
-      const margin = Math.max(60, Math.round(root.clientHeight * 0.25));
-      const desiredTop = Math.max(root.scrollTop + delta - margin, 0);
-      root.scrollTo({ top: desiredTop, behavior: 'smooth' });
-    } catch {}
-  }, [tab, jsonIndex, jsonQuery]);
-  if (!bundleRes)
+  if (!bundleRes) {
     return (
-      <div style={{ fontSize: 12, color: '#555' }}>No bundle selected.</div>
-    );
-  if (!bundleRes.primary)
-    return (
-      <div style={{ fontSize: 12, color: '#555' }}>
-        No primary HTML detected.
+      <div style={{ fontSize: 12, color: '#64748b' }}>
+        Upload a bundle to view the preview.
       </div>
     );
-  
+  }
+
+  const dimensionLabel = dimension
+    ? `${dimension.width}×${dimension.height} (${dimension.source})`
+    : 'auto';
+
+  const iframeWidth = dimension?.width ? `${dimension.width}px` : '100%';
+  const iframeHeight = Math.min(
+    Math.max(dimension?.height ?? height, 320),
+    maxBodyHeight ?? 900,
+  );
+  const showDiagnosticsBanner =
+    diagnostics?.visibilityGuardActive || uniqueFailures.length > 0;
 
   return (
     <div
       className="ext-preview"
-      style={{ display: 'flex', flexDirection: 'column' }}
+      style={{ display: 'flex', flexDirection: 'column', gap: 12 }}
     >
-      {/* local styles for active match highlight */}
-      <style>{`
-        mark.active-match { background: #fde68a; outline: 1px solid #f59e0b; }
-      `}</style>
       <nav
-        className="tabs"
         style={{
+          display: 'flex',
+          gap: 8,
           borderBottom: '1px solid var(--border)',
-          paddingBottom: 6,
-          marginBottom: 6,
+          paddingBottom: 8,
         }}
       >
-        {(['preview', 'source', 'assets', 'json'] as TabKey[]).map((k) => (
+        {TABS.map(({ key, label }) => (
           <button
-            key={k}
-            onClick={() => setTab(k)}
-            className={`tab ${tab === k ? 'active' : ''}`}
+            key={key}
+            type="button"
+            onClick={() => setTab(key)}
+            className={`tab ${tab === key ? 'active' : ''}`}
+            style={{
+              padding: '6px 10px',
+              fontSize: 12,
+              borderRadius: 999,
+              border: '1px solid transparent',
+              background: tab === key ? 'var(--accent)' : 'transparent',
+              color: tab === key ? '#ffffff' : 'var(--text)',
+            }}
           >
-            {label(k)}
+            {label}
           </button>
         ))}
       </nav>
-      <div style={{ padding: 8, fontSize: 12 }}>
-        {tab === 'preview' && (
+
+      {tab === 'preview' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div
             style={{
-              minHeight: maxBodyHeight ? maxBodyHeight : undefined,
-              maxHeight: maxBodyHeight ? maxBodyHeight : undefined,
-              // Ensure the asset exists freely without scrollbars at this wrapper level
-              overflow: 'visible',
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 12,
+              alignItems: 'center',
+              justifyContent: 'space-between',
             }}
           >
-            <div style={{ position: 'relative' }}>
-              {/* Header controls above the preview */}
-              <div
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <strong style={{ fontSize: 14 }}>CM360 Preview Simulation</strong>
+              <span style={{ fontSize: 12, opacity: 0.72 }}>
+                Base dir: {formatBaseDir(previewInfo)}
+              </span>
+              <span style={{ fontSize: 12, opacity: 0.72 }}>
+                Dimensions: {dimensionLabel}
+              </span>
+              <span style={{ fontSize: 12, opacity: 0.72 }}>
+                Enabler: {diagnostics?.enablerSource ?? 'unknown'}
+              </span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!bundle || !previewInfo) return;
+                  setLoading(true);
+                  setHtml(
+                    buildPreviewHtml({
+                      bundleId: bundle.id,
+                      baseDir: previewInfo.baseDir,
+                      indexPath: previewInfo.indexPath,
+                    }),
+                  );
+                  setIframeKey((prev) => prev + 1);
+                  window.setTimeout(sendEntries, 80);
+                }}
                 style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  gap: 6,
-                  marginBottom: 6,
+                  fontSize: 12,
+                  padding: '6px 12px',
+                  borderRadius: 8,
+                  border: '1px solid rgba(148,163,184,0.45)',
+                  background: 'var(--surface-2)',
+                  cursor: 'pointer',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  {/* Left-aligned reload button */}
-                  <button
-                    type="button"
-                    aria-label="Reload preview"
-                    title="Reload preview"
-                    onClick={() => {
-                      setReloadTick((t) => t + 1);
-                      setHeight(800);
-                      setEvents([]);
-                      setSummary(null as any);
-                      setClickUrl('');
-                      setClickPresent(false);
-                      setShowModal(false);
-                    }}
-                    className="btn"
-                    style={{
-                      fontSize: 11,
-                      padding: '4px 6px',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      color: '#6b7280',
-                    }}
-                  >
-                    {/* circular arrow icon */}
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M21 2v6h-6" />
-                      <path d="M21 13a9 9 0 1 1-3-7l3 3" />
-                    </svg>
-                    <span style={{ fontWeight: 600, color: 'var(--text)' }}>
-                      Reload
-                    </span>
-                  </button>
-                </div>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'flex-end',
-                    gap: 8,
-                    flexWrap: 'wrap',
-                  }}
-                >
-                  {hasDebugInsights && (
-                    <button
-                      type="button"
-                      onClick={() => setShowInsights((v) => !v)}
-                      className={`btn ${showInsights ? 'primary' : ''}`}
-                      style={{ fontSize: 11, padding: '4px 8px' }}
-                    >
-                      {showInsights ? 'Hide Metadata' : 'Metadata'}
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <iframe
-                ref={iframeRef}
-                title="Creative Preview"
-                sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-modals"
-                srcDoc={html}
-                key={`${reloadTick}-${inferredSize ? `${inferredSize.width}x${inferredSize.height}` : 'auto'}`}
-                style={{
-                  width: inferredSize ? `${inferredSize.width}px` : '100%',
-                  height: inferredSize ? inferredSize.height : height,
-                  border: 'none',
-                }}
-                onLoad={() => {
-                  try {
-                    const doc = iframeRef.current?.contentDocument;
-                    if (!doc) return;
-                    if (inferredSize) {
-                      // Fixed viewport: don't auto-resize, but ensure our state reflects the fixed height
-                      setHeight(inferredSize.height);
-                      return;
-                    }
-                    const body = doc.body;
-                    const resize = () => {
-                      const h = Math.min(
-                        Math.max(body.scrollHeight, 600),
-                        1400,
-                      );
-                      setHeight(h);
-                    };
-                    resize();
-                    new MutationObserver(() => resize()).observe(
-                      doc.documentElement,
-                      {
-                        childList: true,
-                        subtree: true,
-                        attributes: true,
-                        characterData: true,
-                      },
-                    );
-                  } catch {}
-                }}
-              />
-              {/* Removed overlay guide to eliminate any visible bounding box */}
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'flex-end',
-                  marginTop: 8,
-                }}
-              >
+                Reload preview
+              </button>
+              {hasDebugInsights && (
                 <button
                   type="button"
-                  onClick={() => setShowModal(true)}
-                  className="btn primary"
-                  style={{ fontSize: 11, padding: '4px 8px' }}
-                >
-                  CTURL Status
-                </button>
-              </div>
-              {showInsights && hasDebugInsights && (
-                <div
+                  onClick={() => setShowInsights((v) => !v)}
                   style={{
-                    position: 'absolute',
-                    inset: 0,
-                    padding: 16,
-                    display: 'flex',
-                    justifyContent: 'flex-end',
-                    alignItems: 'flex-start',
-                    pointerEvents: 'none',
+                    fontSize: 12,
+                    padding: '6px 12px',
+                    borderRadius: 8,
+                    border: '1px solid rgba(148,163,184,0.45)',
+                    background: showInsights
+                      ? 'var(--accent)'
+                      : 'var(--surface-2)',
+                    color: showInsights ? '#ffffff' : 'var(--text)',
+                    cursor: 'pointer',
                   }}
                 >
-                  <div
-                    style={{
-                      marginTop: 40,
-                      width: 'min(420px, 100%)',
-                      maxHeight: 'calc(100% - 40px)',
-                      background: 'var(--panel-2)',
-                      color: 'var(--text)',
-                      borderRadius: 12,
-                      padding: 16,
-                      overflowY: 'auto',
-                      pointerEvents: 'auto',
-                      boxShadow: 'var(--shadow)',
-                      border: '1px solid var(--border)',
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'flex-start',
-                        alignItems: 'center',
-                        marginBottom: 12,
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: 12,
-                          fontWeight: 700,
-                          letterSpacing: 0.3,
-                        }}
-                      >
-                        Preview Metadata
-                      </div>
-                    </div>
-                    <div style={{ display: 'grid', gap: 12 }}>
-                      {debugFindings.map((f: any) => (
-                        <div
-                          key={f.id}
-                          style={{
-                            background: 'rgba(148,163,184,0.12)',
-                            borderRadius: 10,
-                            padding: 12,
-                          }}
-                        >
-                          <div
-                            style={{
-                              marginBottom: 6,
-                              fontSize: 12,
-                              fontWeight: 600,
-                            }}
-                          >
-                            {f.title}
-                          </div>
-                          <ul
-                            style={{
-                              margin: 0,
-                              paddingLeft: 18,
-                              fontSize: 11,
-                              lineHeight: 1.5,
-                              listStyle: 'disc',
-                            }}
-                          >
-                            {(Array.isArray(f.messages)
-                              ? f.messages
-                              : f.messages
-                                ? [String(f.messages)]
-                                : [])
-                              .map((m: any, i: number) => (
-                              <li key={i}>{m}</li>
-                            ))}
-                          </ul>
-                          {Array.isArray(f.offenders) && f.offenders.length ? (
-                            <div
-                              style={{
-                                marginTop: 8,
-                                fontSize: 10,
-                                fontFamily: 'monospace',
-                                opacity: 0.85,
-                              }}
-                            >
-                              {f.offenders
-                                .slice(0, 5)
-                                .map((o: any, i: number) => (
-                                  <div key={i} style={{ marginBottom: 2 }}>
-                                    <span>{o.path}</span>
-                                    {primaryPath && (
-                                      <span style={{ opacity: 0.9 }}>
-                                        {' '}
-                                        - {o.detail}
-                                      </span>
-                                    )}
-                                    {typeof o.line === 'number' && (
-                                      <span style={{ marginLeft: 4 }}>
-                                        #L{o.line}
-                                      </span>
-                                    )}
-                                  </div>
-                                ))}
-                              {f.offenders.length > 5 && (
-                                <div>
-                                  +{f.offenders.length - 5} more...
-                                </div>
-                              )}
-                            </div>
-                          ) : null}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                  {showInsights ? 'Hide metadata' : 'Metadata'}
+                </button>
               )}
             </div>
           </div>
-        )}
-        {tab === 'source' && (
-          <div
-            ref={sourceContainerRef}
-            style={{
-              position: 'relative',
-              minHeight: maxBodyHeight ? maxBodyHeight : undefined,
-              maxHeight: maxBodyHeight ? maxBodyHeight : undefined,
-              overflow: 'auto',
-            }}
-          >
-            <div
-              style={{
-                position: 'sticky',
-                top: 0,
-                zIndex: 2,
-                background: 'var(--surface)',
-                padding: '6px 0',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                borderBottom: '1px solid var(--border)'
-              }}
-            >
-              <input
-                value={sourceQuery}
-                onChange={(e) => {
-                  setSourceQuery(e.target.value);
-                  setSourceIndex(0);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const n = countMatches(original, sourceQuery);
-                    if (n > 0) {
-                      if (e.shiftKey) {
-                        setSourceIndex((i) => (i - 1 + n) % n);
-                      } else {
-                        setSourceIndex((i) => (i + 1) % n);
-                      }
-                    }
-                  }
-                }}
-                placeholder="Search source..."
-                style={{
-                  flex: '0 0 240px',
-                  padding: '4px 8px',
-                  border: '1px solid var(--border)',
-                  borderRadius: 6,
-                  fontSize: 12,
-                  background: 'var(--surface)',
-                  color: 'var(--text)',
-                }}
-              />
-              <SearchNav
-                total={countMatches(original, sourceQuery)}
-                index={sourceIndex}
-                onPrev={() => {
-                  const n = countMatches(original, sourceQuery);
-                  if (n <= 0) return;
-                  setSourceIndex((i) => (i - 1 + n) % n);
-                }}
-                onNext={() => {
-                  const n = countMatches(original, sourceQuery);
-                  if (n <= 0) return;
-                  setSourceIndex((i) => (i + 1) % n);
-                }}
-              />
-              <div style={{ marginLeft: 'auto' }}>
-                <CopyButton
-                  inline
-                  onCopy={async () => {
-                    try {
-                      await navigator.clipboard.writeText(original);
-                    } catch {}
-                  }}
-                />
-              </div>
-            </div>
-            <pre
-              style={{
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word',
-                fontFamily: 'monospace',
-                fontSize: 11,
-                lineHeight: 1.3,
-                background: 'var(--surface-2)',
-                color: 'var(--text)',
-                padding: 8,
-                borderRadius: 6,
-                border: '1px solid var(--border)',
-              }}
-            >
-              {renderHighlightedWithActive(
-                original,
-                sourceQuery,
-                sourceIndex,
-              )}
-            </pre>
-          </div>
-        )}
-        {tab === 'assets' && (
+
           <div
             style={{
               position: 'relative',
-              paddingTop: 36,
-              minHeight: maxBodyHeight ? maxBodyHeight : undefined,
-              maxHeight: maxBodyHeight ? maxBodyHeight : undefined,
-              overflow: 'auto',
+              borderRadius: 12,
+              overflow: 'hidden',
+              border: '1px solid rgba(148,163,184,0.3)',
+              minHeight: iframeHeight,
+              background: '#0f172a',
             }}
           >
-            <CopyButton
-              onCopy={async () => {
-                const text = assetEntries
-                  .map(([p, u]) => `${p}\t${u}`)
-                  .join('\n');
-                try {
-                  await navigator.clipboard.writeText(text);
-                } catch {}
+            <iframe
+              key={iframeKey}
+              ref={iframeRef}
+              title="Creative Preview"
+              sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-top-navigation-by-user-activation"
+              srcDoc={html}
+              onLoad={sendEntries}
+              style={{
+                width: iframeWidth,
+                height: iframeHeight,
+                border: 'none',
+                display: 'block',
+                margin: '0 auto',
+                background: '#ffffff',
               }}
             />
-            {primaryPath && (
+            {loading && (
               <div
                 style={{
                   position: 'absolute',
-                  left: 6,
-                  top: 6,
-                  color: 'var(--accent)',
-                  fontSize: 11,
-                  fontWeight: 700,
+                  inset: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'rgba(15,23,42,0.7)',
+                  color: '#bfdbfe',
+                  fontSize: 12,
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
                 }}
-                title={
-                  'The entry file is the single HTML file your ad loads first (its starting point). All other files should be referenced from this file.'
-                }
               >
-                Entry file identified as: {primaryPath}
+                Loading…
               </div>
             )}
-            <div style={{ display: 'grid', gap: 6 }}>
-              {assetEntries.map(([path, url]) => {
-                const isEntry =
-                  path === primaryPath || path.split('/').pop() === entryBase;
-                const title = isEntry
-                  ? 'The entry file is the single HTML file your ad loads first (its starting point). All other files should be referenced from this file.'
-                  : 'Open asset in a new tab';
-                return (
-                  <div
-                    key={path}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: 8,
-                    }}
-                  >
-                    <a
-                      href={url}
-                      target="_blank"
-                      rel="noreferrer"
-                      title={title}
-                      style={{
-                        fontFamily: 'monospace',
-                        color: isEntry ? 'var(--accent)' : 'var(--text)',
-                        fontWeight: isEntry ? 700 : undefined,
-                        textDecoration: 'underline',
-                      }}
-                    >
-                      {path}
-                    </a>
-                  </div>
-                );
-              })}
-              {assetEntries.length === 0 && (
-                <div style={{ color: '#666' }}>No assets</div>
-              )}
-            </div>
           </div>
-        )}
-        {tab === 'json' && (
-          <div
-            ref={jsonContainerRef}
-            style={{
-              position: 'relative',
-              minHeight: maxBodyHeight ? maxBodyHeight : undefined,
-              maxHeight: maxBodyHeight ? maxBodyHeight : undefined,
-              overflow: 'auto',
-            }}
-          >
+
+          {showDiagnosticsBanner && (
             <div
               style={{
-                position: 'sticky',
-                top: 0,
-                zIndex: 2,
-                background: 'var(--surface)',
-                padding: '6px 0',
                 display: 'flex',
-                alignItems: 'center',
+                flexDirection: 'column',
                 gap: 8,
-                borderBottom: '1px solid var(--border)'
+                padding: '12px 16px',
+                borderRadius: 12,
+                border: '1px solid rgba(59,130,246,0.35)',
+                background: 'rgba(59,130,246,0.08)',
+                fontSize: 12,
               }}
             >
-              <input
-                value={jsonQuery}
-                onChange={(e) => {
-                  setJsonQuery(e.target.value);
-                  setJsonIndex(0);
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const text = JSON.stringify(bundleRes, null, 2);
-                    const n = countMatches(text, jsonQuery);
-                    if (n > 0) {
-                      if (e.shiftKey) {
-                        setJsonIndex((i) => (i - 1 + n) % n);
-                      } else {
-                        setJsonIndex((i) => (i + 1) % n);
-                      }
-                    }
-                  }
-                }}
-                placeholder="Search JSON..."
-                style={{
-                  flex: '0 0 240px',
-                  padding: '4px 8px',
-                  border: '1px solid var(--border)',
-                  borderRadius: 6,
-                  fontSize: 12,
-                  background: 'var(--surface)',
-                  color: 'var(--text)',
-                }}
-              />
-              <SearchNav
-                total={countMatches(
-                  JSON.stringify(bundleRes, null, 2),
-                  jsonQuery,
-                )}
-                index={jsonIndex}
-                onPrev={() => {
-                  const n = countMatches(
-                    JSON.stringify(bundleRes, null, 2),
-                    jsonQuery,
-                  );
-                  if (n <= 0) return;
-                  setJsonIndex((i) => (i - 1 + n) % n);
-                }}
-                onNext={() => {
-                  const n = countMatches(
-                    JSON.stringify(bundleRes, null, 2),
-                    jsonQuery,
-                  );
-                  if (n <= 0) return;
-                  setJsonIndex((i) => (i + 1) % n);
-                }}
-              />
-              <div style={{ marginLeft: 'auto' }}>
-                <CopyButton
-                  inline
-                  onCopy={async () => {
-                    try {
-                      await navigator.clipboard.writeText(
-                        JSON.stringify(bundleRes, null, 2),
-                      );
-                    } catch {}
-                  }}
-                />
-              </div>
-            </div>
-            <pre
-              style={{
-                whiteSpace: 'pre-wrap',
-                wordBreak: 'break-word',
-                fontFamily: 'monospace',
-                fontSize: 11,
-                lineHeight: 1.3,
-                background: 'var(--surface-2)',
-                color: 'var(--text)',
-                padding: 8,
-                borderRadius: 6,
-                border: '1px solid var(--border)',
-              }}
-            >
-              {renderHighlightedWithActive(
-                JSON.stringify(bundleRes, null, 2),
-                jsonQuery,
-                jsonIndex,
+              {diagnostics?.visibilityGuardActive && (
+                <div>
+                  Visibility guard active — the preview forced the creative to
+                  stay visible for inspection.
+                </div>
               )}
-            </pre>
+              {uniqueFailures.length > 0 && (
+                <div>
+                  <strong>Network misses:</strong>
+                  <ul style={{ margin: '6px 0 0', paddingLeft: 20 }}>
+                    {uniqueFailures.map((item, index) => (
+                      <li key={`${item}-${index}`}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+
+          {showInsights && hasDebugInsights && (
+            <div
+              style={{
+                display: 'grid',
+                gap: 12,
+                fontSize: 12,
+                background: 'var(--surface-2)',
+                borderRadius: 12,
+                padding: 16,
+              }}
+            >
+              {debugFindings.map((finding: any) => (
+                <div
+                  key={finding.id}
+                  style={{
+                    borderRadius: 10,
+                    border: '1px solid rgba(148,163,184,0.28)',
+                    padding: 12,
+                    background: 'rgba(148,163,184,0.08)',
+                  }}
+                >
+                  <div style={{ fontWeight: 600, marginBottom: 6 }}>
+                    {finding.title}
+                  </div>
+                  <ul style={{ margin: 0, paddingLeft: 18 }}>
+                    {(Array.isArray(finding.messages)
+                      ? finding.messages
+                      : [finding.messages]
+                    ).map((msg: any, idx: number) => (
+                      <li key={idx}>{msg}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+              {debugLog.length > 0 && (
+                <div
+                  style={{
+                    borderRadius: 10,
+                    border: '1px dashed rgba(148,163,184,0.38)',
+                    padding: 12,
+                    background: 'rgba(14,165,233,0.08)',
+                  }}
+                >
+                  <div style={{ fontWeight: 600, marginBottom: 6 }}>
+                    Preview runtime debug
+                  </div>
+                  <ul
+                    style={{
+                      margin: 0,
+                      paddingLeft: 18,
+                      maxHeight: 180,
+                      overflow: 'auto',
+                      fontFamily: 'monospace',
+                    }}
+                  >
+                    {debugLog.map((entry, idx) => (
+                      <li key={idx}>{entry}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <button
+              type="button"
+              onClick={() => setShowModal(true)}
+              style={{
+                borderRadius: 8,
+                padding: '6px 12px',
+                fontSize: 12,
+                background: 'var(--accent)',
+                color: '#ffffff',
+                border: 'none',
+              }}
+            >
+              CTURL status
+            </button>
           </div>
-        )}
-      </div>
-      {/* Legacy probe log removed to reduce noise; insights overlay summarizes key signals. */}
-      {showModal && (
+        </div>
+      )}
+
+      {tab === 'source' && (
         <div
           style={{
+            position: 'relative',
+            maxHeight: maxBodyHeight ?? 720,
+            overflow: 'auto',
+            border: '1px solid rgba(148,163,184,0.28)',
+            borderRadius: 12,
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => {
+              try {
+                void navigator.clipboard.writeText(original);
+              } catch {}
+            }}
+            style={{
+              position: 'absolute',
+              top: 10,
+              right: 10,
+              fontSize: 12,
+              padding: '4px 8px',
+              borderRadius: 6,
+              border: '1px solid rgba(148,163,184,0.4)',
+              background: 'var(--surface-2)',
+              cursor: 'pointer',
+            }}
+          >
+            Copy source
+          </button>
+          <pre
+            style={{
+              margin: 0,
+              padding: '48px 16px 16px',
+              fontSize: 11,
+              lineHeight: 1.5,
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+              background: 'var(--surface)',
+              color: 'var(--text)',
+            }}
+          >
+            {original || 'No index.html content available.'}
+          </pre>
+        </div>
+      )}
+
+      {tab === 'assets' && (
+        <div
+          style={{
+            position: 'relative',
+            maxHeight: maxBodyHeight ?? 720,
+            overflow: 'auto',
+            border: '1px solid rgba(148,163,184,0.28)',
+            borderRadius: 12,
+            padding: 16,
+            display: 'grid',
+            gap: 8,
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => {
+              const rows = assetEntries
+                .map(([path, url]) => `${path}\t${url}`)
+                .join('\n');
+              try {
+                void navigator.clipboard.writeText(rows);
+              } catch {}
+            }}
+            style={{
+              position: 'absolute',
+              top: 10,
+              right: 10,
+              fontSize: 12,
+              padding: '4px 8px',
+              borderRadius: 6,
+              border: '1px solid rgba(148,163,184,0.4)',
+              background: 'var(--surface-2)',
+              cursor: 'pointer',
+            }}
+          >
+            Copy table
+          </button>
+          {assetEntries.length === 0 && (
+            <div style={{ fontSize: 12, color: '#64748b' }}>No assets.</div>
+          )}
+          {assetEntries.map(([path, url]) => (
+            <div
+              key={path}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                gap: 12,
+                alignItems: 'center',
+              }}
+            >
+              <span style={{ fontFamily: 'monospace', fontSize: 12 }}>{path}</span>
+              <a
+                href={url}
+                target="_blank"
+                rel="noreferrer"
+                style={{ fontSize: 12, color: 'var(--accent)' }}
+              >
+                open
+              </a>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {tab === 'json' && (
+        <div
+          style={{
+            position: 'relative',
+            maxHeight: maxBodyHeight ?? 720,
+            overflow: 'auto',
+            border: '1px solid rgba(148,163,184,0.28)',
+            borderRadius: 12,
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => {
+              try {
+                void navigator.clipboard.writeText(
+                  JSON.stringify(bundleRes, null, 2),
+                );
+              } catch {}
+            }}
+            style={{
+              position: 'absolute',
+              top: 10,
+              right: 10,
+              fontSize: 12,
+              padding: '4px 8px',
+              borderRadius: 6,
+              border: '1px solid rgba(148,163,184,0.4)',
+              background: 'var(--surface-2)',
+              cursor: 'pointer',
+            }}
+          >
+            Copy JSON
+          </button>
+          <pre
+            style={{
+              margin: 0,
+              padding: '48px 16px 16px',
+              fontSize: 11,
+              lineHeight: 1.5,
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+              background: 'var(--surface)',
+              color: 'var(--text)',
+            }}
+          >
+            {JSON.stringify(bundleRes, null, 2)}
+          </pre>
+        </div>
+      )}
+
+      {showModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          style={{
             position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(0,0,0,0.4)',
+            inset: 0,
+            background: 'rgba(15,23,42,0.65)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 50,
+            zIndex: 100,
           }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setShowModal(false);
+          onClick={(event) => {
+            if (event.target === event.currentTarget) setShowModal(false);
           }}
         >
           <div
-            className="panel"
-            style={{ padding: 12, width: 'min(520px, 92vw)' }}
+            style={{
+              background: 'var(--surface)',
+              color: 'var(--text)',
+              padding: 18,
+              borderRadius: 12,
+              width: 'min(420px, 92vw)',
+              display: 'grid',
+              gap: 12,
+              boxShadow: '0 20px 55px rgba(15,23,42,0.45)',
+            }}
           >
-            <div
+            <header
               style={{
                 display: 'flex',
-                alignItems: 'center',
                 justifyContent: 'space-between',
-                marginBottom: 8,
+                alignItems: 'center',
               }}
             >
-              <div style={{ fontSize: 13, fontWeight: 700 }}>
-                Clickthrough Status
-              </div>
+              <strong style={{ fontSize: 14 }}>Clickthrough status</strong>
               <button
+                type="button"
                 onClick={() => setShowModal(false)}
-                className="btn"
-                style={{ fontSize: 12, padding: '2px 6px' }}
+                style={{
+                  fontSize: 12,
+                  padding: '4px 8px',
+                  borderRadius: 6,
+                  border: '1px solid rgba(148,163,184,0.4)',
+                  background: 'var(--surface-2)',
+                  cursor: 'pointer',
+                }}
               >
                 Close
               </button>
-            </div>
-            {(summary?.clickUrl || clickUrl) && (
+            </header>
+            {clickUrl ? (
               <div
                 style={{
                   fontFamily: 'monospace',
                   fontSize: 12,
                   background: 'var(--surface-2)',
-                  color: 'var(--text)',
-                  padding: 8,
-                  borderRadius: 6,
-                  wordBreak: 'break-all',
-                  border: '1px solid var(--border)',
+                  padding: 12,
+                  borderRadius: 8,
+                  wordBreak: 'break-word',
+                  border: '1px solid rgba(148,163,184,0.35)',
                 }}
               >
-                {summary?.clickUrl || clickUrl}
+                {clickUrl}
               </div>
-            )}
-            {!summary?.clickUrl && !clickUrl && (
+            ) : (
               <div
                 style={{
                   fontSize: 12,
                   background: 'rgba(245,158,11,0.12)',
-                  color: 'var(--text)',
-                  border: '1px solid rgba(245,158,11,0.3)',
-                  padding: 8,
-                  borderRadius: 6,
+                  border: '1px solid rgba(245,158,11,0.32)',
+                  color: '#facc15',
+                  padding: 12,
+                  borderRadius: 8,
                 }}
               >
                 {clickPresent
-                  ? 'Clickthrough present but not set (blank opened).'
-                  : "No clickthrough URL captured. Creative may rely on ad-server macros or hasn't set clickTag."}
+                  ? 'Click handler detected but URL was blank.'
+                  : 'No clickthrough detected yet.'}
               </div>
             )}
-            <div
+            <footer
               style={{
                 display: 'flex',
                 justifyContent: 'flex-end',
                 gap: 8,
-                marginTop: 10,
               }}
             >
-              {clickPresent && (
-                <>
-                  <a
-                    href={summary?.clickUrl || clickUrl || 'about:blank'}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="btn primary"
-                    style={{
-                      fontSize: 12,
-                      padding: '6px 10px',
-                      textDecoration: 'none',
-                    }}
-                  >
-                    Open{!summary?.clickUrl && !clickUrl ? ' Blank' : ''}
-                  </a>
-                  {(summary?.clickUrl || clickUrl) && (
-                    <button
-                      onClick={() => {
-                        const v = summary?.clickUrl || clickUrl || '';
-                        if (v) navigator.clipboard.writeText(v).catch(() => {});
-                      }}
-                      className="btn"
-                      style={{ fontSize: 12, padding: '6px 10px' }}
-                    >
-                      Copy
-                    </button>
-                  )}
-                </>
-              )}
-            </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!clickUrl) return;
+                  try {
+                    void navigator.clipboard.writeText(clickUrl);
+                  } catch {}
+                }}
+                disabled={!clickUrl}
+                style={{
+                  fontSize: 12,
+                  padding: '6px 12px',
+                  borderRadius: 8,
+                  border: '1px solid rgba(148,163,184,0.4)',
+                  background: clickUrl ? 'var(--surface-2)' : '#1e293b',
+                  color: clickUrl ? 'var(--text)' : '#94a3b8',
+                  cursor: clickUrl ? 'pointer' : 'not-allowed',
+                }}
+              >
+                Copy URL
+              </button>
+              <a
+                href={clickUrl || 'about:blank'}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  fontSize: 12,
+                  padding: '6px 12px',
+                  borderRadius: 8,
+                  border: 'none',
+                  background: 'var(--accent)',
+                  color: '#ffffff',
+                  textDecoration: 'none',
+                  pointerEvents: clickUrl ? 'auto' : 'none',
+                  opacity: clickUrl ? 1 : 0.5,
+                }}
+              >
+                Open
+              </a>
+            </footer>
           </div>
         </div>
       )}
@@ -1190,155 +865,3 @@ export const ExtendedPreview: React.FC<ExtendedPreviewProps> = ({
   );
 };
 
-function label(k: TabKey) {
-  return k === 'preview'
-    ? 'Preview'
-    : k === 'source'
-      ? 'Source'
-      : k === 'assets'
-        ? 'Assets'
-        : 'JSON';
-}
-function ms(n?: number) {
-  return typeof n === 'number' && isFinite(n) ? `${Math.round(n)} ms` : 'n/a';
-}
-// fmt removed with legacy probe log
-
-function countMatches(text: string, q: string): number {
-  try {
-    const s = String(q || '').trim();
-    if (!s) return 0;
-    const re = new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-    return (String(text || '').match(re) || []).length;
-  } catch {
-    return 0;
-  }
-}
-
-function renderHighlighted(text: string, q: string): React.ReactNode {
-  try {
-    const src = String(text || '');
-    const s = String(q || '').trim();
-    if (!s) return src;
-    const re = new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-    const parts: React.ReactNode[] = [];
-    let lastIndex = 0;
-    let m: RegExpExecArray | null;
-    while ((m = re.exec(src)) !== null) {
-      const i = m.index;
-      if (i > lastIndex) parts.push(src.slice(lastIndex, i));
-      parts.push(<mark key={i}>{m[0]}</mark>);
-      lastIndex = i + m[0].length;
-    }
-    if (lastIndex < src.length) parts.push(src.slice(lastIndex));
-    return parts;
-  } catch {
-    return text;
-  }
-}
-
-// Enhanced highlighter that marks the active match with a special class
-function renderHighlightedWithActive(
-  text: string,
-  q: string,
-  activeIndex: number,
-): React.ReactNode {
-  try {
-    const src = String(text || '');
-    const s = String(q || '').trim();
-    if (!s) return src;
-    const re = new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
-    const parts: React.ReactNode[] = [];
-    let lastIndex = 0;
-    let m: RegExpExecArray | null;
-    let idx = 0;
-    while ((m = re.exec(src)) !== null) {
-      const i = m.index;
-      if (i > lastIndex) parts.push(src.slice(lastIndex, i));
-      const isActive = idx === activeIndex;
-      parts.push(
-        <mark
-          key={i}
-          className={isActive ? 'active-match' : undefined}
-          data-match-index={idx}
-        >
-          {m[0]}
-        </mark>,
-      );
-      lastIndex = i + m[0].length;
-      idx++;
-    }
-    if (lastIndex < src.length) parts.push(src.slice(lastIndex));
-    return parts;
-  } catch {
-    return text;
-  }
-}
-
-const SearchNav: React.FC<{
-  total: number;
-  index: number;
-  onPrev: () => void;
-  onNext: () => void;
-}> = ({ total, index, onPrev, onNext }) => {
-  const disabled = total <= 1;
-  return (
-    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-      <button
-        className="btn"
-        title="Previous match"
-        aria-label="Previous match"
-          disabled={disabled}
-        onClick={onPrev}
-        style={{ fontSize: 11, padding: '2px 6px' }}
-      >
-        ←
-      </button>
-      <span style={{ fontSize: 11, opacity: 0.8 }}>
-        {total ? `${index + 1} of ${total}` : '0 matches'}
-      </span>
-      <button
-        className="btn"
-        title="Next match"
-        aria-label="Next match"
-          disabled={disabled}
-        onClick={onNext}
-        style={{ fontSize: 11, padding: '2px 6px' }}
-      >
-        →
-      </button>
-    </div>
-  );
-};
-
-
-const CopyButton: React.FC<{
-  onCopy: () => void | Promise<void>;
-  inline?: boolean;
-}> = ({ onCopy, inline }) => {
-  const [copied, setCopied] = useState(false);
-  return (
-    <button
-      aria-label="Copy"
-      title={copied ? 'Copied!' : 'Copy'}
-      onClick={async () => {
-        try {
-          await onCopy();
-          setCopied(true);
-          setTimeout(() => setCopied(false), 1200);
-        } catch {}
-      }}
-      className="btn"
-      style={{
-        position: inline ? 'static' : 'absolute',
-        right: inline ? undefined : 6,
-        top: inline ? undefined : 6,
-        borderRadius: 6,
-        fontSize: 11,
-        padding: '4px 8px',
-      }}
-    >
-      {copied ? 'Copied' : 'Copy'}
-    </button>
-  );
-};

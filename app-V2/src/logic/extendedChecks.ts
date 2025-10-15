@@ -238,10 +238,35 @@ export async function buildExtendedFindings(bundle: ZipBundle, partial: BundleRe
 				const meta = (window as any).__audit_last_summary as any;
 				const longMs = typeof meta?.longTasksMs === 'number' ? Math.max(0, Math.min(3000, Math.round(meta.longTasksMs))) : undefined;
 				if (typeof longMs === 'number') {
-					const pct = Math.round((longMs / 3000) * 100);
-					out.push({ id: 'cpu-budget', title: 'CPU Busy Budget', severity: pct > 30 ? 'FAIL' : 'PASS', messages: [`Main thread busy ~${pct}% (long tasks ${longMs} ms / 3000 ms)`], offenders: [] });
+					const clamped = Math.max(0, Math.min(3000, Math.round(longMs)));
+					const pct = Math.round((clamped / 3000) * 100);
+					out.push({
+						id: 'cpu-budget',
+						title: 'CPU Busy Budget',
+						severity: pct > 30 ? 'FAIL' : 'PASS',
+						messages: [`Main thread busy ~${pct}% (long tasks ${clamped} ms / 3000 ms)`, 'Measured in preview'],
+						offenders: [],
+					});
 				} else {
-					out.push({ id: 'cpu-budget', title: 'CPU Busy Budget', severity: 'PASS', messages: ['Not measured in preview'], offenders: [] });
+					const supportsLongTask = (() => {
+						try {
+							if (typeof PerformanceObserver === 'undefined') return false;
+							const types: any = (PerformanceObserver as any).supportedEntryTypes;
+							return Array.isArray(types) && types.includes('longtask');
+						} catch {
+							return false;
+						}
+					})();
+					const reason = supportsLongTask
+						? 'Preview not yet measured — reload to collect CPU budget metrics'
+						: 'Browser preview lacks Long Tasks API (try Chromium-based browser)';
+					out.push({
+						id: 'cpu-budget',
+						title: 'CPU Busy Budget',
+						severity: 'WARN',
+						messages: [reason],
+						offenders: [],
+					});
 				}
 			} catch {}
 
