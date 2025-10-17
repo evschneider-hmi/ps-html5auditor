@@ -1257,9 +1257,13 @@ function buildProbeScript(): any {
 			// run once after first paint heuristic
 			setTimeout(scanBorders, 600);
 			setTimeout(scanBorders, 1500);
-			// animation scan around similar times
-			setTimeout(scanAnimations, 600);
-			setTimeout(scanAnimations, 1500);
+			// animation scan: increased timeouts to capture longer JavaScript animations (e.g., GSAP timelines)
+			// Teresa and similar creatives have multi-second animations that weren't detected with short timeouts
+			setTimeout(scanAnimations, 600);   // Initial scan (CSS animations)
+			setTimeout(scanAnimations, 2000);  // 2s - capture early JavaScript animations
+			setTimeout(scanAnimations, 5000);  // 5s - capture mid-length animations
+			setTimeout(scanAnimations, 10000); // 10s - capture longer sequences
+			setTimeout(scanAnimations, 30000); // 30s - final scan for maximum animation detection
 		} catch(e){}
 
 		var pushes=0; function flush(){ try{ parent.postMessage({ __audit_event:1, type:'summary', summary: summary }, '*'); try{ window.__audit_last_summary = summary; }catch(e2){} pushes++; if(pushes<10) setTimeout(flush, 500); } catch(e3){} } flush();
