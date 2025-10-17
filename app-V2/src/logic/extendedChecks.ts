@@ -197,6 +197,59 @@ export async function buildExtendedFindings(bundle: ZipBundle, partial: BundleRe
 		}
 		out.push({ id: 'no-webstorage', title: 'No Web Storage APIs', severity: wsOff.length? 'FAIL':'PASS', messages: [ `Storage API references: ${wsOff.length}` ], offenders: wsOff });
 
+		// gwd-env-check: Google Web Designer environment detection
+		const gwdOff: any[] = [];
+		const gwdSignatures = /gwd-page-wrapper|GWD_preventAutoplay|gwd-google/i;
+		for (const p of files) if (/\.html?$/i.test(p)) {
+			const text = new TextDecoder().decode(bundle.files[p]);
+			if (gwdSignatures.test(text)) {
+				gwdOff.push({ path: p, detail: 'GWD signature found' });
+			}
+		}
+		const gwdMsgs: string[] = [];
+		if (gwdOff.length === 0) {
+			gwdMsgs.push('No Google Web Designer signatures detected');
+		} else {
+			gwdMsgs.push('Google Web Designer export detected');
+			gwdMsgs.push('Verify environment configuration for CM360');
+		}
+		out.push({ id: 'gwd-env-check', title: 'GWD Environment Check', severity: gwdOff.length > 0 ? 'WARN' : 'PASS', messages: gwdMsgs, offenders: gwdOff });
+
+		// hardcoded-click: Hard-coded clickthrough URLs
+		const hcOff: any[] = [];
+		const hcPatterns: { id: string; regex: RegExp }[] = [
+			{ id: 'window.open', regex: /window\.open\s*\(\s*['"]https?:\/\//i },
+			{ id: 'location.assign', regex: /location\.(href|replace)\s*=\s*['"]https?:\/\//i },
+			{ id: 'top.location', regex: /top\.location(?:\.href)?\s*=\s*['"]https?:\/\//i },
+			{ id: 'parent.location', regex: /parent\.location(?:\.href)?\s*=\s*['"]https?:\/\//i },
+			{ id: 'clickTag assign', regex: /\bclickTAG?\s*=\s*['"]https?:\/\//i },
+		];
+		const anchorHardcoded = /<a[^>]+href=["']https?:\/\/[^"]+["'][^>]*>/gi;
+		for (const p of files) if (/\.(html?|js)$/i.test(p)) {
+			const text = new TextDecoder().decode(bundle.files[p]);
+			const lines = text.split(/\r?\n/);
+			lines.forEach((line, i) => {
+				for (const pat of hcPatterns) {
+					if (pat.regex.test(line)) {
+						hcOff.push({ path: p, line: i + 1, detail: `${pat.id} with hard-coded URL` });
+						break;
+					}
+				}
+			});
+			if (/\.html?$/i.test(p)) {
+				let m: RegExpExecArray | null;
+				anchorHardcoded.lastIndex = 0;
+				while ((m = anchorHardcoded.exec(text))) {
+					const lineNum = text.slice(0, m.index).split(/\r?\n/).length;
+					hcOff.push({ path: p, line: lineNum, detail: `<a> with hard-coded href` });
+				}
+			}
+		}
+		const hcMsgs: string[] = hcOff.length === 0 
+			? ['No hard-coded click tags present']
+			: [`${hcOff.length} hard-coded clickthrough(s) detected`];
+		out.push({ id: 'hardcoded-click', title: 'Hard Coded Click Tag Check', severity: hcOff.length > 0 ? 'FAIL' : 'PASS', messages: hcMsgs, offenders: hcOff });
+
 		// https-only: rely on core httpsOnly check; no duplicate here
 	}
 

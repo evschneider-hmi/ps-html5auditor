@@ -2902,6 +2902,12 @@ const SPEC_TEXT: Record<string, string> = {
   'no-webstorage':
     'CM360: Do not reference Web Storage APIs (localStorage/sessionStorage), IndexedDB, or WebSQL (openDatabase).',
 
+  'gwd-env-check':
+    'CM360: Ensure creatives built in Google Web Designer were created using the correct environment.',
+
+  'hardcoded-click':
+    'CM360: Ensure no hard coded click tags are present.',
+
   // meta-ad-size advisory removed (primaryAsset enforces presence)
 
   'no-backup-in-zip':
@@ -2925,12 +2931,6 @@ const SPEC_TEXT: Record<string, string> = {
 
   'invalid-markup':
     'H5: HTML/SVG must parse without errors; CSS braces should be balanced.',
-
-  'gwd-env-check':
-    'H5: Google Web Designer environment artifacts may cause conflicts.',
-
-  'hardcoded-click':
-    'H5: Hard-coded clickthroughs bypass tracking; use clickTag.',
 
   // Heuristic/diagnostic H5 checks
 

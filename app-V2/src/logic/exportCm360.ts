@@ -62,6 +62,8 @@ const CM360_IDS = new Set<string>([
   'iframe-safe',
   'clicktag',
   'no-webstorage',
+  'gwd-env-check',
+  'hardcoded-click',
   // CM360 recommended (WARN) items are still CM360 category
   'meta-ad-size',
   'no-backup-in-zip',
