@@ -10,6 +10,8 @@
 
 Successfully analyzed Google's official CM360 H5 Validator and aligned our auditor to match their validation standards. Added **2 new Priority checks** with CM360 badges to ensure full compliance with Google's requirements.
 
+**🎯 CRITICAL UPDATE**: Google's H5 Validator (https://h5validator.appspot.com/dcm/asset) now displays a warning: **"This tool is no longer maintained."** This makes our HTML5 Audit Tool the **actively maintained successor** providing the same validation standards plus significantly more comprehensive analysis.
+
 ### Key Changes
 - ✅ Added **GWD Environment Check** as Priority check with CM360 badge
 - ✅ Added **Hard-coded Clickthrough** as Priority check with CM360 badge
@@ -247,9 +249,12 @@ SPEC_TEXT: {
 
 Our HTML5 Audit Tool now **fully aligns** with Google's official CM360 H5 Validator while providing **significantly more comprehensive analysis**. All 12 of Google's core validation checks are implemented as Priority checks with proper CM360 attribution.
 
+**🔥 MAJOR ADVANTAGE**: With Google's official validator now **deprecated and unmaintained**, our tool is positioned as the **authoritative, actively maintained alternative** for CM360 creative validation.
+
 **Coverage**: 100% ✅  
 **Priority Checks**: 21 (up from 19)  
-**Status**: Production Ready
+**Status**: Production Ready  
+**Position**: De facto successor to Google's deprecated H5 Validator
 
 ### Next Steps (Optional Enhancements)
 - Consider adding more detailed GWD environment validation (e.g., checking for GWD version markers)
