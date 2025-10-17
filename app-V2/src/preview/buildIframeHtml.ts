@@ -500,6 +500,18 @@ export const buildPreviewHtml = ({
               '// CM360: CSS inlined, dynamic loading removed'
             );
             
+            // CRITICAL: Rewrite CreateJS manifest loads to use blob URLs
+            // ACC_NEW creatives use CreateJS LoadQueue with manifest that references images like "images/2024_Evergreen_HTML_MY25_Accord_LX.png"
+            // We need to intercept the manifest and rewrite those paths to blob URLs
+            html = html.replace(
+              /(manifest\s*:\s*\[[\s\S]*?\{[^}]*src\s*:\s*)([^,}\s]+)/gi,
+              (match, prefix, src) => {
+                // src might be a variable like ansiraObj.vehicle_image or a string literal
+                // We'll inject a runtime rewriter instead of trying to replace at HTML level
+                return match; // Keep original - we'll handle this with runtime interception
+              }
+            );
+            
             // Rewrite URLs in the HTML to use Blob URLs
             // This is a simple regex-based approach - replace src/href attributes
             html = html.replace(
@@ -732,6 +744,53 @@ export const buildPreviewHtml = ({
               win.__CM360_BASE_DIR__ = CONFIG.baseDir;
               win.__CM360_BLOB_MAP__ = state.blobMap; // Pass the Map object directly
               console.log('[CM360] Blob map injected successfully');
+              
+              // CRITICAL: Intercept CreateJS LoadQueue to rewrite manifest paths to blob URLs
+              // ACC_NEW creatives use CreateJS with manifest entries like {src: "images/car.png"}
+              // We need to intercept these and rewrite to blob URLs before loading
+              const createJSInterceptor = doc.createElement('script');
+              createJSInterceptor.type = 'text/javascript';
+              // Use string concatenation to avoid escape sequence issues in template literal
+              createJSInterceptor.textContent = [
+                '(function() {',
+                '  console.log("[CM360] Installing CreateJS manifest interceptor");',
+                '  var checkCreateJS = setInterval(function() {',
+                '    if (typeof createjs !== "undefined" && createjs.LoadQueue) {',
+                '      clearInterval(checkCreateJS);',
+                '      console.log("[CM360] CreateJS detected, wrapping LoadQueue.loadManifest");',
+                '      var originalLoadManifest = createjs.LoadQueue.prototype.loadManifest;',
+                '      createjs.LoadQueue.prototype.loadManifest = function(manifest) {',
+                '        console.log("[CM360] Intercepting loadManifest, original manifest:", manifest);',
+                '        if (Array.isArray(manifest)) {',
+                '          manifest = manifest.map(function(item) {',
+                '            if (typeof item === "object" && item.src) {',
+                '              var src = item.src;',
+                '              if (typeof src === "string") {',
+                '                var normalized = src.replace(/\\\\/g, "/").replace(/^\\.\\//, "");',
+                '                var withBase = (window.__CM360_BASE_DIR__ + normalized).replace(/\\/\\//g, "/").replace(/^\\//, "");',
+                '                var blobUrl = window.__CM360_BLOB_MAP__.get(normalized) || window.__CM360_BLOB_MAP__.get(withBase);',
+                '                if (blobUrl) {',
+                '                  console.log("[CM360] CreateJS: Rewrote manifest src:", src, "→", blobUrl.substring(0, 50) + "...");',
+                '                  return Object.assign({}, item, { src: blobUrl });',
+                '                } else {',
+                '                  console.warn("[CM360] CreateJS: Could not find blob URL for manifest src:", src);',
+                '                }',
+                '              }',
+                '            }',
+                '            return item;',
+                '          });',
+                '        }',
+                '        console.log("[CM360] Calling original loadManifest with rewritten manifest:", manifest);',
+                '        return originalLoadManifest.call(this, manifest);',
+                '      };',
+                '      console.log("[CM360] CreateJS manifest interceptor installed successfully");',
+                '    }',
+                '  }, 50);',
+                '  setTimeout(function() { clearInterval(checkCreateJS); }, 5000);',
+                '})();',
+              ].join('\n');
+              doc.documentElement?.insertBefore(createJSInterceptor, doc.documentElement.firstChild);
+              console.log('[CM360] CreateJS interceptor script injected');
             }
             
             // Inject the Enabler shim

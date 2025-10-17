@@ -222,6 +222,50 @@ export function parsePrimary(bundle: ZipBundle, primary: PrimaryAsset): ParseRes
       }
     }
   }
+  
+  // Detect CreateJS manifest loads: manifest: [{src: "path/to/asset.png", ...}] or manifest: [{src: variable, ...}]
+  // These are dynamically loaded assets that should be counted as references
+  
+  // Pattern 1: Direct string literals in manifest - e.g., {src:"images/BG_728x90.jpg?1747016192401", id:"BG_728x90"}
+  const createJsManifestDirectRegex = /\{\s*src\s*:\s*["']([^"'?]+)(?:\?[^"']*)?["']/gi;
+  let directMatch: RegExpExecArray | null;
+  while ((directMatch = createJsManifestDirectRegex.exec(html))) {
+    const assetPath = directMatch[1];
+    // Only process if it looks like a relative path (not a variable name)
+    if (assetPath.includes('/') || assetPath.includes('.')) {
+      references.push({
+        from: primary.path,
+        type: 'img', // Assume image for CreateJS manifest loads
+        url: assetPath,
+        inZip: false, // Will be resolved later
+        external: /^https?:\/\//i.test(assetPath),
+        secure: /^https:\/\//i.test(assetPath),
+      });
+    }
+  }
+  
+  // Pattern 2: Variable references in manifest - e.g., {src: ansiraObj.vehicle_image, ...}
+  const createJsManifestVarRegex = /manifest\s*:\s*\[\s*\{[^}]*src\s*:\s*(?:ansiraObj\.)?([\w.]+)\s*,/gi;
+  let varMatch: RegExpExecArray | null;
+  while ((varMatch = createJsManifestVarRegex.exec(html))) {
+    const varName = varMatch[1];
+    // Try to find the value of this variable in the HTML
+    // Pattern: variable_name: "path/to/asset.png"
+    const varValueRegex = new RegExp(`${varName}\\s*:\\s*["']([^"']+)["']`, 'i');
+    const varValueMatch = varValueRegex.exec(html);
+    if (varValueMatch && varValueMatch[1]) {
+      const assetPath = varValueMatch[1];
+      references.push({
+        from: primary.path,
+        type: 'img', // Assume image for CreateJS manifest loads
+        url: assetPath,
+        inZip: false, // Will be resolved later
+        external: /^https?:\/\//i.test(assetPath),
+        secure: /^https:\/\//i.test(assetPath),
+      });
+    }
+  }
+  
   if (!adSize) {
     let bestCandidate: DetectedSize | undefined;
     let bestArea = 0;
