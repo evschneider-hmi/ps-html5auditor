@@ -653,27 +653,35 @@ export const ExtendedPreview: React.FC<{ maxBodyHeight?: number }> = ({
           {assetEntries.length === 0 && (
             <div style={{ fontSize: 12, color: '#64748b' }}>No assets.</div>
           )}
-          {assetEntries.map(([path, url]) => (
-            <div
-              key={path}
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                gap: 12,
-                alignItems: 'center',
-              }}
-            >
-              <span style={{ fontFamily: 'monospace', fontSize: 12 }}>{path}</span>
-              <a
-                href={url}
-                target="_blank"
-                rel="noreferrer"
-                style={{ fontSize: 12, color: 'var(--accent)' }}
-              >
-                open
-              </a>
-            </div>
-          ))}
+          {assetEntries.map(([path, url]) => {
+            const isPrimary = previewInfo?.indexPath === path;
+            return (
+              <div key={path}>
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    fontFamily: 'monospace',
+                    fontSize: 12,
+                    color: isPrimary ? '#a855f7' : 'var(--accent)',
+                    fontWeight: isPrimary ? 'bold' : 'normal',
+                    textDecoration: 'none',
+                    display: 'block',
+                    padding: '4px 0',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.textDecoration = 'underline';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.textDecoration = 'none';
+                  }}
+                >
+                  {path}
+                </a>
+              </div>
+            );
+          })}
         </div>
       )}
 

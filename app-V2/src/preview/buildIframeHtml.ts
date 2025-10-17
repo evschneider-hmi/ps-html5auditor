@@ -466,12 +466,28 @@ export const buildPreviewHtml = ({
                       
                       const normalized = url.replace(/\\/g, '/').replace(/^\.\//, '');
                       const withBase = (CONFIG.baseDir + normalized).replace(/\/\//g, '/').replace(/^\//, '');
-                      const blobUrl = state.blobMap.get(normalized) || state.blobMap.get(withBase);
+                      
+                      // Try multiple path variations to find the asset
+                      let blobUrl = state.blobMap.get(normalized) || state.blobMap.get(withBase);
+                      
+                      // If not found, try searching all blob map keys for a match
+                      if (!blobUrl) {
+                        const filename = normalized.split('/').pop();
+                        for (const [key, value] of state.blobMap.entries()) {
+                          if (key.endsWith('/' + filename) || key === filename) {
+                            blobUrl = value;
+                            console.log('[CM360] Inlined CSS: Found blob URL by filename match:', filename, '→', key);
+                            break;
+                          }
+                        }
+                      }
                       
                       if (blobUrl) {
                         console.log('[CM360] Inlined CSS: Rewrote url():', url, '→', blobUrl.substring(0, 50) + '...');
                         return 'url(' + quote + blobUrl + quote + ')';
                       }
+                      
+                      console.warn('[CM360] Inlined CSS: Could not find blob URL for:', url, '(tried:', normalized, ',', withBase, ')');
                       return match;
                     }
                   );
@@ -525,15 +541,28 @@ export const buildPreviewHtml = ({
                 const normalized = url.replace(/\\/g, '/').replace(/^\.\//, '');
                 const withBase = (CONFIG.baseDir + normalized).replace(/\/\//g, '/').replace(/^\//, '');
                 
-                // Try to find in blob map
-                const blobUrl = state.blobMap.get(normalized) || state.blobMap.get(withBase);
+                // Try multiple path variations to find the asset
+                let blobUrl = state.blobMap.get(normalized) || state.blobMap.get(withBase);
+                
+                // If not found, try searching all blob map keys for a match
+                if (!blobUrl) {
+                  const filename = normalized.split('/').pop();
+                  for (const [key, value] of state.blobMap.entries()) {
+                    if (key.endsWith('/' + filename) || key === filename) {
+                      blobUrl = value;
+                      console.log('[CM360] Found blob URL by filename match:', filename, '→', key);
+                      break;
+                    }
+                  }
+                }
+                
                 if (blobUrl) {
                   console.log('[CM360] Rewrote URL:', url, '→', blobUrl.substring(0, 50) + '...');
                   return prefix + blobUrl + suffix;
                 }
                 
                 // Fallback - return original
-                console.warn('[CM360] Could not find blob URL for:', url);
+                console.warn('[CM360] Could not find blob URL for:', url, '(tried:', normalized, ',', withBase, ')');
                 return match;
               }
             );
@@ -612,8 +641,21 @@ export const buildPreviewHtml = ({
                   const normalized = url.replace(/\\/g, '/').replace(/^\.\//, '');
                   const withBase = (CONFIG.baseDir + normalized).replace(/\/\//g, '/').replace(/^\//, '');
                   
-                  // Try to find in blob map
-                  const blobUrl = blobMap.get(normalized) || blobMap.get(withBase);
+                  // Try multiple path variations to find the asset
+                  let blobUrl = blobMap.get(normalized) || blobMap.get(withBase);
+                  
+                  // If not found, try searching all blob map keys for a match
+                  if (!blobUrl) {
+                    const filename = normalized.split('/').pop();
+                    for (const [key, value] of blobMap.entries()) {
+                      if (key.endsWith('/' + filename) || key === filename) {
+                        blobUrl = value;
+                        console.log('[CM360] CSS: Found blob URL by filename match:', filename, '→', key);
+                        break;
+                      }
+                    }
+                  }
+                  
                   if (blobUrl) {
                     rewriteCount++;
                     console.log('[CM360] CSS: Rewrote url():', url, '→', blobUrl.substring(0, 50) + '...');
@@ -621,7 +663,7 @@ export const buildPreviewHtml = ({
                   }
                   
                   // Fallback - return original
-                  console.warn('[CM360] CSS: Could not find blob URL for:', url);
+                  console.warn('[CM360] CSS: Could not find blob URL for:', url, '(tried:', normalized, ',', withBase, ')');
                   return match;
                 }
               );
