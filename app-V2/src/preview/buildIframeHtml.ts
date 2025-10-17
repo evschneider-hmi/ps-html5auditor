@@ -492,13 +492,22 @@ export const buildPreviewHtml = ({
                         return 'url(' + quote + blobUrl + quote + ')';
                       }
                       
-                      // Track missing asset
-                      state.missingAssets.push({
-                        url: url,
-                        path: normalized,
-                        context: 'Inlined CSS url() in ' + cssPath
-                      });
-                      console.error('[CM360] Inlined CSS: Missing asset:', url, '(tried:', normalized, ',', withBase, ')');
+                      // Only track if asset doesn't exist in bundle at all
+                      const existsInBundle = Array.from(state.blobMap.keys()).some(key => 
+                        key.endsWith('/' + url) || key === url || key.endsWith('/' + normalized) || key === normalized
+                      );
+                      
+                      if (existsInBundle) {
+                        console.error('[CM360] Inlined CSS: Asset exists in bundle but failed to resolve:', url);
+                      } else {
+                        // Track missing asset only if it's not in the bundle
+                        state.missingAssets.push({
+                          url: url,
+                          path: normalized,
+                          context: 'Inlined CSS url() in ' + cssPath
+                        });
+                        console.error('[CM360] Inlined CSS: Missing asset (not in bundle):', url);
+                      }
                       return match;
                     }
                   );
@@ -574,13 +583,22 @@ export const buildPreviewHtml = ({
                   return prefix + blobUrl + suffix;
                 }
                 
-                // Track missing asset
-                state.missingAssets.push({
-                  url: url,
-                  path: normalized,
-                  context: 'HTML ' + prefix.replace(/\s*=\s*["']$/, '')
-                });
-                console.error('[CM360] Missing asset:', url, '(tried:', normalized, ',', withBase, ')');
+                // Only track if asset doesn't exist in bundle at all
+                const existsInBundle = Array.from(state.blobMap.keys()).some(key => 
+                  key.endsWith('/' + url) || key === url || key.endsWith('/' + normalized) || key === normalized
+                );
+                
+                if (existsInBundle) {
+                  console.error('[CM360] HTML: Asset exists in bundle but failed to resolve:', url);
+                } else {
+                  // Track missing asset only if it's not in the bundle
+                  state.missingAssets.push({
+                    url: url,
+                    path: normalized,
+                    context: 'HTML ' + prefix.replace(/\s*=\s*["']$/, '')
+                  });
+                  console.error('[CM360] HTML: Missing asset (not in bundle):', url);
+                }
                 return match;
               }
             );
@@ -682,13 +700,22 @@ export const buildPreviewHtml = ({
                     return 'url(' + quote + blobUrl + quote + ')';
                   }
                   
-                  // Track missing asset
-                  state.missingAssets.push({
-                    url: url,
-                    path: normalized,
-                    context: 'CSS url() in ' + cssFile.normalized
-                  });
-                  console.error('[CM360] CSS: Missing asset:', url, '(tried:', normalized, ',', withBase, ')');
+                  // Only track if asset doesn't exist in bundle at all
+                  const existsInBundle = Array.from(blobMap.keys()).some(key => 
+                    key.endsWith('/' + url) || key === url || key.endsWith('/' + normalized) || key === normalized
+                  );
+                  
+                  if (existsInBundle) {
+                    console.error('[CM360] CSS: Asset exists in bundle but failed to resolve:', url, '(tried:', normalized, ',', withBase, ')');
+                  } else {
+                    // Track missing asset only if it's not in the bundle
+                    state.missingAssets.push({
+                      url: url,
+                      path: normalized,
+                      context: 'CSS url() in ' + cssFile.normalized
+                    });
+                    console.error('[CM360] CSS: Missing asset (not in bundle):', url);
+                  }
                   return match;
                 }
               );
