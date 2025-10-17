@@ -522,6 +522,62 @@ export const buildPreviewHtml = ({
               }
             }
             
+            // Inline JavaScript files that are loaded via Enabler.getUrl()
+            // Teresa creatives load combined.js dynamically, but blob URLs don't work well for dynamic script tags
+            for (const [jsPath, jsBuffer] of state.bufferMap.entries()) {
+              if (jsPath.endsWith('.js') && !jsPath.includes('Enabler') && !jsPath.includes('ISI_Expander') && !jsPath.includes('PauseButton')) {
+                try {
+                  const decoder = new TextDecoder('utf-8');
+                  let jsContent = decoder.decode(jsBuffer);
+                  
+                  // CRITICAL: Replace ALL closing script tags and potential HTML-breaking sequences
+                  // This prevents the JavaScript from breaking out of its script tag
+                  jsContent = jsContent
+                    .replace(/<\/script>/gi, '<\\/script>')  // Escape closing script tags
+                    .replace(/<script/gi, '<\\script')       // Escape opening script tags
+                    .replace(/<!--/g, '<\\!--')              // Escape HTML comments
+                    .replace(/-->/g, '--\\>');               // Escape closing HTML comments
+                  
+                  // Wrap JavaScript in a DOMContentLoaded listener to ensure Enabler shim is injected first
+                  // The Enabler shim will be injected immediately when the iframe loads
+                  const wrappedJS = '(function() {\n' +
+                    '  function executeInlinedScript() {\n' +
+                    '    console.log("[CM360] Executing inlined script: ' + jsPath + '");\n' +
+                    jsContent + '\n' +
+                    '  }\n' +
+                    '  // Execute after DOM is ready and Enabler shim has been injected\n' +
+                    '  if (document.readyState === "loading") {\n' +
+                    '    document.addEventListener("DOMContentLoaded", executeInlinedScript);\n' +
+                    '  } else {\n' +
+                    '    executeInlinedScript();\n' +
+                    '  }\n' +
+                    '})();';
+                  
+                  // Inject inlined JavaScript before </body> or </head> if no body
+                  const scriptTag = '<script data-cm360-inlined="' + jsPath + '">\n' + wrappedJS + '\n</' + 'script>';
+                  if (html.includes('</body>')) {
+                    html = html.replace('</body>', scriptTag + '\n</body>');
+                  } else {
+                    html = html.replace('</head>', scriptTag + '\n</head>');
+                  }
+                  console.log('[CM360] Inlined JavaScript file:', jsPath, '(' + jsContent.length + ' bytes)');
+                } catch (error) {
+                  console.error('[CM360] Failed to inline JavaScript:', jsPath, error);
+                }
+              }
+            }
+            
+            // CRITICAL: Inject Enabler shim BEFORE any inlined JavaScript
+            // The inlined JavaScript may reference Enabler immediately
+            const enablerShimTag = '<script data-cm360-enabler-shim>\n' + ENABLER_SOURCE + '\n</' + 'script>';
+            if (html.includes('</head>')) {
+              html = html.replace('</head>', enablerShimTag + '\n</head>');
+            } else if (html.includes('<body')) {
+              html = html.replace('<body', enablerShimTag + '\n<body');
+            } else {
+              html = enablerShimTag + '\n' + html;
+            }
+            
             // CRITICAL: Remove external Enabler script to prevent it from overwriting our shim
             // Teresa creatives load Enabler from CDN, but we need to use our shim with blob URL support
             html = html.replace(
@@ -531,9 +587,33 @@ export const buildPreviewHtml = ({
             
             // Remove dynamic CSS loading via Enabler.getUrl() since we've inlined the CSS
             // Look for the pattern where combined.css is loaded dynamically
+            // Pattern 1: Standard single-line or multi-line with href in createElement call
             html = html.replace(
               /extCSS\s*=\s*document\.createElement\(['"]link['"]\);[\s\S]*?extCSS\.setAttribute\(['"]href['"],\s*Enabler\.getUrl\(['"]combined\.css['"]\)\);[\s\S]*?document\.getElementsByTagName\(['"]head['"]\)\[0\]\.appendChild\(extCSS\);/gi,
               '// CM360: CSS inlined, dynamic loading removed'
+            );
+            
+            // Pattern 2: Teresa-style with setAttribute("href", Enabler.getUrl(...)) separate
+            // This catches blocks like:
+            // extCSS=document.createElement('link');
+            // extCSS.setAttribute("rel", "stylesheet");
+            // extCSS.setAttribute("type", "text/css");
+            // extCSS.setAttribute("href", Enabler.getUrl("combined.css"));
+            // document.getElementsByTagName("head")[0].appendChild(extCSS);
+            html = html.replace(
+              /(var\s+)?extCSS\s*=\s*document\.createElement\(['"]link['"]\);[\s\S]*?extCSS\.setAttribute\(['"]href['"],\s*Enabler\.getUrl\(['"]combined\.css['"]\)\);[\s\S]*?appendChild\(extCSS\);/gi,
+              '// CM360: CSS inlined, dynamic loading removed (Teresa pattern)'
+            );
+            
+            // Remove dynamic JavaScript loading via Enabler.getUrl() since we've inlined the JavaScript
+            // Teresa pattern for JS:
+            // var extJavascript = document.createElement('script');
+            // extJavascript.setAttribute('type', 'text/javascript');
+            // extJavascript.setAttribute('src', Enabler.getUrl('combined.js'));
+            // document.getElementsByTagName('head')[0].appendChild(extJavascript);
+            html = html.replace(
+              /(var\s+)?extJavascript\s*=\s*document\.createElement\(['"]script['"]\);[\s\S]*?extJavascript\.setAttribute\(['"]src['"],\s*Enabler\.getUrl\(['"]combined\.js['"]\)\);[\s\S]*?appendChild\(extJavascript\);/gi,
+              '// CM360: JavaScript inlined, dynamic loading removed'
             );
             
             // CRITICAL: Rewrite CreateJS manifest loads to use blob URLs
@@ -548,11 +628,24 @@ export const buildPreviewHtml = ({
               }
             );
             
+            // Remove HTML comments first to avoid processing commented-out references
+            // This prevents guide images and other development artifacts from triggering missing asset warnings
+            const htmlWithoutComments = html.replace(/<!--[\s\S]*?-->/g, '');
+            
             // Rewrite URLs in the HTML to use Blob URLs
             // This is a simple regex-based approach - replace src/href attributes
             html = html.replace(
               /((?:src|href)\s*=\s*["'])([^"']+)(["'])/gi,
-              (match, prefix, url, suffix) => {
+              (match, prefix, url, suffix, offset) => {
+                // Skip if this match is inside an HTML comment
+                const beforeMatch = html.substring(0, offset);
+                const lastCommentStart = beforeMatch.lastIndexOf('<!--');
+                const lastCommentEnd = beforeMatch.lastIndexOf('-->');
+                if (lastCommentStart > lastCommentEnd) {
+                  // We're inside a comment, skip this match
+                  return match;
+                }
+                
                 // Skip absolute URLs, data URLs, blob URLs
                 if (/^(https?:|data:|blob:|\/\/)/.test(url)) return match;
                 if (url.startsWith('#') || url.startsWith('?')) return match;
@@ -664,6 +757,12 @@ export const buildPreviewHtml = ({
               
               console.log('[CM360] Processing CSS file:', cssFile.normalized);
               let rewriteCount = 0;
+              
+              // DEBUG: Fix Teresa positioning (left: 160px on 160px wide creative)
+              cssContent = cssContent.replace(
+                /(#teresa[^{]*\{[^}]*left:\s*)160px/gi,
+                '$10px'
+              );
               
               // Rewrite url() references in CSS
               cssContent = cssContent.replace(
