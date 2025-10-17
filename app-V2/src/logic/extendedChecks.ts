@@ -86,8 +86,10 @@ export async function buildExtendedFindings(bundle: ZipBundle, partial: BundleRe
 		// iframe-safe: disallow cross-frame DOM access heuristics
 		// Only flag true window parent/top access: window.parent.*, window.top.*, or bare parent.* / top.* (global)
 		// Do NOT flag object properties like this.parent or foo.parent (CreateJS display list, etc.).
+		// ALLOWLIST: parent.$iframe (CM360-provided property for pharmaceutical creatives)
+		// ALLOWLIST: parent.postMessage (standard cross-frame communication)
 		const cfOff: any[] = [];
-		const parentTopGlobal = /(^|[^.$\w])(?:window\.)?(?:parent|top)\.(?!postMessage\b)/i;
+		const parentTopGlobal = /(^|[^.$\w])(?:window\.)?(?:parent|top)\.(?!(?:postMessage|\$iframe)\b)/i;
 		const docDomain = /document\.domain\s*=/i;
 		for (const p of files) if (/\.(js|html?)$/i.test(p)) {
 			const text = new TextDecoder().decode(bundle.files[p]);

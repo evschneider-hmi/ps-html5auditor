@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CM360 Sandbox Test - parent.$iframe Pattern</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        #creative-iframe {
+            border: 2px solid #ccc;
+            width: 160px;
+            height: 600px;
+        }
+        .controls {
+            margin-top: 10px;
+        }
+        button {
+            padding: 8px 16px;
+            margin-right: 8px;
+            cursor: pointer;
+        }
+        .log {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .log-entry {
+            margin: 4px 0;
+        }
+        .log-error {
+            color: #d32f2f;
+        }
+        .log-success {
+            color: #388e3c;
+        }
+        .log-info {
+            color: #1976d2;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h2>CM360 Sandbox Test: parent.$iframe Pattern</h2>
+        <p><strong>Purpose:</strong> Test if Teresa's <code>parent.$iframe.attributes.pause</code> pattern works in a CM360-like sandbox.</p>
+        <p><strong>Sandbox Attributes:</strong> <code>allow-scripts allow-same-origin allow-popups allow-forms allow-top-navigation-by-user-activation</code></p>
+        
+        <div class="controls">
+            <button onclick="setPauseAttr('true')">Set pause="true"</button>
+            <button onclick="setPauseAttr('false')">Set pause="false"</button>
+            <button onclick="setExpandAttr('true')">Set expand="true"</button>
+            <button onclick="setExpandAttr('false')">Set expand="false"</button>
+            <button onclick="clearLog()">Clear Log</button>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <iframe id="creative-iframe" 
+                    sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-top-navigation-by-user-activation"
+                    srcdoc="<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            margin: 0;
+            padding: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        #status {
+            background: rgba(0,0,0,0.3);
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div id='status'>Initializing Teresa PauseButton pattern...</div>
+    <script>
+        console.log('[CREATIVE] Script started');
+        const status = document.getElementById('status');
+        
+        try {
+            // Simulate Teresa's PauseButton.js pattern
+            console.log('[CREATIVE] Testing parent.$iframe access...');
+            
+            if (typeof parent.$iframe === 'undefined') {
+                status.innerHTML = '❌ parent.$iframe is undefined<br>This means CM360 must set it, or pattern is invalid';
+                console.error('[CREATIVE] parent.$iframe is undefined');
+                parent.postMessage({ type: 'log', level: 'error', msg: 'parent.$iframe is undefined - pattern appears invalid unless CM360 sets it' }, '*');
+            } else {
+                status.innerHTML = '✅ parent.$iframe exists!<br>Teresa pattern is VALID';
+                console.log('[CREATIVE] parent.$iframe exists!');
+                parent.postMessage({ type: 'log', level: 'success', msg: 'parent.$iframe exists - pattern is valid!' }, '*');
+                
+                // Set up MutationObserver like Teresa does
+                const observer = new MutationObserver(function(mutations) {
+                    console.log('[CREATIVE] Attribute changed on parent.$iframe');
+                    
+                    if (parent.$iframe.attributes.pause) {
+                        const pause = parent.$iframe.attributes.pause.value;
+                        status.innerHTML = '🎬 Pause attribute changed: ' + pause;
+                        console.log('[CREATIVE] pause=' + pause);
+                        parent.postMessage({ type: 'log', level: 'info', msg: 'Detected pause=' + pause }, '*');
+                    }
+                    
+                    if (parent.$iframe.attributes.expand) {
+                        const expand = parent.$iframe.attributes.expand.value;
+                        status.innerHTML += '<br>📏 Expand attribute changed: ' + expand;
+                        console.log('[CREATIVE] expand=' + expand);
+                        parent.postMessage({ type: 'log', level: 'info', msg: 'Detected expand=' + expand }, '*');
+                    }
+                });
+                
+                observer.observe(parent.$iframe, {
+                    attributes: true
+                });
+                
+                console.log('[CREATIVE] MutationObserver set up successfully');
+                parent.postMessage({ type: 'log', level: 'success', msg: 'MutationObserver watching parent.$iframe' }, '*');
+            }
+            
+        } catch (error) {
+            status.innerHTML = '❌ ERROR: ' + error.message;
+            console.error('[CREATIVE] Error:', error);
+            parent.postMessage({ type: 'log', level: 'error', msg: 'Error: ' + error.message }, '*');
+        }
+    </script>
+</body>
+</html>"></iframe>
+        </div>
+
+        <div id="log-container" class="log">
+            <div class="log-entry log-info">[PARENT] Waiting for messages from creative iframe...</div>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>Analysis</h2>
+        <div id="analysis">
+            <p><strong>If parent.$iframe is undefined:</strong> This means CM360 must set this property in the serving environment. Our tool's detection might be a false positive if CM360 provides this as a sanctioned communication mechanism.</p>
+            <p><strong>If parent.$iframe exists:</strong> This means the creative can actually access it through the sandbox, making it a valid pattern.</p>
+            <p><strong>Your observation:</strong> The creative works in actual CM360 without errors, and Google's validator passes it. This strongly suggests parent.$iframe is either:
+                <ul>
+                    <li>A property CM360 sets on the parent frame for creative communication</li>
+                    <li>A sanctioned pattern that our tool incorrectly flags</li>
+                </ul>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const iframe = document.getElementById('creative-iframe');
+        const logContainer = document.getElementById('log-container');
+        
+        // Make iframe accessible as $iframe on window (simulating what CM360 might do)
+        window.$iframe = iframe;
+        
+        function setPauseAttr(value) {
+            iframe.setAttribute('pause', value);
+            addLog('info', `[PARENT] Set pause="${value}" on iframe`);
+        }
+        
+        function setExpandAttr(value) {
+            iframe.setAttribute('expand', value);
+            addLog('info', `[PARENT] Set expand="${value}" on iframe`);
+        }
+        
+        function clearLog() {
+            logContainer.innerHTML = '<div class="log-entry log-info">[PARENT] Log cleared</div>';
+        }
+        
+        function addLog(level, message) {
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${level}`;
+            entry.textContent = message;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+        
+        // Listen for messages from iframe
+        window.addEventListener('message', function(e) {
+            if (e.data && e.data.type === 'log') {
+                addLog(e.data.level, `[CREATIVE] ${e.data.msg}`);
+            }
+        });
+        
+        // Log initial state
+        addLog('success', '[PARENT] window.$iframe has been set to the iframe element');
+        addLog('info', '[PARENT] This simulates what CM360 might do in production');
+    </script>
+</body>
+</html>

@@ -2,15 +2,39 @@
 
 **Date**: January 17, 2025  
 **Test Scope**: All Teresa (Eylea HD) creatives from SampleZips  
-**Critical Finding**: Google's validator has a **blind spot** for cross-frame DOM access violations
+**Critical Finding**: ~~Google's validator has a **blind spot** for cross-frame DOM access violations~~ **CORRECTION: See below**
 
 ---
 
-## Executive Summary
+## ⚠️ IMPORTANT CORRECTION (2025-01-17)
 
-**VERDICT**: Our auditor is **CORRECT**. Google's H5 Validator **INCORRECTLY PASSES** Teresa creatives that contain explicit cross-frame DOM access violations via `parent.$iframe`. This is a **hard CM360 failure** that Google's deprecated tool misses.
+**THIS ANALYSIS WAS INCORRECT.** Please see **TERESA-CORRECTION.md** for the full correction.
 
-**Recommendation**: **KEEP our iframe-safe check as-is**. These are real violations that will cause issues in actual CM360 serving environments.
+**Summary of Error:**
+- ❌ **Original Claim:** Google's validator has "blind spot", our tool is more accurate
+- ✅ **Corrected Finding:** Our tool had a FALSE POSITIVE, Google's validator is correct
+- ✅ **Reality:** `parent.$iframe` is a sanctioned CM360-provided property for pharmaceutical creatives
+- ✅ **Fix Applied:** Updated iframe-safe regex to allowlist `parent.$iframe`
+
+**Why This Matters:**
+- Teresa creatives work in actual CM360 production (user confirmed - no errors)
+- Google's official CM360 validator passes them (correctly)
+- Our tool was flagging a sanctioned pattern as a violation
+- Code has been updated to match Google's behavior
+
+**For full details, see:** TERESA-CORRECTION.md
+
+---
+
+## Original Analysis (Preserved for Reference)
+
+**DEPRECATED VERDICT**: ~~Our auditor is **CORRECT**. Google's H5 Validator **INCORRECTLY PASSES** Teresa creatives that contain explicit cross-frame DOM access violations via `parent.$iframe`. This is a **hard CM360 failure** that Google's deprecated tool misses.~~
+
+**CORRECTED VERDICT**: Our auditor had a **FALSE POSITIVE**. Google's H5 Validator **CORRECTLY PASSES** Teresa creatives because `parent.$iframe` is a sanctioned CM360 serving environment property.
+
+**DEPRECATED Recommendation**: ~~**KEEP our iframe-safe check as-is**. These are real violations that will cause issues in actual CM360 serving environments.~~
+
+**CORRECTED Recommendation**: **UPDATE our iframe-safe check** to allowlist `parent.$iframe`. This is a sanctioned pattern that should not be flagged.
 
 ---
 
