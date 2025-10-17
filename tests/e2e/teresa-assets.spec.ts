@@ -18,6 +18,16 @@ test.describe('Teresa sample assets', () => {
   test('render once per bundle and load preview content', async ({ page }) => {
     await page.goto('/');
 
+    // Capture console logs to verify Enabler is working
+    const consoleMessages: string[] = [];
+    page.on('console', (msg) => {
+      const text = msg.text();
+      consoleMessages.push(text);
+      if (text.includes('Enabler') || text.includes('blob:') || text.includes('getUrl')) {
+        console.log(`🔍 Console: ${text}`);
+      }
+    });
+
     const input = page.getByTestId('file-input');
     await expect(input).toBeVisible();
 
@@ -33,6 +43,15 @@ test.describe('Teresa sample assets', () => {
     const tableRows = page.locator('table tbody tr');
     await expect(tableRows).toHaveCount(TERESA_ZIPS.length, { timeout: 45_000 });
 
+    // Verify dimensions are displayed correctly for all Teresa creatives
+    const expectedDimensions = ['160x600', '160x600', '300x250', '300x600', '728x90'];
+    for (let i = 0; i < expectedDimensions.length; i++) {
+      const row = tableRows.nth(i);
+      const dimensionCell = row.locator('td').nth(2); // Assuming dimensions are in 3rd column
+      await expect(dimensionCell).toContainText(expectedDimensions[i], { timeout: 5_000 });
+      console.log(`✅ Dimension detected: ${expectedDimensions[i]} for creative ${i + 1}`);
+    }
+
     // Select the first creative to drive the preview pane
     await tableRows.first().click();
 
@@ -47,5 +66,66 @@ test.describe('Teresa sample assets', () => {
       creativeFrame.locator('#container'),
       'Expected runtime container to render inside the creative frame',
     ).toBeVisible({ timeout: 30_000 });
+
+    // Wait additional time for CSS to fully apply and animation to start
+    await page.waitForTimeout(5000);
+
+    // Check the container's computed styles to diagnose CSS loading
+    const containerOpacity = await creativeFrame.locator('#container').evaluate((el) => {
+      return window.getComputedStyle(el).opacity;
+    });
+    console.log('📊 Container opacity:', containerOpacity);
+
+    // Check if CSS files are loaded
+    const cssLinks = await creativeFrame.locator('link[rel="stylesheet"]').count();
+    console.log('📊 CSS link tags found:', cssLinks);
+
+    //Check if JavaScript files are loaded
+    const scripts = await creativeFrame.locator('script').count();
+    console.log('� Script tags found:', scripts);
+
+    // Log what elements exist
+    const bgExists = await creativeFrame.locator('#bg').count();
+    const teresaExists = await creativeFrame.locator('#teresa').count();
+    const logoExists = await creativeFrame.locator('#logo').count();
+    console.log('📊 Elements exist - bg:', bgExists, 'teresa:', teresaExists, 'logo:', logoExists);
+
+    // VISUAL PROOF: Capture screenshot showing Teresa creative rendering
+    await page.screenshot({
+      path: 'evidence/teresa-visual-proof.png',
+      fullPage: true,
+    });
+    console.log('✅ Visual proof captured: evidence/teresa-visual-proof.png');
+
+    // Capture close-up of just the preview pane
+    const previewSection = page.locator('iframe[title="Creative Preview"]');
+    await previewSection.screenshot({
+      path: 'evidence/teresa-preview-closeup.png',
+    });
+    console.log('✅ Preview closeup captured: evidence/teresa-preview-closeup.png');
+
+    // Wait a moment for animation to complete
+    await page.waitForTimeout(2000);
+
+    // Capture final state
+    await page.screenshot({
+      path: 'evidence/teresa-final-state.png',
+      fullPage: true,
+    });
+    console.log('✅ Final state captured: evidence/teresa-final-state.png');
+
+    // Verify all sizes render correctly
+    for (let i = 0; i < TERESA_ZIPS.length; i++) {
+      await tableRows.nth(i).click();
+      await page.waitForTimeout(1000); // Allow preview to load
+
+      const creativeFrameCheck = previewIframe.frameLocator('iframe#creativeFrame');
+      await expect(
+        creativeFrameCheck.locator('#container'),
+        `Expected container for creative ${i + 1} to be visible`,
+      ).toBeVisible({ timeout: 15_000 });
+
+      console.log(`✅ Creative ${i + 1} (${TERESA_ZIPS[i].split('\\').pop()}) rendered successfully`);
+    }
   });
 });

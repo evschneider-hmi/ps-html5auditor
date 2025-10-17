@@ -117,7 +117,77 @@
         }
       },
       exitOverride: (label, url) => shim.exit(label, url),
-      getUrl: () => window.clickTag || '',
+      getUrl: (path) => {
+        // Support CM360 Enabler.getUrl() for dynamic asset loading
+        if (!path) return window.clickTag || '';
+        
+        // If this is a clickTag request (no path), return clickTag
+        if (typeof path === 'string' && /^clickTag\d*$/i.test(path)) {
+          return window.clickTag || '';
+        }
+        
+        // Try to resolve from the blob map injected by the preview system
+        const blobMap = window.__CM360_BLOB_MAP__;
+        const baseDir = window.__CM360_BASE_DIR__ || '';
+        
+        console.log('[Enabler.getUrl] === CALLED ===');
+        console.log('[Enabler.getUrl] path:', path);
+        console.log('[Enabler.getUrl] baseDir:', baseDir);
+        console.log('[Enabler.getUrl] blobMap exists:', !!blobMap);
+        
+        if (blobMap && typeof blobMap.get === 'function') {
+          console.log('[Enabler.getUrl] blobMap size:', blobMap.size);
+          
+          // Normalize the path - remove leading './' and convert backslashes
+          let normalized = String(path).replace(/\\/g, '/').replace(/^\.\//, '');
+          console.log('[Enabler.getUrl] normalized:', normalized);
+          
+          // Try exact match first
+          let blobUrl = blobMap.get(normalized);
+          if (blobUrl) {
+            console.log('[Enabler.getUrl] ✓ RESOLVED (exact):', path, '->', blobUrl.substring(0, 60) + '...');
+            return blobUrl;
+          }
+          
+          // Try with base directory prepended
+          if (baseDir) {
+            const withBase = (baseDir + '/' + normalized).replace(/\/\//g, '/').replace(/^\//, '');
+            console.log('[Enabler.getUrl] Trying withBase:', withBase);
+            blobUrl = blobMap.get(withBase);
+            if (blobUrl) {
+              console.log('[Enabler.getUrl] ✓ RESOLVED (withBase):', path, '->', blobUrl.substring(0, 60) + '...');
+              return blobUrl;
+            }
+          }
+          
+          // Try all possible variations
+          const variations = [
+            normalized,
+            baseDir + '/' + normalized,
+            baseDir + normalized,
+            '/' + baseDir + '/' + normalized,
+          ].map(v => v.replace(/\/\//g, '/').replace(/^\//, ''));
+          
+          console.log('[Enabler.getUrl] Trying variations:', variations);
+          for (const variant of variations) {
+            blobUrl = blobMap.get(variant);
+            if (blobUrl) {
+              console.log('[Enabler.getUrl] ✓ RESOLVED (variant):', path, '(as', variant, ') ->', blobUrl.substring(0, 60) + '...');
+              return blobUrl;
+            }
+          }
+          
+          // Log available keys for debugging
+          console.error('[Enabler.getUrl] ✗✗✗ FAILED TO RESOLVE:', path);
+          console.error('[Enabler.getUrl] Available keys:', Array.from(blobMap.keys()));
+        } else {
+          console.error('[Enabler.getUrl] ✗ NO BLOB MAP');
+        }
+        
+        // Fallback: return the original path (will likely fail, but better than nothing)
+        console.warn('[Enabler.getUrl] Fallback: returning original path:', path);
+        return path;
+      },
     };
 
     try {

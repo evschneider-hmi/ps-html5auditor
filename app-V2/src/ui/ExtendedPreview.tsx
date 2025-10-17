@@ -409,11 +409,10 @@ export const ExtendedPreview: React.FC<{ maxBodyHeight?: number }> = ({
           <div
             style={{
               position: 'relative',
-              borderRadius: 12,
-              overflow: 'hidden',
-              border: '1px solid rgba(148,163,184,0.3)',
-              minHeight: iframeHeight,
-              background: '#0f172a',
+              border: '1px solid rgba(148,163,184,0.2)',
+              background: '#ffffff',
+              width: iframeWidth,
+              height: iframeHeight,
             }}
           >
             <iframe
@@ -424,11 +423,10 @@ export const ExtendedPreview: React.FC<{ maxBodyHeight?: number }> = ({
               srcDoc={html}
               onLoad={sendEntries}
               style={{
-                width: iframeWidth,
-                height: iframeHeight,
+                width: '100%',
+                height: '100%',
                 border: 'none',
                 display: 'block',
-                margin: '0 auto',
                 background: '#ffffff',
               }}
             />

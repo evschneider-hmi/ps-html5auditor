@@ -54,45 +54,26 @@ export const buildPreviewHtml = ({
       }
       body {
         margin: 0;
-        min-height: 100vh;
-        background: radial-gradient(circle at 20% 20%, #1d4ed8 0%, transparent 55%),
-          radial-gradient(circle at 80% 10%, #7c3aed 0%, transparent 45%),
-          linear-gradient(160deg, #020617 0%, #111827 100%);
-        color: #e2e8f0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 32px;
+        background: #ffffff;
+        color: #1e293b;
         box-sizing: border-box;
       }
       #cm360-shell {
         position: relative;
-        width: min(960px, 100%);
-        background: rgba(15, 23, 42, 0.75);
-        border: 1px solid rgba(148, 163, 184, 0.35);
-        border-radius: 18px;
-        box-shadow: 0 30px 60px rgba(2, 6, 23, 0.45);
-        padding: 28px;
-        backdrop-filter: blur(10px);
+        width: 100%;
+        height: 100%;
       }
       #frame-wrapper {
         position: relative;
-        border-radius: 14px;
-        background: linear-gradient(135deg, rgba(148, 163, 184, 0.12), rgba(148, 163, 184, 0.05));
-        padding: 18px;
-        border: 1px solid rgba(148, 163, 184, 0.35);
+        width: 100%;
+        height: 100%;
       }
       iframe#creativeFrame {
         width: 100%;
-        min-height: 320px;
+        height: 100%;
         border: none;
         background: #ffffff;
-        border-radius: 10px;
-        box-shadow: 0 18px 35px rgba(15, 23, 42, 0.32);
-        transition: box-shadow 200ms ease;
-      }
-      iframe#creativeFrame:hover {
-        box-shadow: 0 22px 60px rgba(30, 58, 138, 0.35);
+        display: block;
       }
       #overlay {
         position: absolute;
@@ -354,6 +335,25 @@ export const buildPreviewHtml = ({
           if (changed) state.visibilityGuardActive = true;
         };
 
+        const resizeWrapper = (dimension) => {
+          if (!dimension || !dimension.width || !dimension.height) return;
+          try {
+            const shell = document.getElementById('cm360-shell');
+            const wrapper = document.getElementById('frame-wrapper');
+            if (shell) {
+              shell.style.width = dimension.width + 'px';
+              shell.style.height = dimension.height + 'px';
+            }
+            if (wrapper) {
+              wrapper.style.width = dimension.width + 'px';
+              wrapper.style.height = dimension.height + 'px';
+            }
+            console.log('[CM360] Resized wrapper to:', dimension.width + 'x' + dimension.height);
+          } catch (error) {
+            console.warn('[CM360] Failed to resize wrapper:', error);
+          }
+        };
+
         const emitDiagnostics = () => {
           postToTop('CM360_DIAGNOSTICS', {
             diagnostics: {
@@ -443,6 +443,63 @@ export const buildPreviewHtml = ({
             const decoder = new TextDecoder('utf-8');
             let html = decoder.decode(indexBuffer);
             
+            // DON'T inject blob map as inline script - we'll inject it via postMessage after load
+            // This avoids any string escaping issues with blob URLs in HTML/JS context
+            
+            // CRITICAL: Inline CSS files directly into HTML to avoid dynamic loading issues
+            // Teresa creatives load combined.css via Enabler.getUrl(), but dynamic <link> tags
+            // don't work reliably in srcdoc iframes. We need to inline the CSS content.
+            const cssFilesToInline = Array.from(state.blobMap.keys()).filter(path => path.endsWith('.css'));
+            for (const cssPath of cssFilesToInline) {
+              const cssBuffer = state.bufferMap.get(cssPath);
+              if (cssBuffer) {
+                try {
+                  const cssDecoder = new TextDecoder('utf-8');
+                  let cssContent = cssDecoder.decode(cssBuffer);
+                  
+                  // Rewrite url() references in CSS before inlining
+                  cssContent = cssContent.replace(
+                    /url\s*\(\s*(['"]?)([^'")]+)\1\s*\)/gi,
+                    (match, quote, url) => {
+                      if (/^(https?:|data:|blob:|\/\/)/.test(url)) return match;
+                      if (url.startsWith('#')) return match;
+                      
+                      const normalized = url.replace(/\\/g, '/').replace(/^\.\//, '');
+                      const withBase = (CONFIG.baseDir + normalized).replace(/\/\//g, '/').replace(/^\//, '');
+                      const blobUrl = state.blobMap.get(normalized) || state.blobMap.get(withBase);
+                      
+                      if (blobUrl) {
+                        console.log('[CM360] Inlined CSS: Rewrote url():', url, '→', blobUrl.substring(0, 50) + '...');
+                        return 'url(' + quote + blobUrl + quote + ')';
+                      }
+                      return match;
+                    }
+                  );
+                  
+                  // Inject inlined CSS into <head>
+                  const styleTag = '<style data-cm360-inlined="' + cssPath + '">\n' + cssContent + '\n</style>';
+                  html = html.replace('</head>', styleTag + '\n</head>');
+                  console.log('[CM360] Inlined CSS file:', cssPath, '(' + cssContent.length + ' bytes)');
+                } catch (error) {
+                  console.error('[CM360] Failed to inline CSS:', cssPath, error);
+                }
+              }
+            }
+            
+            // CRITICAL: Remove external Enabler script to prevent it from overwriting our shim
+            // Teresa creatives load Enabler from CDN, but we need to use our shim with blob URL support
+            html = html.replace(
+              /<script[^>]+src=["']https?:\/\/[^"']*\/Enabler\.js["'][^>]*>[\s\S]*?<\/script>/gi,
+              '<!-- CM360: External Enabler script removed, using shim instead -->'
+            );
+            
+            // Remove dynamic CSS loading via Enabler.getUrl() since we've inlined the CSS
+            // Look for the pattern where combined.css is loaded dynamically
+            html = html.replace(
+              /extCSS\s*=\s*document\.createElement\(['"]link['"]\);[\s\S]*?extCSS\.setAttribute\(['"]href['"],\s*Enabler\.getUrl\(['"]combined\.css['"]\)\);[\s\S]*?document\.getElementsByTagName\(['"]head['"]\)\[0\]\.appendChild\(extCSS\);/gi,
+              '// CM360: CSS inlined, dynamic loading removed'
+            );
+            
             // Rewrite URLs in the HTML to use Blob URLs
             // This is a simple regex-based approach - replace src/href attributes
             html = html.replace(
@@ -488,9 +545,10 @@ export const buildPreviewHtml = ({
           
           console.log('[CM360] handleEntries - Using Blob URL approach (no service worker)');
           
-          // Create Blob URLs for all files
+          // First pass: Create Blob URLs for all non-CSS files
           const blobMap = new Map(); // path -> blob URL
           const bufferMap = new Map(); // path -> ArrayBuffer (for cloning)
+          const cssFiles = []; // Track CSS files for second pass
           
           for (const entry of payload.entries) {
             if (!entry || (!entry.path && !entry.relativePath)) continue;
@@ -502,13 +560,78 @@ export const buildPreviewHtml = ({
             // Store buffer for later use
             bufferMap.set(normalized, buffer.slice ? buffer.slice(0) : buffer);
             
-            // Create Blob with appropriate content type
-            const blob = new Blob([buffer], {
-              type: entry.contentType || 'application/octet-stream',
-            });
-            const blobUrl = URL.createObjectURL(blob);
-            blobMap.set(normalized, blobUrl);
-            console.log('[CM360] Created Blob URL for:', normalized);
+            // Check if this is a CSS file
+            const isCss = normalized.endsWith('.css') || (entry.contentType && entry.contentType.includes('css'));
+            
+            if (isCss) {
+              // Defer CSS processing until all other blob URLs are created
+              cssFiles.push({ normalized, buffer, contentType: entry.contentType });
+              console.log('[CM360] Deferring CSS file:', normalized);
+            } else {
+              // Create Blob immediately for non-CSS files
+              const blob = new Blob([buffer], {
+                type: entry.contentType || 'application/octet-stream',
+              });
+              const blobUrl = URL.createObjectURL(blob);
+              blobMap.set(normalized, blobUrl);
+              console.log('[CM360] Created Blob URL for:', normalized);
+            }
+          }
+          
+          // Second pass: Process CSS files and rewrite url() references
+          for (const cssFile of cssFiles) {
+            try {
+              // Decode CSS content
+              const decoder = new TextDecoder('utf-8');
+              let cssContent = decoder.decode(cssFile.buffer);
+              
+              console.log('[CM360] Processing CSS file:', cssFile.normalized);
+              let rewriteCount = 0;
+              
+              // Rewrite url() references in CSS
+              cssContent = cssContent.replace(
+                /url\s*\(\s*(['"]?)([^'")]+)\1\s*\)/gi,
+                (match, quote, url) => {
+                  // Skip absolute URLs, data URLs, blob URLs
+                  if (/^(https?:|data:|blob:|\/\/)/.test(url)) return match;
+                  if (url.startsWith('#')) return match;
+                  
+                  // Normalize the URL path
+                  const normalized = url.replace(/\\/g, '/').replace(/^\.\//, '');
+                  const withBase = (CONFIG.baseDir + normalized).replace(/\/\//g, '/').replace(/^\//, '');
+                  
+                  // Try to find in blob map
+                  const blobUrl = blobMap.get(normalized) || blobMap.get(withBase);
+                  if (blobUrl) {
+                    rewriteCount++;
+                    console.log('[CM360] CSS: Rewrote url():', url, '→', blobUrl.substring(0, 50) + '...');
+                    return 'url(' + quote + blobUrl + quote + ')';
+                  }
+                  
+                  // Fallback - return original
+                  console.warn('[CM360] CSS: Could not find blob URL for:', url);
+                  return match;
+                }
+              );
+              
+              console.log('[CM360] CSS file', cssFile.normalized, 'rewrote', rewriteCount, 'url() references');
+              
+              // Create Blob for modified CSS
+              const cssBlob = new Blob([cssContent], {
+                type: cssFile.contentType || 'text/css',
+              });
+              const cssBlobUrl = URL.createObjectURL(cssBlob);
+              blobMap.set(cssFile.normalized, cssBlobUrl);
+              console.log('[CM360] Created Blob URL for CSS:', cssFile.normalized);
+            } catch (error) {
+              console.error('[CM360] Failed to process CSS file:', cssFile.normalized, error);
+              // Fallback: create blob from original buffer
+              const blob = new Blob([cssFile.buffer], {
+                type: cssFile.contentType || 'text/css',
+              });
+              const blobUrl = URL.createObjectURL(blob);
+              blobMap.set(cssFile.normalized, blobUrl);
+            }
           }
           
           // Store blob URLs in state
@@ -600,14 +723,28 @@ export const buildPreviewHtml = ({
             const win = creativeFrame.contentWindow;
             const doc = creativeFrame.contentDocument;
             if (!win || !doc) return;
-            win.__CM360_CONTEXT__ = { bundleId: CONFIG.bundleId };
+            
+            // CRITICAL: Inject blob map FIRST before any scripts execute
+            // Only inject if blob map exists (not all creatives need it)
+            if (state.blobMap && state.blobMap.size > 0) {
+              console.log('[CM360] Injecting blob map into creative iframe, size:', state.blobMap.size);
+              win.__CM360_CONTEXT__ = { bundleId: CONFIG.bundleId };
+              win.__CM360_BASE_DIR__ = CONFIG.baseDir;
+              win.__CM360_BLOB_MAP__ = state.blobMap; // Pass the Map object directly
+              console.log('[CM360] Blob map injected successfully');
+            }
+            
+            // Inject the Enabler shim
             const shimScript = doc.createElement('script');
             shimScript.type = 'text/javascript';
             shimScript.textContent = ENABLER_SOURCE;
             doc.documentElement?.appendChild(shimScript);
             applyVisibilityGuard(win, doc);
             const size = detectSize(doc);
-            if (size) state.dimension = size;
+            if (size) {
+              state.dimension = size;
+              resizeWrapper(size);
+            }
             setOverlay(false, '');
             emitDiagnostics();
             debug('creative-loaded', { size: state.dimension });

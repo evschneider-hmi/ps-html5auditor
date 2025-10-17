@@ -1,0 +1,365 @@
+.primary-color {
+  color: #4AB279;
+}
+
+.secondary-color {
+  color: #164D78;
+}
+
+.mt-0 {
+  margin-top: 0 !important;
+}
+
+.fw-400 {
+  font-weight: 400;
+}
+
+.fw-500 {
+  font-weight: 500;
+}
+
+.fw-600 {
+  font-weight: 600;
+}
+
+.fw-700 {
+  font-weight: 700;
+}
+
+.fw-800 {
+  font-weight: 800;
+}
+
+.fw-900 {
+  font-weight: 900;
+}
+
+.font-arial {
+  font-family: Arial, sans-serif;
+}
+
+.font-brand {
+  font-family: Arial, sans-serif;
+}
+
+.text-white {
+  color: #fff;
+}
+
+.text-bold, .bold {
+  font-weight: bold;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-uppercase, .uppercase {
+  text-transform: uppercase;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.wrap {
+  word-wrap: break-word;
+}
+
+.pos-abs {
+  position: absolute;
+}
+
+.pos-rel {
+  position: relative;
+}
+
+.hide {
+  opacity: 0;
+}
+
+.underline {
+  text-decoration: underline;
+}
+
+.underline:hover {
+  text-decoration: underline;
+}
+
+sup {
+  font-size: 60%;
+  line-height: 0;
+}
+
+.clickTag1, .clickTag2, .clickTag3, .clickTag4 {
+  cursor: pointer;
+}
+
+#container {
+  font-family: Arial, sans-serif;
+  -webkit-transition: opacity 0.25s;
+  transition: opacity 0.25s;
+  opacity: 1;
+}
+
+#animate-section {
+  cursor: pointer;
+  overflow: hidden;
+  position: absolute;
+  top: -1px;
+  left: -1px;
+}
+
+#frame1-gradient {
+  background: -webkit-gradient(linear, left top, left bottom, from(rgba(0, 68, 107, 0.64)), to(rgba(45, 168, 112, 0.8)));
+  background: linear-gradient(to bottom, rgba(0, 68, 107, 0.64), rgba(45, 168, 112, 0.8));
+}
+
+#ISI {
+  background: #fff;
+  color: #164D78;
+  cursor: default;
+  left: 0;
+  font-size: 14px;
+  line-height: 14px;
+  overflow: hidden;
+  position: absolute;
+  font-family: Arial, sans-serif;
+}
+
+#ISI a {
+  color: #000;
+  text-decoration: none;
+}
+
+#ISI a:hover {
+  text-decoration: underline;
+}
+
+#ISI h1 {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 14px;
+  padding: 0;
+  margin: 0;
+}
+
+#ISI ul {
+  margin-top: 0;
+  margin-bottom: 3px;
+  padding-left: 7px;
+}
+
+#ISI ul li {
+  padding-bottom: 3px;
+  list-style: none;
+}
+
+#ISI ul li:last-of-type {
+  padding-bottom: 0;
+}
+
+#ISI ul li::before {
+  display: inline-block;
+  content: "";
+  border-radius: 0.375rem;
+  height: 3px;
+  width: 3px;
+  background-color: #164D78;
+  position: relative;
+  margin-right: -3px;
+  left: -6px;
+  top: -4px;
+}
+
+#ISI ul li ul {
+  padding-left: 9px;
+}
+
+#ISI ul li ul li {
+  list-style: circle;
+}
+
+#ISI ul li ul li::before {
+  display: none;
+  text-indent: -9px;
+}
+
+#ISIWrapper {
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+  padding: 2px 14px 0 5px;
+}
+
+#PI {
+  background-color: #DDF1F8;
+  color: #164D78;
+}
+
+#PI_Link {
+  bottom: 0;
+  font-size: 9px;
+  position: absolute;
+  text-align: center;
+}
+
+#ISICopy .win-bullet-fix::before {
+  top: -4px;
+}
+
+#ISI-title {
+  background: #E5E5E5;
+  color: #000;
+}
+
+#container {
+  height: 250px;
+  width: 300px;
+}
+
+#animate-section {
+  height: 157px;
+  width: 300px;
+}
+
+#bg {
+  width: 300px;
+  height: 156px;
+  background-image: url(bg.png);
+  background-repeat: no-repeat;
+  background-size: 300px 156px;
+  top: 0;
+  left: 0;
+}
+
+#eyebrow {
+  width: 257px;
+  height: 18px;
+  background-image: url(eyebrow.png);
+  background-repeat: no-repeat;
+  background-size: 257px 18px;
+  top: 5px;
+  left: -275px;
+}
+
+#logo {
+  width: 198px;
+  height: 57px;
+  background-image: url(logo-eylea.png);
+  background-repeat: no-repeat;
+  background-size: 198px 57px;
+  top: 106px;
+  left: 0;
+}
+
+#teresa,
+#teresa-final {
+  width: 169px;
+  height: 139px;
+  background-image: url(teresa.png);
+  background-repeat: no-repeat;
+  background-size: 169px 139px;
+  top: 17px;
+  left: 300px;
+}
+
+#frame1-copy {
+  width: 206px;
+  height: 38px;
+  background-image: url(f1-text.png);
+  background-repeat: no-repeat;
+  background-size: 206px 38px;
+  top: 41px;
+  left: 300px;
+}
+
+#frame2-copy {
+  width: 233px;
+  height: 55px;
+  background-image: url(f2-text.png);
+  background-repeat: no-repeat;
+  background-size: 233px 55px;
+  top: 27px;
+  left: 35px;
+  -webkit-transform: scale(0.1);
+          transform: scale(0.1);
+}
+
+#frame2-quotes {
+  width: 283px;
+  height: 120px;
+  background-image: url(f2-quotes.png);
+  background-repeat: no-repeat;
+  background-size: 283px 120px;
+  top: -5px;
+  left: 9px;
+  -webkit-transform: scale(0.1);
+          transform: scale(0.1);
+}
+
+#frame2-footnote {
+  width: 270px;
+  height: 38px;
+  background-image: url(f2-footnote.png);
+  background-repeat: no-repeat;
+  background-size: 270px 38px;
+  top: 112px;
+  left: 11px;
+}
+
+#frame3-copy {
+  width: 166px;
+  height: 35px;
+  background-image: url(f3-text.png);
+  background-repeat: no-repeat;
+  background-size: 166px 35px;
+  top: 41px;
+  left: -175px;
+}
+
+#cta {
+  width: 139px;
+  height: 20px;
+  background-image: url(cta.png);
+  background-repeat: no-repeat;
+  background-size: 139px 20px;
+  top: 84px;
+  left: -162px;
+}
+
+#ISI {
+  border-top: 4px solid #4AB279;
+  bottom: 21px;
+  height: 72px;
+  left: unset;
+  right: 0;
+  width: 300px;
+}
+
+#ISI h1 {
+  padding-bottom: 2px;
+}
+
+#ISIWrapper {
+  height: 72px;
+}
+
+#ISICopy {
+  padding-bottom: 5px;
+}
+
+#PI {
+  bottom: 0;
+  left: unset;
+  right: 0;
+  width: 300px;
+  height: 21px;
+  font-size: 12px;
+  text-align: center;
+  padding: 6px 0;
+}
+
+.nowrap-fix {
+  white-space: nowrap !important;
+}

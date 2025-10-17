@@ -105,6 +105,27 @@ function parseAdSize(doc: Document, path: string): DetectedSize | undefined {
       };
     }
   }
+  
+  // 1b) Teresa format: <meta name="300x250" content="width=300, height=250, ...">
+  const allMeta = doc.querySelectorAll('meta[name]');
+  for (const metaEl of allMeta) {
+    const name = metaEl.getAttribute('name') || '';
+    const dimensionMatch = /^(\d{2,4})\s*x\s*(\d{2,4})$/i.exec(name);
+    if (dimensionMatch) {
+      const width = parseInt(dimensionMatch[1], 10);
+      const height = parseInt(dimensionMatch[2], 10);
+      if (Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) {
+        return {
+          size: { width, height },
+          source: {
+            method: 'meta',
+            snippet: normalizeSnippet(metaEl.outerHTML),
+            path,
+          },
+        };
+      }
+    }
+  }
   // 2) GWD admetadata fallback: <script type="text/gwd-admetadata">{..."creativeProperties":{"minWidth":970,"minHeight":250,...}}</script>
   try {
     const node = doc.querySelector('script[type="text/gwd-admetadata"]');
