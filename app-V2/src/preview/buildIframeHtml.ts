@@ -41,7 +41,7 @@ export const buildPreviewHtml = ({
     scopePath,
   };
 
-  const html = String.raw`<!doctype html>
+  const html = (String.raw as any)`<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -578,6 +578,128 @@ export const buildPreviewHtml = ({
               html = enablerShimTag + '\n' + html;
             }
             
+            // CRITICAL: Inject animation tracker BEFORE any inlined JavaScript
+            // This must hook GSAP before the creative's JavaScript creates timelines
+            const animTrackerTag = '<script data-cm360-animation-tracker>\n' + [
+              '(function() {',
+              '  var jsAnimMaxDuration = 0;',
+              '  var timelines = [];',
+              '  window.__audit_last_summary = window.__audit_last_summary || {};',
+              '  window.__audit_last_summary.animationTracking = "pending";',
+              '  ',
+              '  function pollTimelines() {',
+              '    try {',
+              '      for (var i = 0; i < timelines.length; i++) {',
+              '        var tl = timelines[i];',
+              '        if (!tl || !tl.duration) continue;',
+              '        var dur = tl.duration();',
+              '        if (dur > jsAnimMaxDuration) {',
+              '          jsAnimMaxDuration = dur;',
+              '          window.__audit_last_summary.animMaxDurationS = jsAnimMaxDuration;',
+              '          window.__audit_last_summary.animationTracking = "detected";',
+              '          console.log("[Animation Tracker] GSAP timeline duration: " + jsAnimMaxDuration + "s");',
+              '        }',
+              '      }',
+              '    } catch(e) {',
+              '      console.error("[Animation Tracker] Poll error:", e);',
+              '    }',
+              '  }',
+              '  ',
+              '  // Install GSAP hooks proactively using Object.defineProperty',
+              '  var _gsap = null;',
+              '  Object.defineProperty(window, "gsap", {',
+              '    get: function() { return _gsap; },',
+              '    set: function(value) {',
+              '      console.log("[Animation Tracker] GSAP being assigned to window");',
+              '      _gsap = value;',
+              '      if (value && value.timeline) {',
+              '        console.log("[Animation Tracker] GSAP detected");',
+              '        var origTimeline = value.timeline;',
+              '        value.timeline = function() {',
+              '          var tl = origTimeline.apply(this, arguments);',
+              '          timelines.push(tl);',
+              '          return tl;',
+              '        };',
+              '        ',
+              '        ["to", "from", "fromTo"].forEach(function(method) {',
+              '          if (value[method]) {',
+              '            var origMethod = value[method];',
+              '            value[method] = function() {',
+              '              var args = Array.prototype.slice.call(arguments);',
+              '              try {',
+              '                if (args[1] && typeof args[1] === "object") {',
+              '                  var duration = args[1].duration || 0;',
+              '                  if (duration > jsAnimMaxDuration) {',
+              '                    jsAnimMaxDuration = duration;',
+              '                    window.__audit_last_summary.animMaxDurationS = jsAnimMaxDuration;',
+              '                    window.__audit_last_summary.animationTracking = "detected";',
+              '                    console.log("[Animation Tracker] GSAP." + method + " duration: " + jsAnimMaxDuration + "s");',
+              '                  }',
+              '                }',
+              '              } catch(e) {}',
+              '              return origMethod.apply(value, args);',
+              '            };',
+              '          }',
+              '        });',
+              '        ',
+              '        setTimeout(function() { pollTimelines(); }, 500);',
+              '        setTimeout(function() { pollTimelines(); }, 1000);',
+              '        setTimeout(function() { pollTimelines(); }, 2000);',
+              '        setTimeout(function() { pollTimelines(); }, 3000);',
+              '        setTimeout(function() { pollTimelines(); }, 5000);',
+              '        setTimeout(function() {',
+              '          pollTimelines();',
+              '          if (window.__audit_last_summary.animationTracking === "pending") {',
+              '            window.__audit_last_summary.animationTracking = "none";',
+              '          }',
+              '        }, 10000);',
+              '      }',
+              '    },',
+              '    configurable: true',
+              '  });',
+              '  ',
+              '  var checkAnime = setInterval(function() {',
+              '    try {',
+              '      var anime = window.anime;',
+              '      if (anime && typeof anime === "function") {',
+              '        clearInterval(checkAnime);',
+              '        console.log("[Animation Tracker] Anime.js detected, hooking constructor");',
+              '        ',
+              '        var origAnime = anime;',
+              '        window.anime = function() {',
+              '          try {',
+              '            var config = arguments[0];',
+              '            if (config && typeof config === "object") {',
+              '              var duration = (config.duration || 0) / 1000;',
+              '              if (duration > jsAnimMaxDuration) {',
+              '                jsAnimMaxDuration = duration;',
+              '                window.__audit_last_summary.animMaxDurationS = jsAnimMaxDuration;',
+              '                window.__audit_last_summary.animationTracking = "detected";',
+              '                console.log("[Animation Tracker] Anime.js duration: " + jsAnimMaxDuration + "s");',
+              '              }',
+              '            }',
+              '          } catch(e) {}',
+              '          return origAnime.apply(this, arguments);',
+              '        };',
+              '        for (var key in origAnime) {',
+              '          if (origAnime.hasOwnProperty(key)) {',
+              '            window.anime[key] = origAnime[key];',
+              '          }',
+              '        }',
+              '      }',
+              '    } catch(e) {}',
+              '  }, 100);',
+              '  setTimeout(function() { clearInterval(checkAnime); }, 5000);',
+              '})();',
+            ].join('\n') + '\n</' + 'script>';
+            if (html.includes('</head>')) {
+              html = html.replace('</head>', animTrackerTag + '\n</head>');
+            } else if (html.includes('<body')) {
+              html = html.replace('<body', animTrackerTag + '\n<body');
+            } else {
+              html = animTrackerTag + '\n' + html;
+            }
+            
             // CRITICAL: Remove external Enabler script to prevent it from overwriting our shim
             // Teresa creatives load Enabler from CDN, but we need to use our shim with blob URL support
             html = html.replace(
@@ -1011,6 +1133,7 @@ export const buildPreviewHtml = ({
             shimScript.type = 'text/javascript';
             shimScript.textContent = ENABLER_SOURCE;
             doc.documentElement?.appendChild(shimScript);
+            
             applyVisibilityGuard(win, doc);
             const size = detectSize(doc);
             if (size) {

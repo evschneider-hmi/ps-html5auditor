@@ -243,4 +243,43 @@
   }
 
   postToParent('CM360_ENABLER_STATUS', { source });
+  
+  // Initialize tracking states
+  if (!window.__audit_last_summary) {
+    window.__audit_last_summary = {};
+  }
+  window.__audit_last_summary.cpuTracking = 'pending';
+  window.__audit_last_summary.animationTracking = window.__audit_last_summary.animationTracking || 'pending';
+  
+  // Start CPU tracking (Long Tasks API)
+  try {
+    if (typeof PerformanceObserver !== 'undefined') {
+      const types = PerformanceObserver.supportedEntryTypes;
+      if (Array.isArray(types) && types.includes('longtask')) {
+        let totalLongTaskMs = 0;
+        const obs = new PerformanceObserver((list) => {
+          for (const entry of list.getEntries()) {
+            if (entry.duration >= 50) {
+              totalLongTaskMs += entry.duration;
+              window.__audit_last_summary.longTasksMs = totalLongTaskMs;
+            }
+          }
+        });
+        obs.observe({ entryTypes: ['longtask'] });
+        
+        // Finalize CPU tracking after 3 seconds
+        setTimeout(() => {
+          window.__audit_last_summary.cpuTracking = 'complete';
+          obs.disconnect();
+        }, 3000);
+      } else {
+        window.__audit_last_summary.cpuTracking = 'unsupported';
+      }
+    } else {
+      window.__audit_last_summary.cpuTracking = 'unsupported';
+    }
+  } catch (error) {
+    console.warn('CM360: CPU tracking failed', error);
+    window.__audit_last_summary.cpuTracking = 'error';
+  }
 })();

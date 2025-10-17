@@ -292,7 +292,18 @@ export async function buildExtendedFindings(bundle: ZipBundle, partial: BundleRe
 			try {
 				const meta = (window as any).__audit_last_summary as any;
 				const longMs = typeof meta?.longTasksMs === 'number' ? Math.max(0, Math.min(3000, Math.round(meta.longTasksMs))) : undefined;
-				if (typeof longMs === 'number') {
+				
+				// Check if CPU measurement is pending (creative just loaded)
+				const cpuTracking = meta?.cpuTracking;
+				if (cpuTracking === 'pending') {
+					out.push({
+						id: 'cpu-budget',
+						title: 'CPU Busy Budget',
+						severity: 'PENDING' as any,
+						messages: ['⏳ Measuring CPU usage...', 'Collecting Long Tasks data'],
+						offenders: [],
+					});
+				} else if (typeof longMs === 'number') {
 					const clamped = Math.max(0, Math.min(3000, Math.round(longMs)));
 					const pct = Math.round((clamped / 3000) * 100);
 					out.push({
@@ -381,10 +392,25 @@ export async function buildExtendedFindings(bundle: ZipBundle, partial: BundleRe
 						}
 					}
 				}
+				// Check runtime tracking status first
+				const meta = (window as any).__audit_last_summary as any;
+				const tracking = meta?.animationTracking;
+				
+				// If tracking is pending, show pending state
+				if (tracking === 'pending') {
+					out.push({ 
+						id: 'animation-cap', 
+						title: 'Animation Length Cap', 
+						severity: 'PENDING' as any, 
+						messages: ['⏳ Analyzing JavaScript animations...', 'Duration tracking in progress'], 
+						offenders: [] 
+					});
+					return out as Finding[];
+				}
+				
 				// If static detection found nothing meaningful, fall back to runtime probe values
 				if (maxDurS === 0 && !infinite && maxLoops <= 1) {
 					try {
-						const meta = (window as any).__audit_last_summary as any;
 						if (meta && (typeof meta.animMaxDurationS === 'number' || typeof meta.animMaxLoops === 'number' || meta.animInfinite)) {
 							maxDurS = Math.max(0, Number(meta.animMaxDurationS||0));
 							maxLoops = Math.max(1, Number(meta.animMaxLoops||1));
@@ -395,10 +421,17 @@ export async function buildExtendedFindings(bundle: ZipBundle, partial: BundleRe
 				const violates = (infinite || maxLoops > 3) && maxDurS > 15;
 				const messages: string[] = [];
 				if (maxDurS===0 && !infinite && maxLoops<=1) {
-					messages.push('No CSS animation detected (JS animation or unsupported syntax)');
+					if (tracking === 'detected') {
+						messages.push('JS animation detected but duration not captured');
+					} else {
+						messages.push('No CSS animation detected (JS animation or unsupported syntax)');
+					}
 				} else {
 					messages.push(`Max animation duration ~${maxDurS.toFixed(2)} s`);
 					messages.push(`Max loops ${infinite ? 'infinite' : maxLoops}`);
+					if (tracking === 'detected') {
+						messages.push('✓ JS animation tracking active');
+					}
 				}
 				// Policy text removed from bullets; shown on hover of badge
 				out.push({ id: 'animation-cap', title: 'Animation Length Cap', severity: violates ? 'FAIL' : 'PASS', messages, offenders });

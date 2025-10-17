@@ -222,14 +222,20 @@ export async function buildInstrumentedPreview(bundle: ZipBundle, primaryPath: s
 				body.insertBefore(shimTag, body.firstChild);
 			} catch {}
 		}
-		// Combine asset map and probe into a single external blob script to avoid inline CSP blocks
+		// Inline the probe script directly (blob URLs don't work across iframe srcdoc boundaries)
 		const combined = `window.__AUDIT_ASSET_MAP = ${JSON.stringify({ primary: primaryPath, map: blobMap, sizes: sizeByBlobUrl })};\n;(${probe})()`;
-		const blob = new Blob([combined], { type: 'text/javascript' });
-		const url = URL.createObjectURL(blob);
-		const script = doc.createElement('script'); script.type='text/javascript'; (script as any).src = url; script.defer = false; script.async = false;
+		const script = doc.createElement('script'); 
+		script.type = 'text/javascript'; 
+		script.textContent = combined;
+		script.defer = false; 
+		script.async = false;
 		body.appendChild(script);
+		console.log('[Probe Injection] Script textContent length:', combined.length);
+		console.log('[Probe Injection] Script textContent first 200 chars:', combined.substring(0, 200));
 	}
 	const html = '<!doctype html>\n' + doc.documentElement.outerHTML;
+	console.log('[Probe Injection] HTML contains script tag:', html.includes('<script') && html.includes('__AUDIT_ASSET_MAP'));
+	console.log('[Probe Injection] Script tag position in HTML:', html.indexOf('__AUDIT_ASSET_MAP'));
 	return { html, blobMap, originalHtml };
 }
 
@@ -570,6 +576,16 @@ function buildGsapStubSource(): string {
 		this._schedule();
 		return this;
 	};
+	Timeline.prototype.duration = function(){
+		// Calculate total timeline duration from events
+		var maxTime = 0;
+		for (var i = 0; i < this._events.length; i++) {
+			var evt = this._events[i];
+			var endTime = evt.time + (evt.duration || 0);
+			if (endTime > maxTime) maxTime = endTime;
+		}
+		return maxTime;
+	};
 	Timeline.prototype.play = function(){
 		if (this._playing) return this;
 		this._playing = true;
@@ -615,9 +631,12 @@ function resolveLocal(from: string, url: string): string | undefined {
 function buildProbeScript(): any {
 	// eslint-disable-next-line max-len
 	const src = function(){ try { 
+		console.log('[Audit] PROBE SCRIPT STARTING');
 		var post = function(m){ try{ parent.postMessage(Object.assign({__audit_event:1},m), '*'); }catch(e){} };
 		var summary = { domContentLoaded: undefined, visualStart: undefined, frames: 0, consoleErrors:0, consoleWarnings:0, dialogs:0, cookies:0, localStorage:0, errors:0, documentWrites:0, jquery:false, clickUrl:'', memoryMB: undefined, memoryMinMB: undefined, memoryMaxMB: undefined, cpuScore: undefined, network: 0, runtimeIframes: 0, rewrites:0, imgRewrites:0, mediaRewrites:0, scriptRewrites:0, linkRewrites:0, setAttrRewrites:0, styleUrlRewrites:0, styleAttrRewrites:0, domImages:0, domBgUrls:0, enablerStub:false, animMaxDurationS: undefined, animMaxLoops: undefined, animInfinite: false, initialRequests: 0, subloadRequests: 0, userRequests: 0, totalRequests: 0, initialBytes: 0, subloadBytes: 0, userBytes: 0, totalBytes: 0, loadEventTime: undefined };
+		console.log('[Audit] Summary initialized');
 		try { if (typeof window !== 'undefined' && window.__AUDIT_ENABLER_STUB__) summary.enablerStub = true; } catch(_err){}
+		console.log('[Audit] After enabler stub check');
 		function __audit_isNodeLike(value){ try { if (!value || typeof value !== 'object') return false; if (typeof Node === 'function' && Node) return value instanceof Node; return typeof value.nodeType === 'number' && typeof value.nodeName === 'string'; } catch(_e){ return false; } }
 		var __auditObserverWarnedNonNode = {};
 		var __auditObserverWarnedFailure = {};
@@ -1232,6 +1251,117 @@ function buildProbeScript(): any {
 			} catch(e){}
 			} // end function scanBorders
 			function parseDurationToS(token){ try { if(!token) return 0; var s = String(token).trim(); var m1 = s.match(/^([\d.]+)\s*s$/i); if (m1) return parseFloat(m1[1])||0; var m2 = s.match(/^([\d.]+)\s*ms$/i); if (m2) return (parseFloat(m2[1])||0)/1000; var n = parseFloat(s); return isFinite(n)? n : 0; } catch(e){ return 0; } }
+			
+			// Track JavaScript animation durations (GSAP, anime.js, etc.)
+			var jsAnimStartTime = performance.now();
+			var jsAnimMaxDuration = 0;
+			var jsAnimDetected = false;
+			
+			// Hook GSAP if present
+			try {
+				console.log('[Audit] Starting GSAP detection interval');
+				var checkGSAP = setInterval(function() {
+					console.log('[Audit] Checking for GSAP... window.gsap =', typeof (window as any).gsap);
+					try {
+						var gsap = (window as any).gsap;
+						if (gsap && gsap.timeline) {
+							clearInterval(checkGSAP);
+							jsAnimDetected = true;
+							console.log('[Audit] GSAP detected, tracking timelines');
+							
+							// Wrap timeline creation to track total duration
+							var origTimeline = gsap.timeline;
+							gsap.timeline = function() {
+								var tl = origTimeline.apply(this, arguments);
+								try {
+									// Hook to check duration when timeline methods are called
+									var checkDuration = function() {
+										try {
+											var dur = tl.duration ? tl.duration() : 0;
+											if (dur > jsAnimMaxDuration) {
+												jsAnimMaxDuration = dur;
+												console.log('[Audit] GSAP timeline duration:', dur + 's');
+											}
+										} catch(e){}
+									};
+									// Wrap common timeline methods
+									['to', 'from', 'fromTo', 'add', 'call'].forEach(function(method) {
+										if (tl[method]) {
+											var orig = tl[method];
+											tl[method] = function() {
+												var result = orig.apply(tl, arguments);
+												checkDuration();
+												return result;
+											};
+										}
+									});
+								} catch(e){}
+								return tl;
+							};
+							
+							// Also hook direct gsap.to/from/fromTo calls
+							['to', 'from', 'fromTo'].forEach(function(method) {
+								if (gsap[method]) {
+									var origMethod = gsap[method];
+									gsap[method] = function() {
+										var args = Array.prototype.slice.call(arguments);
+										try {
+											// args[1] is the vars object which may contain duration
+											var duration = 0;
+											if (args[1] && typeof args[1] === 'object') {
+												duration = args[1].duration || 0;
+												if (duration > jsAnimMaxDuration) {
+													jsAnimMaxDuration = duration;
+													console.log('[Audit] GSAP.' + method + ' duration:', duration + 's');
+												}
+											}
+										} catch(e){}
+										return origMethod.apply(gsap, args);
+									};
+								}
+							});
+						}
+					} catch(e){}
+				}, 100);
+				setTimeout(function() { clearInterval(checkGSAP); }, 5000);
+			} catch(e){}
+			
+			// Hook anime.js if present
+			try {
+				var checkAnime = setInterval(function() {
+					try {
+						var anime = (window as any).anime;
+						if (anime) {
+							clearInterval(checkAnime);
+							jsAnimDetected = true;
+							console.log('[Audit] Anime.js detected, tracking animations');
+							
+							var origAnime = anime;
+							(window as any).anime = function() {
+								var config = arguments[0];
+								try {
+									if (config && typeof config === 'object') {
+										var duration = (config.duration || 0) / 1000; // anime uses ms
+										if (duration > jsAnimMaxDuration) {
+											jsAnimMaxDuration = duration;
+											console.log('[Audit] Anime.js duration:', duration + 's');
+										}
+									}
+								} catch(e){}
+								return origAnime.apply(this, arguments);
+							};
+							// Copy static properties
+							for (var key in origAnime) {
+								if (origAnime.hasOwnProperty(key)) {
+									(window as any).anime[key] = origAnime[key];
+								}
+							}
+						}
+					} catch(e){}
+				}, 100);
+				setTimeout(function() { clearInterval(checkAnime); }, 5000);
+			} catch(e){}
+			
 			function scanAnimations(){ try {
 				var maxDur = 0; var maxLoops = 1; var infinite = false;
 				var root = document.body || document.documentElement; if (!root) return;
@@ -1249,6 +1379,13 @@ function buildProbeScript(): any {
 						if (sh){ var blocks = sh.split(','); for (var b=0;b<blocks.length;b++){ var tk = blocks[b].trim().replace(/\([^)]*\)/g, ''); var toks = tk.split(/\s+/); for (var k=0;k<toks.length;k++){ var t = toks[k]; if (/^([\d.]+)(ms|s)$/i.test(t)) { var val = parseDurationToS(t); if (val>maxDur) maxDur = val; } else if (t.toLowerCase()==='infinite'){ infinite = true; if (maxLoops<9999) maxLoops = 9999; } else if (/^\d+$/.test(t)){ var iv = parseInt(t,10); if (iv>maxLoops) maxLoops = iv; } } } }
 					} catch(e){}
 				}
+				
+				// Merge JavaScript animation duration if detected
+				if (jsAnimDetected && jsAnimMaxDuration > maxDur) {
+					maxDur = jsAnimMaxDuration;
+					console.log('[Audit] Using JS animation duration:', maxDur + 's');
+				}
+				
 				(summary as any).animMaxDurationS = maxDur;
 				(summary as any).animMaxLoops = maxLoops;
 				(summary as any).animInfinite = !!infinite;

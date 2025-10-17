@@ -93,10 +93,16 @@ export const ExtendedResults: React.FC = () => {
 
   const [processing, setProcessing] = useState<boolean>(false);
   const runToken = useRef(0);
+  const recheckTimers = useRef<NodeJS.Timeout[]>([]);
 
   async function process(): Promise<void> {
     const token = ++runToken.current;
     setProcessing(true);
+    
+    // Clear any existing recheck timers
+    recheckTimers.current.forEach(timer => clearTimeout(timer));
+    recheckTimers.current = [];
+    
     const list: BundleResult[] = [] as any;
 
     try {
@@ -328,6 +334,29 @@ export const ExtendedResults: React.FC = () => {
       if (runToken.current !== token) return;
       setResults(list);
 
+      // Check if any findings have PENDING status
+      const hasPending = list.some((result: any) => 
+        result.findings?.some((f: any) => f.severity === 'PENDING')
+      );
+      
+      // If pending checks exist, schedule re-checks at intervals
+      if (hasPending) {
+        console.log('[ExtendedResults] Pending checks detected, scheduling rechecks');
+        
+        // Recheck at 2s, 5s, and 10s to capture delayed metrics
+        const delays = [2000, 5000, 10000];
+        
+        delays.forEach(delay => {
+          const timer = setTimeout(() => {
+            console.log(`[ExtendedResults] Recheck triggered after ${delay}ms`);
+            if (runToken.current === token) {
+              void process();
+            }
+          }, delay);
+          recheckTimers.current.push(timer);
+        });
+      }
+
       // initialize selection if not set or stale
       try {
         const current = selectedBundleId;
@@ -344,9 +373,11 @@ export const ExtendedResults: React.FC = () => {
     if (bundles.length > 0) {
       void process();
     }
-    // cancel previous runs on bundles change
+    // cancel previous runs on bundles change and clear timers
     return () => {
       runToken.current++;
+      recheckTimers.current.forEach(timer => clearTimeout(timer));
+      recheckTimers.current = [];
     };
   }, [bundles.length]);
 
@@ -982,12 +1013,14 @@ const ResultTable: React.FC = () => {
 
             // Compute Priority-only issue counts (merged aliases)
             let pf = 0,
-              pw = 0;
+              pw = 0,
+              hasPending = false;
 
             try {
               const mergedPriority = mergePriorityFindings(r.findings || []);
               pf = mergedPriority.filter((f: any) => f.severity === 'FAIL').length;
               pw = mergedPriority.filter((f: any) => f.severity === 'WARN').length;
+              hasPending = mergedPriority.some((f: any) => f.severity === 'PENDING');
             } catch {}
 
             const removeHover = hoveredRemoveId === r.bundleId;
@@ -1120,7 +1153,24 @@ const ResultTable: React.FC = () => {
                   title={`${pf} FAIL/${pw} WARN`}
                   aria-label={`${pf} FAIL/${pw} WARN`}
                 >
-                  {`${pf}F / ${pw}W`}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span>{`${pf}F / ${pw}W`}</span>
+                    {hasPending && (
+                      <span 
+                        style={{
+                          width: 12,
+                          height: 12,
+                          borderRadius: '50%',
+                          border: '2px solid rgba(99, 102, 241, 0.3)',
+                          borderTopColor: '#6366f1',
+                          animation: 'spin 0.8s linear infinite',
+                          display: 'inline-block',
+                        }}
+                        title="Analyzing..."
+                        aria-label="Analyzing"
+                      />
+                    )}
+                  </div>
                 </td>
 
                 <td
@@ -2232,7 +2282,33 @@ const td: React.CSSProperties = {
   textOverflow: 'ellipsis',
 };
 
-function badge(s: 'PASS' | 'WARN' | 'FAIL' | string) {
+function badge(s: 'PASS' | 'WARN' | 'FAIL' | 'PENDING' | string) {
+  if (s === 'PENDING') {
+    return (
+      <span 
+        className="badge pending" 
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
+        }}
+      >
+        <span 
+          style={{
+            width: 12,
+            height: 12,
+            borderRadius: '50%',
+            border: '2px solid rgba(99, 102, 241, 0.3)',
+            borderTopColor: '#6366f1',
+            animation: 'spin 0.8s linear infinite',
+          }}
+          aria-hidden="true"
+        />
+        PENDING
+      </span>
+    );
+  }
+  
   const cls =
     s === 'FAIL' ? 'badge fail' : s === 'WARN' ? 'badge warn' : 'badge pass';
 
