@@ -94,10 +94,66 @@ export const ExtendedResults: React.FC = () => {
   const [processing, setProcessing] = useState<boolean>(false);
   const runToken = useRef(0);
   const recheckTimers = useRef<NodeJS.Timeout[]>([]);
+  const trackingInitialized = useRef(false);
+
+  // Listen for tracking-update messages from iframes
+  useEffect(() => {
+    const handleTrackingMessage = (event: MessageEvent) => {
+      const data = event.data as any;
+      if (!data || typeof data !== 'object' || data.type !== 'tracking-update') return;
+      
+      console.log('[ExtendedResults] Received tracking-update:', data);
+      
+      // Update parent window's __audit_last_summary with tracking state
+      const summary = ((window as any).__audit_last_summary = (window as any).__audit_last_summary || {});
+      
+      // Only update animationTracking if it's an upgrade (pending → detected/error)
+      // Never downgrade from detected/error back to pending
+      if (data.animationTracking) {
+        const current = summary.animationTracking;
+        const incoming = data.animationTracking;
+        if (current !== 'detected' && current !== 'error') {
+          summary.animationTracking = incoming;
+        }
+      }
+      
+      if (typeof data.animMaxDurationS === 'number') {
+        summary.animMaxDurationS = data.animMaxDurationS;
+      }
+      
+      // Only update cpuTracking if it's an upgrade
+      if (data.cpuTracking) {
+        const current = summary.cpuTracking;
+        const incoming = data.cpuTracking;
+        if (current !== 'complete' && current !== 'error') {
+          summary.cpuTracking = incoming;
+        }
+      }
+      
+      if (typeof data.longTasksMs === 'number') {
+        summary.longTasksMs = data.longTasksMs;
+      }
+      
+      console.log('[ExtendedResults] Updated tracking state:', summary);
+    };
+    
+    window.addEventListener('message', handleTrackingMessage);
+    return () => window.removeEventListener('message', handleTrackingMessage);
+  }, []);
 
   async function process(): Promise<void> {
     const token = ++runToken.current;
     setProcessing(true);
+    
+    // Initialize tracking states in parent window BEFORE checks run (only on first process, not on rechecks)
+    // These will be updated by postMessage from iframes
+    if (!trackingInitialized.current) {
+      (window as any).__audit_last_summary = (window as any).__audit_last_summary || {};
+      (window as any).__audit_last_summary.animationTracking = 'pending';
+      (window as any).__audit_last_summary.cpuTracking = 'pending';
+      (window as any).__audit_last_summary.longTasksMs = 0; // Initialize to 0
+      trackingInitialized.current = true;
+    }
     
     // Clear any existing recheck timers
     recheckTimers.current.forEach(timer => clearTimeout(timer));

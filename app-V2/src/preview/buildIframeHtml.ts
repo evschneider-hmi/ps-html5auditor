@@ -587,6 +587,21 @@ export const buildPreviewHtml = ({
               '  window.__audit_last_summary = window.__audit_last_summary || {};',
               '  window.__audit_last_summary.animationTracking = "pending";',
               '  ',
+              '  // Helper to notify parent of tracking state changes',
+              '  function notifyParent() {',
+              '    try {',
+              '      parent.postMessage({',
+              '        __audit_event: 1,',
+              '        type: "tracking-update",',
+              '        animationTracking: window.__audit_last_summary.animationTracking,',
+              '        animMaxDurationS: window.__audit_last_summary.animMaxDurationS',
+              '      }, "*");',
+              '    } catch(e) {}',
+              '  }',
+              '  ',
+              '  // Notify parent immediately that tracking is pending',
+              '  notifyParent();',
+              '  ',
               '  function pollTimelines() {',
               '    try {',
               '      for (var i = 0; i < timelines.length; i++) {',
@@ -598,6 +613,7 @@ export const buildPreviewHtml = ({
               '          window.__audit_last_summary.animMaxDurationS = jsAnimMaxDuration;',
               '          window.__audit_last_summary.animationTracking = "detected";',
               '          console.log("[Animation Tracker] GSAP timeline duration: " + jsAnimMaxDuration + "s");',
+              '          notifyParent();',
               '        }',
               '      }',
               '    } catch(e) {',
@@ -634,6 +650,7 @@ export const buildPreviewHtml = ({
               '                    window.__audit_last_summary.animMaxDurationS = jsAnimMaxDuration;',
               '                    window.__audit_last_summary.animationTracking = "detected";',
               '                    console.log("[Animation Tracker] GSAP." + method + " duration: " + jsAnimMaxDuration + "s");',
+              '                    notifyParent();',
               '                  }',
               '                }',
               '              } catch(e) {}',
@@ -651,6 +668,7 @@ export const buildPreviewHtml = ({
               '          pollTimelines();',
               '          if (window.__audit_last_summary.animationTracking === "pending") {',
               '            window.__audit_last_summary.animationTracking = "none";',
+              '            notifyParent();',
               '          }',
               '        }, 10000);',
               '      }',
@@ -676,6 +694,7 @@ export const buildPreviewHtml = ({
               '                window.__audit_last_summary.animMaxDurationS = jsAnimMaxDuration;',
               '                window.__audit_last_summary.animationTracking = "detected";',
               '                console.log("[Animation Tracker] Anime.js duration: " + jsAnimMaxDuration + "s");',
+              '                notifyParent();',
               '              }',
               '            }',
               '          } catch(e) {}',
@@ -1159,6 +1178,10 @@ export const buildPreviewHtml = ({
             debug('received-entries', { count: Array.isArray(data.entries) ? data.entries.length : 0 });
           } else if (data.type === 'creative-click') {
             postToTop('creative-click', data);
+          } else if (data.type === 'tracking-update') {
+            // Forward tracking updates from creative iframe to parent window
+            console.log('[CM360] Forwarding tracking-update to parent');
+            postToTop('tracking-update', data);
           } else if (data.type === 'CM360_ENABLER_STATUS') {
             state.enablerSource = data.source || 'unknown';
             emitDiagnostics();

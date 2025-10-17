@@ -249,7 +249,23 @@
     window.__audit_last_summary = {};
   }
   window.__audit_last_summary.cpuTracking = 'pending';
+  window.__audit_last_summary.longTasksMs = 0; // Initialize to 0 (will accumulate long tasks)
   window.__audit_last_summary.animationTracking = window.__audit_last_summary.animationTracking || 'pending';
+  
+  // Helper to notify parent of CPU tracking state
+  function notifyCpuTracking() {
+    try {
+      parent.postMessage({
+        __audit_event: 1,
+        type: 'tracking-update',
+        cpuTracking: window.__audit_last_summary.cpuTracking,
+        longTasksMs: window.__audit_last_summary.longTasksMs
+      }, '*');
+    } catch(e) {}
+  }
+  
+  // Notify parent immediately that CPU tracking is pending
+  notifyCpuTracking();
   
   // Start CPU tracking (Long Tasks API)
   try {
@@ -270,16 +286,20 @@
         // Finalize CPU tracking after 3 seconds
         setTimeout(() => {
           window.__audit_last_summary.cpuTracking = 'complete';
+          notifyCpuTracking();
           obs.disconnect();
         }, 3000);
       } else {
         window.__audit_last_summary.cpuTracking = 'unsupported';
+        notifyCpuTracking();
       }
     } else {
       window.__audit_last_summary.cpuTracking = 'unsupported';
+      notifyCpuTracking();
     }
   } catch (error) {
     console.warn('CM360: CPU tracking failed', error);
     window.__audit_last_summary.cpuTracking = 'error';
+    notifyCpuTracking();
   }
 })();

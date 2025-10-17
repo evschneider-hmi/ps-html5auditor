@@ -222,7 +222,9 @@ export const ExtendedPreview: React.FC<{ maxBodyHeight?: number }> = ({
     const handleMessage = (event: MessageEvent) => {
       const data = event.data as any;
       if (!data || typeof data !== 'object') return;
-      if (bundle && data.bundleId && data.bundleId !== bundle.id) return;
+      
+      // Skip bundleId check for tracking-update messages (they don't have bundleId)
+      if (data.type !== 'tracking-update' && bundle && data.bundleId && data.bundleId !== bundle.id) return;
 
       if (data.type === 'CM360_DEBUG') {
         const message = data.stage
@@ -260,6 +262,25 @@ export const ExtendedPreview: React.FC<{ maxBodyHeight?: number }> = ({
         setClickUrl(url);
         setClickPresent((prev) => prev || !!url || !!data.meta?.present);
         setShowModal(true);
+      }
+
+      if (data.type === 'tracking-update') {
+        console.log('[ExtendedPreview] Received tracking-update message:', data);
+        // Update parent window's __audit_last_summary with tracking state
+        (window as any).__audit_last_summary = (window as any).__audit_last_summary || {};
+        if (data.animationTracking) {
+          (window as any).__audit_last_summary.animationTracking = data.animationTracking;
+        }
+        if (typeof data.animMaxDurationS === 'number') {
+          (window as any).__audit_last_summary.animMaxDurationS = data.animMaxDurationS;
+        }
+        if (data.cpuTracking) {
+          (window as any).__audit_last_summary.cpuTracking = data.cpuTracking;
+        }
+        if (typeof data.longTasksMs === 'number') {
+          (window as any).__audit_last_summary.longTasksMs = data.longTasksMs;
+        }
+        console.log('[ExtendedPreview] Updated parent window tracking:', (window as any).__audit_last_summary);
       }
     };
 
