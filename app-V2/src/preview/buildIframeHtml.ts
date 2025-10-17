@@ -216,6 +216,7 @@ export const buildPreviewHtml = ({
           ready: false,
           primed: false,
           networkFailures: [],
+          missingAssets: [],
           enablerSource: 'unknown',
           visibilityGuardActive: false,
           dimension: null,
@@ -361,6 +362,7 @@ export const buildPreviewHtml = ({
               enablerSource: state.enablerSource,
               dimension: state.dimension,
               networkFailures: Array.from(new Set(state.networkFailures)),
+              missingAssets: state.missingAssets || [],
               visibilityGuardActive: !!state.visibilityGuardActive,
               notedAt: Date.now(),
             },
@@ -369,6 +371,7 @@ export const buildPreviewHtml = ({
             enablerSource: state.enablerSource,
             dimension: state.dimension,
             networkFailures: state.networkFailures,
+            missingAssets: state.missingAssets,
             visibilityGuardActive: state.visibilityGuardActive,
           });
         };
@@ -469,6 +472,7 @@ export const buildPreviewHtml = ({
                       
                       // Try multiple path variations to find the asset
                       let blobUrl = state.blobMap.get(normalized) || state.blobMap.get(withBase);
+                      let matchedPath = normalized;
                       
                       // If not found, try searching all blob map keys for a match
                       if (!blobUrl) {
@@ -476,6 +480,7 @@ export const buildPreviewHtml = ({
                         for (const [key, value] of state.blobMap.entries()) {
                           if (key.endsWith('/' + filename) || key === filename) {
                             blobUrl = value;
+                            matchedPath = key;
                             console.log('[CM360] Inlined CSS: Found blob URL by filename match:', filename, '→', key);
                             break;
                           }
@@ -487,7 +492,13 @@ export const buildPreviewHtml = ({
                         return 'url(' + quote + blobUrl + quote + ')';
                       }
                       
-                      console.warn('[CM360] Inlined CSS: Could not find blob URL for:', url, '(tried:', normalized, ',', withBase, ')');
+                      // Track missing asset
+                      state.missingAssets.push({
+                        url: url,
+                        path: normalized,
+                        context: 'Inlined CSS url() in ' + cssPath
+                      });
+                      console.error('[CM360] Inlined CSS: Missing asset:', url, '(tried:', normalized, ',', withBase, ')');
                       return match;
                     }
                   );
@@ -543,6 +554,7 @@ export const buildPreviewHtml = ({
                 
                 // Try multiple path variations to find the asset
                 let blobUrl = state.blobMap.get(normalized) || state.blobMap.get(withBase);
+                let matchedPath = normalized;
                 
                 // If not found, try searching all blob map keys for a match
                 if (!blobUrl) {
@@ -550,6 +562,7 @@ export const buildPreviewHtml = ({
                   for (const [key, value] of state.blobMap.entries()) {
                     if (key.endsWith('/' + filename) || key === filename) {
                       blobUrl = value;
+                      matchedPath = key;
                       console.log('[CM360] Found blob URL by filename match:', filename, '→', key);
                       break;
                     }
@@ -561,8 +574,13 @@ export const buildPreviewHtml = ({
                   return prefix + blobUrl + suffix;
                 }
                 
-                // Fallback - return original
-                console.warn('[CM360] Could not find blob URL for:', url, '(tried:', normalized, ',', withBase, ')');
+                // Track missing asset
+                state.missingAssets.push({
+                  url: url,
+                  path: normalized,
+                  context: 'HTML ' + prefix.replace(/\s*=\s*["']$/, '')
+                });
+                console.error('[CM360] Missing asset:', url, '(tried:', normalized, ',', withBase, ')');
                 return match;
               }
             );
@@ -643,6 +661,7 @@ export const buildPreviewHtml = ({
                   
                   // Try multiple path variations to find the asset
                   let blobUrl = blobMap.get(normalized) || blobMap.get(withBase);
+                  let matchedPath = normalized;
                   
                   // If not found, try searching all blob map keys for a match
                   if (!blobUrl) {
@@ -650,6 +669,7 @@ export const buildPreviewHtml = ({
                     for (const [key, value] of blobMap.entries()) {
                       if (key.endsWith('/' + filename) || key === filename) {
                         blobUrl = value;
+                        matchedPath = key;
                         console.log('[CM360] CSS: Found blob URL by filename match:', filename, '→', key);
                         break;
                       }
@@ -662,8 +682,13 @@ export const buildPreviewHtml = ({
                     return 'url(' + quote + blobUrl + quote + ')';
                   }
                   
-                  // Fallback - return original
-                  console.warn('[CM360] CSS: Could not find blob URL for:', url, '(tried:', normalized, ',', withBase, ')');
+                  // Track missing asset
+                  state.missingAssets.push({
+                    url: url,
+                    path: normalized,
+                    context: 'CSS url() in ' + cssFile.normalized
+                  });
+                  console.error('[CM360] CSS: Missing asset:', url, '(tried:', normalized, ',', withBase, ')');
                   return match;
                 }
               );

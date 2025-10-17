@@ -450,6 +450,66 @@ export const ExtendedPreview: React.FC<{ maxBodyHeight?: number }> = ({
             )}
           </div>
 
+          {diagnostics?.missingAssets && diagnostics.missingAssets.length > 0 && (
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8,
+                padding: '12px 16px',
+                borderRadius: 12,
+                border: '2px solid rgba(220,38,38,0.6)',
+                background: 'rgba(220,38,38,0.12)',
+                fontSize: 12,
+              }}
+            >
+              <div style={{ fontWeight: 'bold', color: '#dc2626', fontSize: 13 }}>
+                ⚠️ Missing Assets ({diagnostics.missingAssets.length})
+              </div>
+              <div style={{ color: '#991b1b' }}>
+                The following assets could not be found in the ZIP bundle and will not display in preview:
+              </div>
+              <ul style={{ margin: '6px 0 0', paddingLeft: 20, color: '#7f1d1d' }}>
+                {diagnostics.missingAssets.map((asset, index) => {
+                  const assetPath = asset.path || asset.url;
+                  const assetUrl = assetEntries.find(([path]) => 
+                    path.endsWith('/' + assetPath) || path === assetPath
+                  )?.[1];
+                  
+                  return (
+                    <li key={`${asset.url}-${index}`} style={{ marginBottom: 6 }}>
+                      <div style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>
+                        {assetUrl ? (
+                          <a
+                            href={assetUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{ color: '#dc2626', textDecoration: 'underline' }}
+                          >
+                            {asset.url}
+                          </a>
+                        ) : (
+                          <span style={{ color: '#dc2626' }}>{asset.url}</span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: 11, color: '#991b1b', marginTop: 2 }}>
+                        Referenced in: {asset.context}
+                      </div>
+                      {asset.path !== asset.url && (
+                        <div style={{ fontSize: 11, color: '#78716c', marginTop: 1 }}>
+                          Looked for: {asset.path}
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+              <div style={{ fontSize: 11, color: '#991b1b', marginTop: 4, fontStyle: 'italic' }}>
+                💡 Tip: Ensure all referenced assets are included in your ZIP at the correct paths.
+              </div>
+            </div>
+          )}
+
           {showDiagnosticsBanner && (
             <div
               style={{

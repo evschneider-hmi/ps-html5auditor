@@ -15,6 +15,7 @@ export interface PreviewDiagnostics {
   enablerSource: 'cdn' | 'shim' | 'unknown';
   dimension?: { width: number; height: number; source: string };
   networkFailures: string[];
+  missingAssets: Array<{ url: string; path: string; context: string }>;
   visibilityGuardActive: boolean;
   notedAt: number;
 }
