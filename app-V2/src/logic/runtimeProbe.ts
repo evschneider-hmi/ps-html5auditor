@@ -616,10 +616,8 @@ function resolveLocal(from: string, url: string): string | undefined {
 function buildProbeScript(): any {
 	// eslint-disable-next-line max-len
 	const src = function(){ try { 
-		console.log('[Audit] PROBE SCRIPT STARTING');
 		var post = function(m){ try{ parent.postMessage(Object.assign({__audit_event:1},m), '*'); }catch(e){} };
 		var summary = { domContentLoaded: undefined, visualStart: undefined, frames: 0, consoleErrors:0, consoleWarnings:0, dialogs:0, cookies:0, localStorage:0, errors:0, documentWrites:0, jquery:false, clickUrl:'', memoryMB: undefined, memoryMinMB: undefined, memoryMaxMB: undefined, cpuScore: undefined, network: 0, runtimeIframes: 0, rewrites:0, imgRewrites:0, mediaRewrites:0, scriptRewrites:0, linkRewrites:0, setAttrRewrites:0, styleUrlRewrites:0, styleAttrRewrites:0, domImages:0, domBgUrls:0, enablerStub:false, animMaxDurationS: undefined, animMaxLoops: undefined, animInfinite: false, initialRequests: 0, subloadRequests: 0, userRequests: 0, totalRequests: 0, initialBytes: 0, subloadBytes: 0, userBytes: 0, totalBytes: 0, loadEventTime: undefined };
-		console.log('[Audit] Summary initialized');
 		try { if (typeof window !== 'undefined' && window.__AUDIT_ENABLER_STUB__) summary.enablerStub = true; } catch(_err){}
 		console.log('[Audit] After enabler stub check');
 		function __audit_isNodeLike(value){ try { if (!value || typeof value !== 'object') return false; if (typeof Node === 'function' && Node) return value instanceof Node; return typeof value.nodeType === 'number' && typeof value.nodeName === 'string'; } catch(_e){ return false; } }
@@ -911,7 +909,7 @@ function buildProbeScript(): any {
 			function send(u,meta){ try { parent.postMessage({ type:'creative-click', url: typeof u==='string'?u:'', meta: meta||{}}, '*'); summary.clickUrl = String(u||''); } catch(e2){} }
 			function globalClickTag(){ try { if(typeof window.clickTag==='string') return window.clickTag; if(typeof window.clickTAG==='string') return window.clickTAG; return ''; } catch(e){ return ''; } }
 		document.addEventListener('click', function(ev){ try { if(!ev.isTrusted) return; var t=ev.target; var url=''; while(t && t!==document.body){ if(t.tagName && t.tagName.toUpperCase()==='A' && t.href) { url = t.getAttribute('href')||t.href; break;} t=t.parentElement; } if(!url){ url = globalClickTag(); } if(url) { ev.preventDefault(); send(url, { source:'user' }); } } catch(e2){} }, true);
-		var oo = window.open; window.open = function(u){ try{ send(typeof u==='string'?u: globalClickTag(), { source:'window.open' }); } catch(e2){} return null; };
+		var oo = window.open; window.open = function(u){ try{ summary.clickUrl = String(typeof u==='string'?u: globalClickTag()); } catch(e2){} return null; };
 			// Hook Enabler exit APIs if present (GWD/Studio creatives)
 			function hookEnabler(){
 				try {
