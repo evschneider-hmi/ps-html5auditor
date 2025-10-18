@@ -434,6 +434,7 @@ export const ExtendedPreview: React.FC<{ maxBodyHeight?: number }> = ({
               background: '#ffffff',
               width: iframeWidth,
               height: iframeHeight,
+              overflow: 'hidden',
             }}
           >
             <iframe
@@ -613,8 +614,6 @@ export const ExtendedPreview: React.FC<{ maxBodyHeight?: number }> = ({
                     style={{
                       margin: 0,
                       paddingLeft: 18,
-                      maxHeight: 180,
-                      overflow: 'auto',
                       fontFamily: 'monospace',
                     }}
                   >
@@ -650,8 +649,6 @@ export const ExtendedPreview: React.FC<{ maxBodyHeight?: number }> = ({
         <div
           style={{
             position: 'relative',
-            maxHeight: maxBodyHeight ?? 720,
-            overflow: 'auto',
             border: '1px solid rgba(148,163,184,0.28)',
             borderRadius: 12,
           }}
@@ -698,8 +695,6 @@ export const ExtendedPreview: React.FC<{ maxBodyHeight?: number }> = ({
         <div
           style={{
             position: 'relative',
-            maxHeight: maxBodyHeight ?? 720,
-            overflow: 'auto',
             border: '1px solid rgba(148,163,184,0.28)',
             borderRadius: 12,
             padding: 16,
@@ -770,8 +765,6 @@ export const ExtendedPreview: React.FC<{ maxBodyHeight?: number }> = ({
         <div
           style={{
             position: 'relative',
-            maxHeight: maxBodyHeight ?? 720,
-            overflow: 'auto',
             border: '1px solid rgba(148,163,184,0.28)',
             borderRadius: 12,
           }}

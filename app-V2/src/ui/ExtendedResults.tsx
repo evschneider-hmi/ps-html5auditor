@@ -1606,7 +1606,7 @@ const SplitChecksAndPreview: React.FC = () => {
         {/* Preview Pane */}
 
         <div
-          style={{ width: rightW, minWidth: 320, overflow: 'visible' }}
+          style={{ width: rightW, minWidth: 320, overflow: 'hidden' }}
           className="right"
         >
           <div ref={rightTitleRef} className="title">
