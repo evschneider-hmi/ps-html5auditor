@@ -125,9 +125,56 @@ export function buildProfileOutput(bundle: ZipBundle, result: BundleResult, sett
   // iframe-safe: detect references to window.top/parent.document
   const iframeUnsafe = /\bwindow\.(top|parent)\b/.test(textAll) || /\bparent\.(document|frames)\b/.test(textAll) || /\btop\.(document|frames)\b/.test(textAll);
   cm360.push({ id: 'iframe-safe', status: iframeUnsafe ? 'FAIL':'PASS', message: iframeUnsafe ? 'References to window.top/parent detected' : 'No cross-frame DOM reliance detected' });
-  // clicktag: ensure present (fallback to PASS message if found)
+  
+  // clicktag: enhanced check with hardcoded URL detection
   const hasClickTag = /\b(clicktag|clickTag|clickTAG)\b/i.test(textAll);
-  cm360.push({ id: 'clicktag', status: hasClickTag ? 'PASS':'FAIL', message: hasClickTag ? 'clickTag present':'clickTag not detected' });
+  const clickTagAssignMatch = textAll.match(/\b(clicktag|clickTag|clickTAG)\s*=\s*["']([^"']+)["']/i);
+  const hasClickTagUsage = /window\.open\s*\(\s*clickTag/i.test(textAll) || 
+                           /location\.href\s*=\s*clickTag/i.test(textAll) ||
+                           /location\.assign\s*\(\s*clickTag/i.test(textAll) ||
+                           /location\.replace\s*\(\s*clickTag/i.test(textAll);
+  const hasHardcodedUrls = /window\.open\s*\(\s*["']https?:\/\//i.test(textAll) ||
+                           /location\.href\s*=\s*["']https?:\/\//i.test(textAll) ||
+                           /location\.assign\s*\(\s*["']https?:\/\//i.test(textAll) ||
+                           /location\.replace\s*\(\s*["']https?:\/\//i.test(textAll) ||
+                           /<a[^>]+href=["']https?:\/\//i.test(textAll);
+  
+  let clickTagStatus: CheckStatus = 'FAIL';
+  let clickTagMessage = 'clickTag not detected';
+  
+  if (hasClickTag && hasClickTagUsage && !hasHardcodedUrls) {
+    // Case 1: clickTag present AND used for redirect (PASS)
+    clickTagStatus = 'PASS';
+    clickTagMessage = 'clickTag detected and used for redirect';
+    if (clickTagAssignMatch && clickTagAssignMatch[2]) {
+      const url = clickTagAssignMatch[2];
+      const displayUrl = url.length > 50 ? url.slice(0, 50) + '...' : url;
+      clickTagMessage += `; URL temporarily set to "${displayUrl}"`;
+    }
+  } else if (hasClickTag && !hasClickTagUsage && hasHardcodedUrls) {
+    // Case 2: clickTag present but NOT used (hardcoded URL instead)
+    clickTagStatus = 'FAIL';
+    clickTagMessage = 'clickTag detected but not used for redirect; hardcoded URLs found';
+  } else if (hasClickTag && hasClickTagUsage && hasHardcodedUrls) {
+    // Case 3: Mixed usage
+    clickTagStatus = 'FAIL';
+    clickTagMessage = 'clickTag used but also has hardcoded URLs';
+  } else if (!hasClickTag && hasHardcodedUrls) {
+    // Case 4: No clickTag but has hardcoded URLs
+    clickTagStatus = 'FAIL';
+    clickTagMessage = 'clickTag not detected; hardcoded URLs found';
+  } else if (!hasClickTag && !hasHardcodedUrls) {
+    // Case 5: No clickTag and no redirect mechanism
+    clickTagStatus = 'FAIL';
+    clickTagMessage = 'clickTag not detected; no redirect mechanism found';
+  } else {
+    // Case 6: clickTag present but not used at all
+    clickTagStatus = 'FAIL';
+    clickTagMessage = 'clickTag detected but not used';
+  }
+  
+  cm360.push({ id: 'clicktag', status: clickTagStatus, message: clickTagMessage });
+  
   // no-webstorage
   cm360.push({ id: 'no-webstorage', status: usesStorage.length ? 'FAIL':'PASS', message: usesStorage.length ? `Uses storage APIs: ${usesStorage.join(', ')}` : 'No storage API usage detected' });
   // https-only: from existing checks; derive from references
@@ -186,7 +233,6 @@ export function buildProfileOutput(bundle: ZipBundle, result: BundleResult, sett
     'orphanAssets': 'orphaned-assets',
     'packaging': 'bad-filenames', // not a perfect map; kept for parity placeholder
     'gwdEnvironment': 'gwd-env-check',
-    'hardcodedClickUrl': 'hardcoded-click',
   };
   for (const f of result.findings || []) {
     const mapped = legacyMap[f.id];

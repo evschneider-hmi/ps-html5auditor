@@ -670,8 +670,6 @@ const TITLE_OVERRIDES: Record<string, string> = {
 
   'gwd-env-check': 'GWD Environment Check',
 
-  'hardcoded-click': 'Hard-coded Clickthrough',
-
   // CM360 hard (extended)
 
   'pkg-format': 'Packaging Format',
@@ -2635,7 +2633,7 @@ const DESCRIPTIONS: Record<string, string> = {
   systemArtifacts:
     'OS metadata (Thumbs.db, .DS_Store) / __MACOSX entries.\n\nWhy it matters: scanning tools flag these as contamination and block uploads.\n\nNote: surfaced within the “Allowed File Types & Artifacts” priority check.',
 
-  hardcodedClickUrl:
+hardcodedClickUrl:
     'Hard-coded absolute clickthrough URL(s) in code/markup.\n\nWhy it matters: bypassing macros removes tracking and causes trafficking rejections.',
 
   // Extended checks (parity)
@@ -2776,9 +2774,6 @@ const DESCRIPTIONS: Record<string, string> = {
 
   'gwd-env-check':
     'Detects Google Web Designer environment artifacts.\n\nWhy it matters: leftover environment code can conflict with host pages.',
-
-  'hardcoded-click':
-    'Hard-coded clickthrough detected (bypasses clickTag).\n\nWhy it matters: breaks exit tracking and trafficking rules.',
 };
 
 const HelpIcon: React.FC<{
@@ -3065,9 +3060,6 @@ const SPEC_TEXT: Record<string, string> = {
 
   'gwd-env-check':
     'CM360: Ensure creatives built in Google Web Designer were created using the correct environment.',
-
-  'hardcoded-click':
-    'CM360: Ensure no hard coded click tags are present.',
 
   // meta-ad-size advisory removed (primaryAsset enforces presence)
 

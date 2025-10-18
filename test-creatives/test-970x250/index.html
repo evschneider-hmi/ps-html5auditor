@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="ad.size" content="width=970,height=250">
+  <title>Test 970x250</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      width: 970px;
+      height: 250px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+    #ad-container {
+      width: 970px;
+      height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      color: white;
+      text-align: center;
+    }
+    h1 {
+      font-size: 48px;
+      margin: 0 0 20px 0;
+    }
+    p {
+      font-size: 24px;
+      margin: 0;
+    }
+    #clickArea {
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id="ad-container">
+    <div id="clickArea" onclick="handleClick()">
+      <h1>Test Creative 970×250</h1>
+      <p>Click anywhere to test clickTag</p>
+    </div>
+  </div>
+  
+  <script>
+    var clickTag = "https://www.example.com";
+    
+    function handleClick() {
+      window.open(clickTag, '_blank');
+    }
+  </script>
+</body>
+</html>

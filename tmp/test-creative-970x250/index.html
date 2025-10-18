@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="ad.size" content="width=970,height=250">
+  <title>Test Creative 970x250</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      width: 970px;
+      height: 250px;
+    }
+    .container {
+      width: 970px;
+      height: 250px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+    h1 {
+      color: white;
+      font-size: 48px;
+      margin: 0;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    p {
+      color: white;
+      font-size: 24px;
+      margin: 10px 0 0 0;
+    }
+    .extra-content {
+      width: 1500px;
+      height: 800px;
+      background: red;
+      position: absolute;
+      top: 300px;
+      left: 1000px;
+      color: white;
+      padding: 20px;
+      font-size: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Test Creative 970x250</h1>
+    <p>This creative has extra content outside the viewport that should NOT show scrollbars</p>
+  </div>
+  <div class="extra-content">
+    This is intentionally placed outside the viewport at (1000px, 300px) with size 1500x800.
+    If you can see scrollbars, the overflow:hidden fix is not working!
+    This should be completely hidden from view.
+  </div>
+</body>
+</html>

@@ -25,7 +25,6 @@ export const PRIORITY_ORDER: ReadonlyArray<string> = [
   'iframe-safe',
   'no-webstorage',
   'gwd-env-check',
-  'hardcoded-click',
   'bad-filenames',
   'syntaxErrors',
   'creativeRendered',
