@@ -148,10 +148,14 @@ export function buildProfileOutput(bundle: ZipBundle, result: BundleResult, sett
     clickTagMessage = 'clickTag detected and used for redirect';
     if (clickTagAssignMatch && clickTagAssignMatch[2]) {
       const url = clickTagAssignMatch[2].trim();
+      console.log('[CLICKTAG DEBUG] clickTagAssignMatch[2]:', clickTagAssignMatch[2]);
+      console.log('[CLICKTAG DEBUG] url after trim:', url);
+      console.log('[CLICKTAG DEBUG] url check:', url && url !== '');
       // Only add the URL bullet if the URL is not empty
       if (url && url !== '') {
         const displayUrl = url.length > 50 ? url.slice(0, 50) + '...' : url;
         clickTagMessage += `; URL temporarily set to "${displayUrl}"`;
+        console.log('[CLICKTAG DEBUG] Final message:', clickTagMessage);
       }
     }
   } else if (hasClickTag && !hasClickTagUsage && hasHardcodedUrls) {
