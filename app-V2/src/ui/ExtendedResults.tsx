@@ -94,6 +94,7 @@ export const ExtendedResults: React.FC = () => {
   const [processing, setProcessing] = useState<boolean>(false);
   const runToken = useRef(0);
   const recheckTimers = useRef<NodeJS.Timeout[]>([]);
+  const fallbackTimer = useRef<NodeJS.Timeout | null>(null);
   const trackingInitialized = useRef(false);
 
   // Listen for tracking-update messages from iframes
@@ -114,6 +115,12 @@ export const ExtendedResults: React.FC = () => {
         const incoming = data.animationTracking;
         if (current !== 'detected' && current !== 'error') {
           summary.animationTracking = incoming;
+          // If animation tracking completed, cancel the fallback timer
+          if (incoming !== 'pending' && fallbackTimer.current) {
+            clearTimeout(fallbackTimer.current);
+            fallbackTimer.current = null;
+            console.log('[ExtendedResults] Animation tracking completed, cancelled fallback timer');
+          }
         }
       }
       
@@ -411,6 +418,24 @@ export const ExtendedResults: React.FC = () => {
           }, delay);
           recheckTimers.current.push(timer);
         });
+        
+        // Fallback: If animation tracking is STILL pending after 15 seconds, force it to "none"
+        // This handles cases where the creative iframe's timeout doesn't fire (e.g., iframe reload)
+        // Only set this once, not on every recheck
+        if (!fallbackTimer.current) {
+          fallbackTimer.current = setTimeout(() => {
+            const summary = (window as any).__audit_last_summary || {};
+            if (summary.animationTracking === 'pending') {
+              console.log('[ExtendedResults] Animation tracking timeout - forcing to "none" after 15s');
+              summary.animationTracking = 'none';
+              fallbackTimer.current = null;
+              // Trigger one final recheck to update the UI (use current token)
+              void process();
+            } else {
+              fallbackTimer.current = null;
+            }
+          }, 15000);
+        }
       }
 
       // initialize selection if not set or stale
@@ -434,6 +459,10 @@ export const ExtendedResults: React.FC = () => {
       runToken.current++;
       recheckTimers.current.forEach(timer => clearTimeout(timer));
       recheckTimers.current = [];
+      if (fallbackTimer.current) {
+        clearTimeout(fallbackTimer.current);
+        fallbackTimer.current = null;
+      }
     };
   }, [bundles.length]);
 

@@ -398,24 +398,9 @@ function buildEnablerStubSource(): string {
 				dispatch(key);
 				return true;
 			},
-			exit: function(_name, url){
-				try {
-					var target = (typeof url === 'string' && url.length) ? url : fallbackClickTag();
-					window.open(target || 'about:blank');
-				} catch(_err) {}
-			},
-			exitOverride: function(_name, url){
-				try {
-					var target = (typeof url === 'string' && url.length) ? url : fallbackClickTag();
-					window.open(target || 'about:blank');
-				} catch(_err) {}
-			},
-			dynamicExit: function(_name, url){
-				try {
-					var target = (typeof url === 'string' && url.length) ? url : fallbackClickTag();
-					window.open(target || 'about:blank');
-				} catch(_err) {}
-			},
+			exit: function(_name, url){ /* Click tracking only - popup suppressed */ },
+			exitOverride: function(_name, url){ /* Click tracking only - popup suppressed */ },
+			dynamicExit: function(_name, url){ /* Click tracking only - popup suppressed */ },
 			getUrl: function(asset){ return lookupAsset(asset); },
 			loadScript: function(url, cb){
 				try {
@@ -925,8 +910,8 @@ function buildProbeScript(): any {
 		try {
 			function send(u,meta){ try { parent.postMessage({ type:'creative-click', url: typeof u==='string'?u:'', meta: meta||{}}, '*'); summary.clickUrl = String(u||''); } catch(e2){} }
 			function globalClickTag(){ try { if(typeof window.clickTag==='string') return window.clickTag; if(typeof window.clickTAG==='string') return window.clickTAG; return ''; } catch(e){ return ''; } }
-		document.addEventListener('click', function(ev){ try { var t=ev.target; var url=''; while(t && t!==document.body){ if(t.tagName && t.tagName.toUpperCase()==='A' && t.href) { url = t.getAttribute('href')||t.href; break;} t=t.parentElement; } if(!url){ url = globalClickTag(); } if(url) { ev.preventDefault(); send(url, { source:'user' }); } } catch(e2){} }, true);
-		var oo = window.open; window.open = function(u){ try{ send(typeof u==='string'?u: globalClickTag(), { source:'window.open' }); } catch(e2){} try { return oo.apply(this, arguments);} catch(e3){ return null; } };
+		document.addEventListener('click', function(ev){ try { if(!ev.isTrusted) return; var t=ev.target; var url=''; while(t && t!==document.body){ if(t.tagName && t.tagName.toUpperCase()==='A' && t.href) { url = t.getAttribute('href')||t.href; break;} t=t.parentElement; } if(!url){ url = globalClickTag(); } if(url) { ev.preventDefault(); send(url, { source:'user' }); } } catch(e2){} }, true);
+		var oo = window.open; window.open = function(u){ try{ send(typeof u==='string'?u: globalClickTag(), { source:'window.open' }); } catch(e2){} return null; };
 			// Hook Enabler exit APIs if present (GWD/Studio creatives)
 			function hookEnabler(){
 				try {
@@ -938,7 +923,7 @@ function buildProbeScript(): any {
 							var present = true; // Enabler.* implies a click exit is present
 							send(u||'', { source: source, name: String(name||''), present: present });
 							// Open provided URL or fall back to a blank window when not set
-							try { oo.call(window, (u && u.length) ? u : 'about:blank'); } catch(e){}
+							// Popup suppressed - just send message
 						} catch(e){}
 					}
 					if (typeof E.exit === 'function') {
@@ -994,9 +979,9 @@ function buildProbeScript(): any {
 						addEventListener: function(ev, cb){ (listeners[ev]=listeners[ev]||[]).push(cb); },
 						removeEventListener: function(ev, cb){ if (!listeners[ev]) return; listeners[ev] = listeners[ev].filter(function(fn){ return fn!==cb; }); },
 						dispatch: function(ev){ (listeners[ev]||[]).forEach(function(fn){ try{ fn(); }catch(e){} }); },
-						exit: function(name, url){ try { window.open(url || (window as any).clickTag || 'about:blank'); } catch(e){} },
-						exitOverride: function(name, url){ try { window.open(url || (window as any).clickTag || 'about:blank'); } catch(e){} },
-						dynamicExit: function(name, url){ try { window.open(url || (window as any).clickTag || 'about:blank'); } catch(e){} },
+						exit: function(name, url){ /* Click tracking only - popup suppressed */ },
+						exitOverride: function(name, url){ /* Click tracking only - popup suppressed */ },
+						dynamicExit: function(name, url){ /* Click tracking only - popup suppressed */ },
 						getUrl: function(asset){ return lookupAsset(asset); },
 						loadScript: function(u, cb){ try { var s=document.createElement('script'); s.src=lookupAsset(u); s.onload=function(){ if(cb) cb(); }; document.head.appendChild(s);} catch(e){} }
 					};
@@ -1095,7 +1080,7 @@ function buildProbeScript(): any {
 					var a = document.querySelector('a[href]');
 					if (a) { try { (a as any).dispatchEvent(new MouseEvent('click', { bubbles:true, cancelable:true })); } catch(e){} }
 					else if (document.body) { try { document.body.dispatchEvent(new MouseEvent('click', { bubbles:true, cancelable:true })); } catch(e){} }
-					else { try { var ct = globalClickTag(); if (ct) { try{ oo.call(window, ct); }catch(e){} } } catch(e){} }
+					else { /* Popup suppressed - click tracking only */ }
 				}
 			} catch(e){} });
 		} catch(e){}
@@ -1407,4 +1392,7 @@ function buildProbeScript(): any {
 	} catch(e) { try{ parent.postMessage({__audit_event:1, type:'error', message:String(e) }, '*'); } catch(e2){} } };
 	return src;
 }
+
+
+
 
