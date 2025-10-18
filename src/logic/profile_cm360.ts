@@ -147,9 +147,12 @@ export function buildProfileOutput(bundle: ZipBundle, result: BundleResult, sett
     clickTagStatus = 'PASS';
     clickTagMessage = 'clickTag detected and used for redirect';
     if (clickTagAssignMatch && clickTagAssignMatch[2]) {
-      const url = clickTagAssignMatch[2];
-      const displayUrl = url.length > 50 ? url.slice(0, 50) + '...' : url;
-      clickTagMessage += `; URL temporarily set to "${displayUrl}"`;
+      const url = clickTagAssignMatch[2].trim();
+      // Only add the URL bullet if the URL is not empty
+      if (url && url !== '') {
+        const displayUrl = url.length > 50 ? url.slice(0, 50) + '...' : url;
+        clickTagMessage += `; URL temporarily set to "${displayUrl}"`;
+      }
     }
   } else if (hasClickTag && !hasClickTagUsage && hasHardcodedUrls) {
     // Case 2: clickTag present but NOT used (hardcoded URL instead)

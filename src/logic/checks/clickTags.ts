@@ -26,11 +26,15 @@ export function checkClickTags(bundle: ZipBundle, result: BundleResult, settings
     severity = 'PASS';
     messages.push('clickTag detected and used for redirect');
     
-    // Show the temporarily assigned URL
+    // Only show the temporarily assigned URL if there's actually a non-empty URL
     if (clickTagAssignments.length > 0) {
       const assignment = clickTagAssignments[0];
-      const displayUrl = assignment.url.length > 50 ? assignment.url.slice(0, 50) + '...' : assignment.url;
-      messages.push(`URL temporarily set to "${displayUrl}"`);
+      const url = assignment.url.trim();
+      // Only add the URL bullet if the URL is not empty
+      if (url && url !== '') {
+        const displayUrl = url.length > 50 ? url.slice(0, 50) + '...' : url;
+        messages.push(`URL temporarily set to "${displayUrl}"`);
+      }
     }
     
     // Add offenders for debugging/reference
