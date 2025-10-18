@@ -444,12 +444,14 @@ export const ExtendedPreview: React.FC<{ maxBodyHeight?: number }> = ({
               sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-top-navigation-by-user-activation"
               srcDoc={html}
               onLoad={sendEntries}
+              scrolling="no"
               style={{
                 width: '100%',
                 height: '100%',
                 border: 'none',
                 display: 'block',
                 background: '#ffffff',
+                overflow: 'hidden',
               }}
             />
             {loading && (
