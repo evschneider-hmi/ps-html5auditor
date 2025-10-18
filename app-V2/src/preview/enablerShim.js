@@ -38,7 +38,8 @@
         },
         set(next) {
           value = typeof next === 'string' ? next : '';
-          if (value) reportClick(value, { source: 'clickTag' });
+          // Don't automatically send creative-click when clickTag is set
+          // Only send when user actually clicks
         },
       });
     } catch {
@@ -47,7 +48,7 @@
         window.clickTag = value;
       } catch {}
     }
-    if (value) reportClick(value, { source: 'clickTag' });
+    // Don't automatically send creative-click on initial value
   };
 
   const attachAnchorTracking = () => {
@@ -56,6 +57,8 @@
       document.addEventListener(
         'click',
         (event) => {
+          // Only track real user clicks, not programmatic ones
+          if (!event || !event.isTrusted) return;
           const target = event?.target;
           if (!target) return;
           const el = (typeof target.closest === 'function'
