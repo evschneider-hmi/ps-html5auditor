@@ -34,9 +34,11 @@ export const getEnhancedProbeScript = (): string => {
   // Communication with parent
   function post(msg) {
     try {
-      parent.postMessage(Object.assign({ __audit_event: 1 }, msg), '*');
+      // Note: Individual event messages are for logging only
+      // The main summary data is sent via periodic flush()
+      console.log('[Enhanced Probe] Event:', msg.type, msg);
     } catch(e) {
-      console.error('[Enhanced Probe] Failed to post message:', e);
+      console.error('[Enhanced Probe] Failed to log event:', e);
     }
   }
   
@@ -512,9 +514,8 @@ export const getEnhancedProbeScript = (): string => {
   function flush() {
     try {
       parent.postMessage({
-        __audit_event: 1,
-        type: 'summary',
-        summary: summary
+        type: 'tracking-update',
+        data: summary
       }, '*');
       
       try {
