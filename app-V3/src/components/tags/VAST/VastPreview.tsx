@@ -643,7 +643,7 @@ export function VastPreview({ entry }: VastPreviewProps) {
                           impression: { label: 'Impression', tooltip: 'VAST impression tracking pixel' },
                           creativeView: { label: 'Impression', tooltip: 'VAST impression tracking pixel' },
                           click: { label: 'Click', tooltip: 'User clicked on the video ad' },
-                          start: { label: 'Start', tooltip: 'Video playback started' },
+                          start: { label: 'Impression', tooltip: 'Video playback started' },
                           firstQuartile: { label: 'First Quartile (25%)', tooltip: 'Video reached 25% completion' },
                           midpoint: { label: 'Midpoint (50%)', tooltip: 'Video reached 50% completion' },
                           thirdQuartile: { label: 'Third Quartile (75%)', tooltip: 'Video reached 75% completion' },
