@@ -549,13 +549,13 @@ export function VastPreview({ entry }: VastPreviewProps) {
                               });
                             }}
                           >
-                            <td style={{ ...td, textAlign: 'center', fontSize: 14 }}>
+                            <td style={{ ...td, textAlign: 'center', fontSize: 16 }}>
                               <span style={{ 
                                 display: 'inline-block',
                                 transition: 'transform 0.2s',
                                 transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
                               }}>
-                                ▶
+                                ›
                               </span>
                             </td>
                             <td style={td}>{g.vendor}</td>
