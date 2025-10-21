@@ -115,23 +115,68 @@ If Playwright MCP testing reveals issues:
 4. **Re-test** until the test passes
 5. **Only then** proceed to the next step
 
-### Commit Message Format
+### Git Workflow: ONE Commit Per Complete Feature
 
-All commits should now include testing confirmation:
+**CRITICAL**: Only commit ONCE per completed, tested feature. Do NOT commit after every small change.
 
+**Correct workflow**:
+1. Implement entire feature (all files, all changes)
+2. Build and verify compilation
+3. Test with Playwright MCP
+4. Fix any issues
+5. Re-test until perfect
+6. **THEN commit ONCE** with complete summary
+
+**WRONG workflow** ❌:
+- Commit after adding import
+- Commit after adding function
+- Commit after fixing bug
+- Commit after updating docs
+- (This creates 4+ commits for one feature!)
+
+**Example of ONE proper commit**:
 ```
 feat: Add DiagnosticsPanel component
 
+Integration changes:
 - Created DiagnosticsPanel.tsx with animation metrics
-- Integrated with PreviewPanel
+- Integrated with PreviewPanel (line 9, 328-337, 488-504)
 - Added real-time duration updates
+- Fixed handleRefresh bug
 
 Tested via Playwright MCP:
 - Uploaded Teresa 160x600 creative
 - Verified animation duration displays (35.2s)
 - Confirmed all diagnostic metrics populate
 - Screenshot: .playwright-mcp/diagnostics-panel-working.png
+
+Build time: 14.56s (no regression)
 ```
+
+**When to commit**:
+- ✅ After completing entire feature + testing
+- ✅ After completing entire phase + verification
+- ✅ After fixing critical bug + re-testing
+- ❌ NOT after every file change
+- ❌ NOT after every build
+- ❌ NOT after updating progress docs (bundle with feature commit)
+
+### User Approval Protocol
+
+**When to ask for approval before committing**:
+- ✅ First time working on a new codebase
+- ✅ Major architectural changes
+- ✅ Breaking changes
+- ✅ If user explicitly says "ask before committing"
+
+**When approval is NOT needed** (auto-commit after testing):
+- ✅ User said "proceed," "continue," "move forward"
+- ✅ Following established patterns in the codebase
+- ✅ Implementing from explicit user request
+- ✅ Fixing bugs discovered during implementation
+- ✅ Adding features from agreed-upon plan
+
+**Default behavior**: Auto-commit after thorough testing UNLESS user preference indicates otherwise.
 
 ---
 
@@ -170,10 +215,22 @@ The key addition: **"Testing rigorously" now explicitly means using Playwright M
 
 ## Summary
 
-**Old behavior**: Code  Commit  Move on
-**New behavior**: Code  Build  **Playwright MCP Test**  Fix if needed  **Re-test**  Commit  Move on
+**Old behavior** ❌: Code → Commit → Code → Commit → Code → Commit (too many commits!)
+**New behavior** ✅: Code entire feature → Build → **Playwright MCP Test** → Fix → Re-test → **ONE Commit** → Move on
 
-This ensures every change is verified in the actual running application before proceeding, preventing accumulation of untested code and reducing debugging time later.
+**Key principles**:
+1. **Batch all related changes into ONE commit**
+2. Test thoroughly before committing
+3. Only commit when feature is 100% complete and verified
+4. Progress docs can be committed separately OR bundled with feature
+5. Aim for 1-3 commits per request, not 5-10
+
+This ensures:
+- Clean git history
+- Every commit represents a complete, tested feature
+- Easier to review changes
+- Easier to revert if needed
+- Reduces noise in git log
 
 ---
 
