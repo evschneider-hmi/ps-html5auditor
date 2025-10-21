@@ -357,10 +357,9 @@ export function VastPreview({ entry }: VastPreviewProps) {
   return (
     <div style={{ height: '100%', overflow: 'auto', padding: 16 }}>
       {/* Two-column layout: Video LEFT, Metrics RIGHT (like V2) */}
-      {vastData.mediaUrl && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          {/* LEFT COLUMN: Video Player */}
-          <div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        {/* LEFT COLUMN: Video Player */}
+        <div>
             {/* Info Section */}
             <div style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 6 }}>Info</div>
@@ -383,49 +382,65 @@ export function VastPreview({ entry }: VastPreviewProps) {
               </ul>
             </div>
             
-            <video
-              ref={videoRef}
-              src={vastData.mediaUrl}
-              controls
-              muted
-              playsInline
-              style={{
-                width: '100%',
-                border: '1px solid var(--border, #e5e7eb)',
-                borderRadius: 6,
-                cursor: vastData.clickThrough ? 'pointer' : 'default',
-              }}
-              onClick={handleVideoClick}
-              onCanPlay={() => {
-                try {
-                  videoRef.current?.play().catch(() => {});
-                } catch {}
-              }}
-              onLoadedMetadata={(e) => {
-                const v = e.currentTarget;
-                if (v.duration) setDuration(v.duration);
-              }}
-            />
-            
-            {vastData.clickThrough && (
-              <div style={{ marginTop: 6 }}>
-                <button
-                  type="button"
-                  className="btn primary"
-                  onClick={handleVideoClick}
+            {/* Video Player */}
+            {vastData.mediaUrl ? (
+              <>
+                <video
+                  ref={videoRef}
+                  src={vastData.mediaUrl}
+                  controls
+                  muted
+                  playsInline
                   style={{
-                    padding: '6px 12px',
-                    fontSize: 12,
+                    width: '100%',
+                    border: '1px solid var(--border, #e5e7eb)',
                     borderRadius: 6,
-                    border: 'none',
-                    background: 'var(--primary, #3b82f6)',
-                    color: '#fff',
-                    cursor: 'pointer',
-                    fontWeight: 600,
+                    cursor: vastData.clickThrough ? 'pointer' : 'default',
                   }}
-                >
-                  Open ClickThrough
-                </button>
+                  onClick={handleVideoClick}
+                  onCanPlay={() => {
+                    try {
+                      videoRef.current?.play().catch(() => {});
+                    } catch {}
+                  }}
+                  onLoadedMetadata={(e) => {
+                    const v = e.currentTarget;
+                    if (v.duration) setDuration(v.duration);
+                  }}
+                />
+                
+                {vastData.clickThrough && (
+                  <div style={{ marginTop: 6 }}>
+                    <button
+                      type="button"
+                      className="btn primary"
+                      onClick={handleVideoClick}
+                      style={{
+                        padding: '6px 12px',
+                        fontSize: 12,
+                        borderRadius: 6,
+                        border: 'none',
+                        background: 'var(--primary, #3b82f6)',
+                        color: '#fff',
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                      }}
+                    >
+                      Open ClickThrough
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div style={{
+                padding: 40,
+                textAlign: 'center',
+                border: '2px dashed var(--border, #e5e7eb)',
+                borderRadius: 6,
+                color: 'var(--text-secondary, #6b7280)',
+              }}>
+                <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>No Video Available</div>
+                <div style={{ fontSize: 12 }}>VAST XML parsed but no MediaFile URL found</div>
               </div>
             )}
           </div>
@@ -526,7 +541,6 @@ export function VastPreview({ entry }: VastPreviewProps) {
             </div>
           </div>
         </div>
-      )}
     </div>
   );
 }
