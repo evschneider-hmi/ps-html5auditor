@@ -4,6 +4,7 @@ import { parseExcelFile } from './excelParser';
 import { parseVastXml } from './vastParser';
 import { extractHost, extractVendorsFromTrackers } from './vendorUtils';
 import { VastDataTable } from './VastDataTable';
+import { VastPreview } from './VastPreview';
 
 export interface VastValidatorProps {
   initialFiles?: File[];
@@ -16,6 +17,7 @@ export const VastValidator: React.FC<VastValidatorProps> = ({ initialFiles }) =>
   const [info, setInfo] = useState<string[]>([]);
   const [showUrlModal, setShowUrlModal] = useState(false);
   const [urlInput, setUrlInput] = useState('');
+  const [selectedEntry, setSelectedEntry] = useState<VastEntry | null>(null);
 
   // Auto-process initialFiles when component mounts
   useEffect(() => {
@@ -169,8 +171,40 @@ export const VastValidator: React.FC<VastValidatorProps> = ({ initialFiles }) =>
         </div>
       )}
 
-      {/* Data Table */}
-      <VastDataTable entries={entries} onRemoveEntry={handleRemoveEntry} />
+      {/* Split-pane layout: Table on left, Preview on right */}
+      <div style={{ display: 'grid', gridTemplateColumns: selectedEntry ? '1fr 1fr' : '1fr', gap: 16 }}>
+        {/* Data Table */}
+        <VastDataTable
+          entries={entries}
+          onRemoveEntry={handleRemoveEntry}
+          onRowClick={setSelectedEntry}
+          selectedEntryId={selectedEntry?.id}
+        />
+
+        {/* Preview Panel */}
+        {selectedEntry && (
+          <div style={{ position: 'sticky', top: 20, alignSelf: 'flex-start' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Preview</h3>
+              <button
+                onClick={() => setSelectedEntry(null)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  fontSize: 20,
+                  cursor: 'pointer',
+                  color: 'var(--text-secondary, #666)',
+                  padding: 4,
+                }}
+                title="Close preview"
+              >
+                ×
+              </button>
+            </div>
+            <VastPreview entry={selectedEntry} />
+          </div>
+        )}
+      </div>
 
       {/* Alerts and Info */}
       {(alerts.length > 0 || info.length > 0) && (

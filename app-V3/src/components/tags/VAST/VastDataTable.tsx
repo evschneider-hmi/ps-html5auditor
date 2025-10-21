@@ -4,9 +4,11 @@ import { VastEntry } from './types';
 interface VastDataTableProps {
   entries: VastEntry[];
   onRemoveEntry: (id: string) => void;
+  onRowClick?: (entry: VastEntry) => void;
+  selectedEntryId?: string | null;
 }
 
-export const VastDataTable: React.FC<VastDataTableProps> = ({ entries, onRemoveEntry }) => {
+export const VastDataTable: React.FC<VastDataTableProps> = ({ entries, onRemoveEntry, onRowClick, selectedEntryId }) => {
   if (entries.length === 0) return null;
 
   return (
@@ -42,9 +44,13 @@ export const VastDataTable: React.FC<VastDataTableProps> = ({ entries, onRemoveE
             {entries.map((entry, index) => (
               <tr
                 key={entry.id}
+                onClick={() => onRowClick?.(entry)}
                 style={{
                   borderBottom: '1px solid var(--border, #e5e5e5)',
-                  background: index % 2 === 0 ? 'transparent' : 'var(--surface-1, #fafafa)',
+                  background: selectedEntryId === entry.id
+                    ? 'rgba(79, 70, 229, 0.1)'
+                    : index % 2 === 0 ? 'transparent' : 'var(--surface-1, #fafafa)',
+                  cursor: onRowClick ? 'pointer' : 'default',
                 }}
               >
                 <td style={{ padding: '8px 12px' }}>
