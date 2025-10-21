@@ -1,0 +1,92 @@
+Innovid
+
+Impression (init)
+https://s.innovid.com/1x1.gif?project_hash=1i5iur&client_id=8570&video_id=1599139&channel_id=5086106&publisher_id=6961&placement_tag_id=0&project_state=2&r=1761073661014&placement_hash=24u1im&device_id=&action=init&ivc_exdata=ivc_bundle%3D%255BINSERT_MACRO%255D%26dipn%3Ddeviceid%26deviceid%3D%2525%2525ADVERTISING_IDENTIFIER_PLAIN%2525%2525%26ivc_deviceid_raw%3D%2525%2525ADVERTISING_IDENTIFIER_PLAIN%2525%2525%26iv_geo_dma%3D501%26iv_geo_country%3DUS%26iv_geo_city%3DNew+York%26iv_geo_state%3DNY%26iv_geo_zip%3D10013%26iv_geo_lat%3D40.7157%26iv_geo_lon%3D-74.0
+
+Impression (placement UUID)
+https://rtr.innovid.com/placement/24u1im/uuid?cb=dc0a313f-4078-92d7-7802-a12c915a2d7c&ivc_exdata=ivc_bundle%3D%255BINSERT_MACRO%255D%26dipn%3Ddeviceid%26deviceid%3D%2525%2525ADVERTISING_IDENTIFIER_PLAIN%2525%2525%26ivc_deviceid_raw%3D%2525%2525ADVERTISING_IDENTIFIER_PLAIN%2525%2525%26iv_geo_dma%3D501%26iv_geo_country%3DUS%26iv_geo_city%3DNew+York%26iv_geo_state%3DNY%26iv_geo_zip%3D10013%26iv_geo_lat%3D40.7157%26iv_geo_lon%3D-74.0
+
+Start
+https://s.innovid.com/1x1.gif?project_hash=1i5iur&client_id=8570&video_id=1599139&channel_id=5086106&publisher_id=6961&placement_tag_id=0&project_state=2&r=1761073661014&placement_hash=24u1im&device_id=&action=play&ivc_exdata=ivc_bundle%3D%255BINSERT_MACRO%255D%26dipn%3Ddeviceid%26deviceid%3D%2525%2525ADVERTISING_IDENTIFIER_PLAIN%2525%2525%26ivc_deviceid_raw%3D%2525%2525ADVERTISING_IDENTIFIER_PLAIN%2525%2525%26iv_geo_dma%3D501%26iv_geo_country%3DUS%26iv_geo_city%3DNew+York%26iv_geo_state%3DNY%26iv_geo_zip%3D10013%26iv_geo_lat%3D40.7157%26iv_geo_lon%3D-74.0
+
+First Quartile
+https://s.innovid.com/1x1.gif?project_hash=1i5iur&client_id=8570&video_id=1599139&channel_id=5086106&publisher_id=6961&placement_tag_id=0&project_state=2&r=1761073661014&placement_hash=24u1im&device_id=&action=vpoint&event_id=percent&event_value=25&ivc_exdata=...
+
+Midpoint
+https://s.innovid.com/1x1.gif?...&event_value=50...
+
+Third Quartile
+https://s.innovid.com/1x1.gif?...&event_value=75...
+
+Complete
+https://s.innovid.com/1x1.gif?...&event_value=100...
+
+ClickThrough (redirect to final click URL)
+https://dts.innovid.com/clktru/action/vclk?project_hash=1i5iur&client_id=8570&video_id=1599139&channel_id=5086106&publisher_id=6961&placement_tag_id=0&project_state=2&r=1761073661014&placement_hash=24u1im&device_id=&action=clktru&click=https%3A%2F%2Fad.doubleclick.net%2Fddm%2Ftrackclk%2FN2083112.4298745CASTIRONMEDIA%2FB34277893.431004409%3Bdc_trk_aid%3D624801774%3Bdc_trk_cid%3D243269396%3Bdc_lat%3D%3Bdc_rdid%3D%3Btag_for_child_directed_treatment%3D%3Btfua%3D%3Bltd%3D%3Bdc_tdv%3D1
+
+CM360
+
+Start / Impression (DoubleClick impression pixel)
+https://ad.doubleclick.net/ddm/trackimp/N2083112.4298745CASTIRONMEDIA/B34277893.431004409;dc_trk_aid=624801774;dc_trk_cid=243269396;ord=1761073661014;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;ltd=;dc_tdv=1?
+
+Click (click URL — encoded in Innovid ClickThrough)
+
+Encoded (as found in VAST ClickThrough click= param):
+https%3A%2F%2Fad.doubleclick.net%2Fddm%2Ftrackclk%2FN2083112.4298745CASTIRONMEDIA%2FB34277893.431004409%3Bdc_trk_aid%3D624801774%3Bdc_trk_cid%3D243269396%3Bdc_lat%3D%3Bdc_rdid%3D%3Btag_for_child_directed_treatment%3D%3Btfua%3D%3Bltd%3D%3Bdc_tdv%3D1%20%5D
+
+Decoded (readable):
+https://ad.doubleclick.net/ddm/trackclk/N2083112.4298745CASTIRONMEDIA/B34277893.431004409;dc_trk_aid=624801774;dc_trk_cid=243269396;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;ltd=;dc_tdv=1
+
+DoubleVerify
+
+Main Tracking / Telemetry (visit & event pixels)
+https://tpsc-video-ue.doubleverify.com/visit.jpg?vstevt=2&tagtype=video&ctx=3800571&cmp=228197&sid=6961&plc=5096298&advid=8570&adsrv=118&crt=1ied6n&dup=360be77f-e485-4854-af67-7d6a1794e36b&dvtagver=dvot_2025-10-01_0880e4f4e_68da884&vad=30000&vmftype=video&dvp_infra=cloudflare&zjsver=1.1.2&vstvr=2.0-i&dvp_media=1&dvp_psf=0&app=[APPBUNDLE]&essd=[SERVERSIDE]
+
+Event pixels (quartiles, start, pause, resume, mute, unmute, complete)
+
+First Quartile: https://tpsc-video-ue.doubleverify.com/event.png?vstevt=4&dup=360be77f-e485-4854-af67-7d6a1794e36b
+
+Midpoint: https://tpsc-video-ue.doubleverify.com/event.png?vstevt=6&dup=360be77f-e485-4854-af67-7d6a1794e36b&vst_q2_tmsp=[TIMESTAMP]
+
+Third Quartile: https://tpsc-video-ue.doubleverify.com/event.png?vstevt=8&dup=360be77f-e485-4854-af67-7d6a1794e36b
+
+Complete: https://tpsc-video-ue.doubleverify.com/event.png?vstevt=10&dup=360be77f-e485-4854-af67-7d6a1794e36b&vst_comp_plyrstat=[PLAYERSTATE]
+
+Start: https://tpsc-video-ue.doubleverify.com/event.png?vstevt=0&dup=360be77f-e485-4854-af67-7d6a1794e36b&vst_start_tmsp=[TIMESTAMP]
+
+Pause: https://tpsc-video-ue.doubleverify.com/event.png?vstevt=22&dup=360be77f-e485-4854-af67-7d6a1794e36b&vst_pause_tmsp=[TIMESTAMP]
+
+Resume: https://tpsc-video-ue.doubleverify.com/event.png?vstevt=23&dup=360be77f-e485-4854-af67-7d6a1794e36b
+
+Mute: https://tpsc-video-ue.doubleverify.com/event.png?vstevt=30&dup=360be77f-e485-4854-af67-7d6a1794e36b&vst_mute_tmsp=[TIMESTAMP]
+
+Unmute: https://tpsc-video-ue.doubleverify.com/event.png?vstevt=31&dup=360be77f-e485-4854-af67-7d6a1794e36b&vst_unmute_tmsp=[TIMESTAMP]
+
+DoubleVerify (error handling)
+
+Error (designated error-reporting redirector / router)
+https://vtrk.dv.tech/?tid=ZW-12000000&ec=vast&cid=360be77f-e485-4854-af67-7d6a1794e36b&el=https%3A%2F%2Frtr.innovid.com%2Fr1.68e9624243fa82.00706210%3Bcb%3D%5Btimestamp%5D%3Fivc_bundle%3D%5BINSERT_MACRO%5D%26dipn%3Ddeviceid%26deviceid%3D%25%25ADVERTISING_IDENTIFIER_PLAIN%25%25%26ivc_deviceid_raw%3D%25%25ADVERTISING_IDENTIFIER_PLAIN%25%25&ea=error&cm114=1&cm115=41&cd101=vast&cd102=src&cd111=inline&cd112=unwrapped&cd116=vast%3Ainnovid.com%3A41%3A1%3A0&cd117=2&cd170=118&cd183=dvot_2025-10-01_0880e4f4e_68da884&cd188=EWR&cd189=cloudflare&cd190=3800571&cd191=228197&cd192=6961&cd193=5096298&cd194=8570&cd196=1&cd141=%5BAPIFRAMEWORKS%5D&cd142=%5BTIMESTAMP%5D&cd10=[ERRORCODE]&cd143=[TIMESTAMP]&z=[CACHEBUSTING]&redir=https://tpsc-video-ue.doubleverify.com/visit.jpg?...&verr=[ERRORCODE]
+
+Impression / wrapped impression (via dv.tech)
+https://vtrk.dv.tech/?tid=ZW-12000000&ec=vast&cid=360be77f-e485-4854-af67-7d6a1794e36b&el=...&ea=impression&...&z=[CACHEBUSTING]
+
+Complete (via dv.tech)
+https://vtrk.dv.tech/?tid=ZW-12000000&ec=vast&cid=360be77f-e485-4854-af67-7d6a1794e36b&...&ea=complete...
+
+DISQO
+
+Start (pixel / measurement)
+https://track.activemetering.com/pixel/v1/all/pixel.gif?cid=167ed578-fc9f-4614-a4d9-40103657bfda&creativeId=1599139&deviceId=%25%25ADVERTISING_IDENTIFIER_PLAIN%25%25&placementId=5096298&siteId=6961&campaignId=228197&adId=24u1im
+
+Verification / OMID (DoubleVerify)
+
+OMID JavaScript resource (verification library)
+https://cdn.doubleverify.com/dvtp_src.js#vendor_key=doubleverify.com-omid
+
+Verification Not Executed (event pixel)
+https://tpsc-video-ue.doubleverify.com/visit.jpg?verr=[REASON]&tagtype=video&ctx=818052&cmp=DV064005&sid=123&plc=verificationRejection&advid=818053&crt=omidVerificationNotExecuted&dvtagver=dvot_2025-10-01_0880e4f4e_68da884&vasttrkevt=impression&dvp_ctx=3800571&dvp_cmp=228197&dvp_sid=6961&dvp_plc=5096298&dvp_advid=8570&dvp_crt=1ied6n&adsrv=118&dup=360be77f-e485-4854-af67-7d6a1794e36b&vmftype=video&dvp_infra=cloudflare&zjsver=1.1.2&vstvr=2.0-i&dvp_media=1&dvp_psf=0
+
+Media asset
+
+Video file
+https://s-static.innovid.com/media/encoded/10_25/1120074/130_source_228197_1344129.mp4

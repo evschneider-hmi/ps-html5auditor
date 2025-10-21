@@ -26,6 +26,24 @@ interface GroupedTracker {
   urls: string[];
 }
 
+interface PartnerTrackers {
+  vendor: string;
+  host: string;
+  hasImpression: boolean;
+  hasClick: boolean;
+  impressionCount: number;
+  impressionFired: number;
+  clickCount: number;
+  clickFired: number;
+  otherEvents: {
+    event: string;
+    count: number;
+    firedCount: number;
+    urls: string[];
+  }[];
+  totalEvents: number;
+}
+
 const Step: React.FC<{ label: string; done?: boolean; hint?: string }> = ({ label, done, hint }) => (
   <div
     title={hint}
@@ -281,45 +299,74 @@ export function VastPreview({ entry }: VastPreviewProps) {
     [requestStart, impressionTime]
   );
   
-  // Group trackers by vendor
-  const groupedTrackers = useMemo(() => {
-    const groups: GroupedTracker[] = [];
-    const vendorMap = new Map<string, Map<string, { count: number; firedCount: number; urls: string[] }>>();
+  // Group trackers by partner with high-level impression/click summary
+  const partnerTrackers = useMemo(() => {
+    const partners: PartnerTrackers[] = [];
+    const vendorMap = new Map<string, {
+      host: string;
+      events: Map<string, { count: number; firedCount: number; urls: string[] }>;
+    }>();
     
+    // Group all trackers by vendor
     Object.entries(trackers).forEach(([event, trackerList]) => {
       trackerList.forEach(t => {
         const { vendor, host } = classifyVendor(t.url);
         
         if (!vendorMap.has(vendor)) {
-          vendorMap.set(vendor, new Map());
+          vendorMap.set(vendor, {
+            host,
+            events: new Map(),
+          });
         }
         
-        const eventMap = vendorMap.get(vendor)!;
-        if (!eventMap.has(event)) {
-          eventMap.set(event, { count: 0, firedCount: 0, urls: [] });
+        const vendorData = vendorMap.get(vendor)!;
+        if (!vendorData.events.has(event)) {
+          vendorData.events.set(event, { count: 0, firedCount: 0, urls: [] });
         }
         
-        const stats = eventMap.get(event)!;
+        const stats = vendorData.events.get(event)!;
         stats.count++;
         stats.urls.push(t.url);
         if (t.firedAt) stats.firedCount++;
       });
     });
     
-    vendorMap.forEach((eventMap, vendor) => {
-      eventMap.forEach((stats, event) => {
-        groups.push({
-          vendor,
-          host: '',
-          event,
-          count: stats.count,
-          firedCount: stats.firedCount,
-          urls: stats.urls,
-        });
+    // Build partner summary with impression/click highlighted
+    vendorMap.forEach((vendorData, vendor) => {
+      const impression = vendorData.events.get('impression') || vendorData.events.get('creativeView');
+      const click = vendorData.events.get('click');
+      
+      const otherEvents: PartnerTrackers['otherEvents'] = [];
+      let totalEvents = 0;
+      
+      vendorData.events.forEach((stats, event) => {
+        totalEvents++;
+        // Skip impression/creativeView/click from "other" since we show them separately
+        if (event !== 'impression' && event !== 'creativeView' && event !== 'click') {
+          otherEvents.push({
+            event,
+            count: stats.count,
+            firedCount: stats.firedCount,
+            urls: stats.urls,
+          });
+        }
+      });
+      
+      partners.push({
+        vendor,
+        host: vendorData.host,
+        hasImpression: !!impression,
+        hasClick: !!click,
+        impressionCount: impression?.count || 0,
+        impressionFired: impression?.firedCount || 0,
+        clickCount: click?.count || 0,
+        clickFired: click?.firedCount || 0,
+        otherEvents: otherEvents.sort((a, b) => a.event.localeCompare(b.event)),
+        totalEvents,
       });
     });
     
-    return groups.sort((a, b) => a.vendor.localeCompare(b.vendor) || a.event.localeCompare(b.event));
+    return partners.sort((a, b) => a.vendor.localeCompare(b.vendor));
   }, [trackers]);
   
   const handleVideoClick = () => {
@@ -524,53 +571,105 @@ export function VastPreview({ entry }: VastPreviewProps) {
                 <thead>
                   <tr style={{ background: 'var(--table-head, #f9fafb)' }}>
                     <th style={{ ...th, width: 30 }}></th>
-                    <th style={th}>Vendor</th>
-                    <th style={th}>Event</th>
-                    <th style={th}>Status</th>
+                    <th style={th}>Partner</th>
+                    <th style={th}>Impression</th>
+                    <th style={th}>Click</th>
+                    <th style={th}>Other Events</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {groupedTrackers.length === 0 ? (
+                  {partnerTrackers.length === 0 ? (
                     <tr>
-                      <td style={td} colSpan={4}>(none)</td>
+                      <td style={td} colSpan={5}>(none)</td>
                     </tr>
                   ) : (
-                    groupedTrackers.map((g, i) => {
-                      const trackerId = `${g.vendor}-${g.event}`;
-                      const isExpanded = expandedTrackers.has(trackerId);
+                    partnerTrackers.map((partner, i) => {
+                      const partnerId = partner.vendor;
+                      const isExpanded = expandedTrackers.has(partnerId);
+                      const hasOtherEvents = partner.otherEvents.length > 0;
+                      
+                      // Helper to get event label with clarifications
+                      const getEventLabel = (event: string): { label: string; tooltip?: string } => {
+                        // Innovid-specific clarifications
+                        if (partner.vendor === 'Innovid') {
+                          if (event === 'impression' || event === 'creativeView') {
+                            // Check if this is actually the 'init' call
+                            const url = partner.otherEvents.find(e => e.event === event)?.urls[0] || '';
+                            if (url.includes('action=init')) {
+                              return {
+                                label: 'Initialization',
+                                tooltip: 'Innovid initialization pixel - fires when VAST is loaded',
+                              };
+                            }
+                            if (url.includes('/uuid')) {
+                              return {
+                                label: 'UUID Assignment',
+                                tooltip: 'Innovid UUID assignment - assigns unique ID for this impression',
+                              };
+                            }
+                          }
+                        }
+                        
+                        // Default event labels
+                        const labels: Record<string, { label: string; tooltip?: string }> = {
+                          start: { label: 'Start', tooltip: 'Video playback started' },
+                          firstQuartile: { label: 'First Quartile (25%)', tooltip: 'Video reached 25% completion' },
+                          midpoint: { label: 'Midpoint (50%)', tooltip: 'Video reached 50% completion' },
+                          thirdQuartile: { label: 'Third Quartile (75%)', tooltip: 'Video reached 75% completion' },
+                          complete: { label: 'Complete', tooltip: 'Video playback completed' },
+                          pause: { label: 'Pause', tooltip: 'Video was paused' },
+                          resume: { label: 'Resume', tooltip: 'Video playback resumed' },
+                          mute: { label: 'Mute', tooltip: 'Video was muted' },
+                          unmute: { label: 'Unmute', tooltip: 'Video was unmuted' },
+                          error: { 
+                            label: 'Error', 
+                            tooltip: 'Error tracker - fires only if VAST playback fails (not an active error)' 
+                          },
+                          verificationNotExecuted: { 
+                            label: 'Verification Not Executed', 
+                            tooltip: 'OMID verification script failed to execute' 
+                          },
+                        };
+                        
+                        return labels[event] || { label: event };
+                      };
                       
                       return (
                         <React.Fragment key={i}>
+                          {/* Partner Summary Row */}
                           <tr 
                             style={{ 
                               borderTop: '1px solid var(--border, #e5e7eb)',
-                              cursor: 'pointer',
+                              cursor: hasOtherEvents ? 'pointer' : 'default',
                               background: isExpanded ? 'var(--surface-2, #f9fafb)' : 'transparent',
                             }}
                             onClick={() => {
+                              if (!hasOtherEvents) return;
                               setExpandedTrackers(prev => {
                                 const next = new Set(prev);
-                                if (next.has(trackerId)) {
-                                  next.delete(trackerId);
+                                if (next.has(partnerId)) {
+                                  next.delete(partnerId);
                                 } else {
-                                  next.add(trackerId);
+                                  next.add(partnerId);
                                 }
                                 return next;
                               });
                             }}
                           >
                             <td style={{ ...td, textAlign: 'center', fontSize: 16 }}>
-                              <span style={{ 
-                                display: 'inline-block',
-                                transition: 'transform 0.2s',
-                                transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
-                              }}>
-                                ›
-                              </span>
+                              {hasOtherEvents && (
+                                <span style={{ 
+                                  display: 'inline-block',
+                                  transition: 'transform 0.2s',
+                                  transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                                }}>
+                                  ›
+                                </span>
+                              )}
                             </td>
-                            <td style={td}>
-                              {g.vendor}
-                              {g.vendor === 'vtrk.dv.tech' && (
+                            <td style={{ ...td, fontWeight: 600 }}>
+                              {partner.vendor}
+                              {partner.vendor === 'vtrk.dv.tech' && (
                                 <span 
                                   title="DoubleVerify event router - used for error handling and redirect-based tracking"
                                   style={{ 
@@ -585,53 +684,137 @@ export function VastPreview({ entry }: VastPreviewProps) {
                               )}
                             </td>
                             <td style={td}>
-                              {g.event}
-                              {g.event === 'error' && (
-                                <span 
-                                  title="Error tracker - fires only if VAST playback fails (not an active error)"
-                                  style={{ 
-                                    marginLeft: 4, 
-                                    fontSize: 10, 
-                                    color: 'var(--warning, #f59e0b)',
-                                    cursor: 'help'
-                                  }}
-                                >
-                                  ⚠
-                                </span>
+                              {partner.hasImpression ? (
+                                partner.impressionFired > 0 ? (
+                                  <span style={{ color: 'var(--ok, #22c55e)', fontWeight: 600 }}>
+                                    ✓ {partner.impressionFired}/{partner.impressionCount}
+                                  </span>
+                                ) : (
+                                  <span style={{ color: 'var(--text-secondary, #6b7280)' }}>
+                                    {partner.impressionCount}
+                                  </span>
+                                )
+                              ) : (
+                                <span style={{ color: 'var(--text-secondary, #999)' }}>—</span>
                               )}
                             </td>
                             <td style={td}>
-                              {g.firedCount > 0 ? (
-                                <span style={{ color: 'var(--ok, #22c55e)', fontWeight: 600 }}>
-                                  {g.firedCount}/{g.count} fired
+                              {partner.hasClick ? (
+                                partner.clickFired > 0 ? (
+                                  <span style={{ color: 'var(--ok, #22c55e)', fontWeight: 600 }}>
+                                    ✓ {partner.clickFired}/{partner.clickCount}
+                                  </span>
+                                ) : (
+                                  <span style={{ color: 'var(--text-secondary, #6b7280)' }}>
+                                    {partner.clickCount}
+                                  </span>
+                                )
+                              ) : (
+                                <span style={{ color: 'var(--text-secondary, #999)' }}>—</span>
+                              )}
+                            </td>
+                            <td style={td}>
+                              {hasOtherEvents ? (
+                                <span style={{ color: 'var(--text-secondary, #6b7280)' }}>
+                                  {partner.otherEvents.length} more
+                                  <span style={{ marginLeft: 4, fontSize: 10 }}>›</span>
                                 </span>
                               ) : (
-                                <span style={{ color: 'var(--text-secondary, #6b7280)' }}>
-                                  {g.count} pending
-                                </span>
+                                <span style={{ color: 'var(--text-secondary, #999)' }}>—</span>
                               )}
                             </td>
                           </tr>
-                          {isExpanded && g.urls.map((url, urlIdx) => (
-                            <tr key={`${i}-url-${urlIdx}`} style={{ background: 'var(--surface-2, #f9fafb)' }}>
-                              <td style={td}></td>
-                              <td style={{ ...td, paddingLeft: 20 }} colSpan={3}>
-                                <div style={{ 
-                                  fontFamily: 'monospace', 
-                                  fontSize: 11,
-                                  wordBreak: 'break-all',
-                                  color: 'var(--text-secondary, #6b7280)',
-                                  padding: '4px 8px',
-                                  background: 'var(--surface, #fff)',
-                                  border: '1px solid var(--border, #e5e7eb)',
-                                  borderRadius: 4,
-                                  margin: '4px 0',
-                                }}>
-                                  {url}
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
+                          
+                          {/* Expanded Event Details */}
+                          {isExpanded && partner.otherEvents.map((evt, evtIdx) => {
+                            const eventId = `${partnerId}-${evt.event}`;
+                            const isEventExpanded = expandedTrackers.has(eventId);
+                            const { label, tooltip } = getEventLabel(evt.event);
+                            
+                            return (
+                              <React.Fragment key={evtIdx}>
+                                <tr 
+                                  style={{ 
+                                    background: 'var(--surface-2, #f9fafb)',
+                                    cursor: 'pointer',
+                                  }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setExpandedTrackers(prev => {
+                                      const next = new Set(prev);
+                                      if (next.has(eventId)) {
+                                        next.delete(eventId);
+                                      } else {
+                                        next.add(eventId);
+                                      }
+                                      return next;
+                                    });
+                                  }}
+                                >
+                                  <td style={{ ...td, textAlign: 'center', fontSize: 14, paddingLeft: 20 }}>
+                                    <span style={{ 
+                                      display: 'inline-block',
+                                      transition: 'transform 0.2s',
+                                      transform: isEventExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                                    }}>
+                                      ›
+                                    </span>
+                                  </td>
+                                  <td 
+                                    style={{ ...td, paddingLeft: 24 }} 
+                                    colSpan={3}
+                                    title={tooltip}
+                                  >
+                                    {label}
+                                    {evt.event === 'error' && (
+                                      <span 
+                                        style={{ 
+                                          marginLeft: 4, 
+                                          fontSize: 10, 
+                                          color: 'var(--warning, #f59e0b)',
+                                        }}
+                                      >
+                                        ⚠
+                                      </span>
+                                    )}
+                                  </td>
+                                  <td style={td}>
+                                    {evt.firedCount > 0 ? (
+                                      <span style={{ color: 'var(--ok, #22c55e)', fontWeight: 600 }}>
+                                        ✓ {evt.firedCount}/{evt.count}
+                                      </span>
+                                    ) : (
+                                      <span style={{ color: 'var(--text-secondary, #6b7280)' }}>
+                                        {evt.count}
+                                      </span>
+                                    )}
+                                  </td>
+                                </tr>
+                                
+                                {/* Pixel URLs */}
+                                {isEventExpanded && evt.urls.map((url, urlIdx) => (
+                                  <tr key={`${evtIdx}-url-${urlIdx}`} style={{ background: 'var(--surface, #fff)' }}>
+                                    <td style={td}></td>
+                                    <td style={{ ...td, paddingLeft: 40 }} colSpan={4}>
+                                      <div style={{ 
+                                        fontFamily: 'monospace', 
+                                        fontSize: 11,
+                                        wordBreak: 'break-all',
+                                        color: 'var(--text-secondary, #6b7280)',
+                                        padding: '6px 8px',
+                                        background: 'var(--surface-2, #f9fafb)',
+                                        border: '1px solid var(--border, #e5e7eb)',
+                                        borderRadius: 4,
+                                        margin: '2px 0',
+                                      }}>
+                                        {url}
+                                      </div>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </React.Fragment>
+                            );
+                          })}
                         </React.Fragment>
                       );
                     })
