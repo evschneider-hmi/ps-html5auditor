@@ -21,7 +21,7 @@ export function TagFileHandler({ files, tagType, onClose }: TagFileHandlerProps)
   const renderValidator = () => {
     switch (tagType) {
       case 'vast':
-        return <VastValidator />;
+        return <VastValidator initialFiles={files} />;
       
       case 'js-display':
         return (

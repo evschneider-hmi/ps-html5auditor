@@ -1,17 +1,31 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { VastEntry } from './types';
 import { parseExcelFile } from './excelParser';
 import { parseVastXml } from './vastParser';
 import { extractHost, extractVendorsFromTrackers } from './vendorUtils';
 import { VastDataTable } from './VastDataTable';
 
-export const VastValidator: React.FC = () => {
+export interface VastValidatorProps {
+  initialFiles?: File[];
+}
+
+export const VastValidator: React.FC<VastValidatorProps> = ({ initialFiles }) => {
   const [entries, setEntries] = useState<VastEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [alerts, setAlerts] = useState<string[]>([]);
   const [info, setInfo] = useState<string[]>([]);
   const [showUrlModal, setShowUrlModal] = useState(false);
   const [urlInput, setUrlInput] = useState('');
+
+  // Auto-process initialFiles when component mounts
+  useEffect(() => {
+    if (initialFiles && initialFiles.length > 0) {
+      // Create a proper FileList-like object
+      const dt = new DataTransfer();
+      initialFiles.forEach(file => dt.items.add(file));
+      handleFileUpload(dt.files);
+    }
+  }, []); // Run once on mount
 
   const handleFileUpload = useCallback(async (files: FileList | null) => {
     if (!files || files.length === 0) return;

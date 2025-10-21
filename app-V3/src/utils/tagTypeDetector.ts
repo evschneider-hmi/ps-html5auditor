@@ -49,15 +49,16 @@ export async function detectTagType(file: File): Promise<TagType> {
     ];
 
     const pixelIndicators = [
-      '<img', 'tracking pixel', '1x1', '11',
-      'impression pixel', 'impression tracker',
-      'width="1"', 'height="1"'
+      '<img', 'tracking pixel', 'impression pixel', 'impression tracker',
+      'width="1"', 'height="1"', 'pixel tag', 'tracking tag'
     ];
 
     // Count matches for each type
     const vastScore = vastIndicators.filter(i => allText.includes(i)).length;
     const jsScore = jsDisplayIndicators.filter(i => allText.includes(i)).length;
     const pixelScore = pixelIndicators.filter(i => allText.includes(i)).length;
+
+    console.log(`[tagTypeDetector] Scores for "${file.name}": VAST=${vastScore}, JS=${jsScore}, Pixel=${pixelScore}`);
 
     // Return the highest scoring type (with VAST as default if tied)
     if (vastScore >= jsScore && vastScore >= pixelScore && vastScore > 0) {
