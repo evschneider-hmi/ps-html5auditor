@@ -356,33 +356,33 @@ export function VastPreview({ entry }: VastPreviewProps) {
   
   return (
     <div style={{ height: '100%', overflow: 'auto', padding: 16 }}>
-      {/* Info Section */}
-      <div style={{ marginBottom: 16 }}>
-        <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 6 }}>Info</div>
-        <ul style={{
-          fontFamily: 'monospace',
-          fontSize: 11,
-          background: 'var(--surface-2, #f3f4f6)',
-          color: 'var(--text)',
-          padding: 6,
-          borderRadius: 6,
-          border: '1px solid var(--border, #e5e7eb)',
-          margin: 0,
-          listStyle: 'none',
-        }}>
-          <li>VAST Version: {vastData.version}</li>
-          <li>Duration: {vastData.duration}</li>
-          <li>Vendor: {vastData.vendor}</li>
-          <li>Impressions: {vastData.impressionTrackers.length}</li>
-          <li>Click Trackers: {vastData.clickTrackers.length}</li>
-        </ul>
-      </div>
-      
-      {/* Video Preview & Progress */}
+      {/* Two-column layout: Video LEFT, Metrics RIGHT (like V2) */}
       {vastData.mediaUrl && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-          {/* Video Player */}
+          {/* LEFT COLUMN: Video Player */}
           <div>
+            {/* Info Section */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 6 }}>Info</div>
+              <ul style={{
+                fontFamily: 'monospace',
+                fontSize: 11,
+                background: 'var(--surface-2, #f3f4f6)',
+                color: 'var(--text)',
+                padding: 6,
+                borderRadius: 6,
+                border: '1px solid var(--border, #e5e7eb)',
+                margin: 0,
+                listStyle: 'none',
+              }}>
+                <li>VAST Version: {vastData.version}</li>
+                <li>Duration: {vastData.duration}</li>
+                <li>Vendor: {vastData.vendor}</li>
+                <li>Impressions: {vastData.impressionTrackers.length}</li>
+                <li>Click Trackers: {vastData.clickTrackers.length}</li>
+              </ul>
+            </div>
+            
             <video
               ref={videoRef}
               src={vastData.mediaUrl}
@@ -430,13 +430,13 @@ export function VastPreview({ entry }: VastPreviewProps) {
             )}
           </div>
           
-          {/* Progress & Events */}
+          {/* RIGHT COLUMN: Metrics (Progress, Events, Trackers) */}
           <div>
             <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 6 }}>
               Progression
             </div>
             
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginBottom: 12 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6, marginBottom: 12 }}>
               <Step label="request" done={requestStart !== undefined} />
               <Step label="impression" done={impressionTime !== undefined} hint={responseMs ? `${responseMs} ms` : undefined} />
               <Step label="started" done={started} />
