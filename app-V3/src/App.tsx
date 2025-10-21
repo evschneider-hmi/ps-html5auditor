@@ -11,7 +11,8 @@ import type { Upload, ActiveTab, CreativeSubtype } from './types';
 import { ResultsTable } from './components/ResultsTable';
 import { PreviewPanel } from './components/preview/PreviewPanel';
 import { FindingsList } from './components/FindingsList';
-import { TagTestingPanel } from './components/tags';
+import { TagTestingPanel, TagFileHandler } from './components/tags';
+import { detectTagType, type TagType } from './utils/tagTypeDetector';
 
 import { BatchActions } from './components/BatchActions';
 import { downloadAllUploadsJson, downloadAllUploadsCsv } from './utils/export';
@@ -51,6 +52,11 @@ export default function App() {
 
   // Keyboard shortcuts help modal state
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
+
+  // Tag file handler modal state
+  const [tagFiles, setTagFiles] = useState<File[]>([]);
+  const [tagType, setTagType] = useState<TagType | null>(null);
+  const [showTagHandler, setShowTagHandler] = useState(false);
 
   const inputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -219,15 +225,52 @@ export default function App() {
   const handleFiles = async (files: FileList | null) => {
     if (!files || !files.length) return;
     
-    console.log(`[App] Adding ${files.length} file(s) to queue`);
+    console.log(`[App] Processing ${files.length} file(s)`);
     
     // Reset error state
     setLoading(true);
     setError(null);
     
-    // Add files to queue and start processing
-    uploadQueue.addFiles(files);
-    uploadQueue.start();
+    // Separate files by type
+    const creativeFiles: File[] = [];
+    const tagFiles: File[] = [];
+    
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const detectedType = await detectTagType(file);
+      
+      console.log(`[App] File "${file.name}" detected as: ${detectedType}`);
+      
+      if (detectedType === 'creative') {
+        creativeFiles.push(file);
+      } else if (detectedType === 'vast' || detectedType === 'js-display' || detectedType === '1x1-pixel') {
+        tagFiles.push(file);
+        
+        // Show tag handler modal with the first detected tag type
+        if (!showTagHandler) {
+          setTagType(detectedType);
+          setTagFiles([file]);
+          setShowTagHandler(true);
+        }
+      } else {
+        // Unknown type - default to creative processing
+        creativeFiles.push(file);
+      }
+    }
+    
+    // Process creative files through normal queue
+    if (creativeFiles.length > 0) {
+      console.log(`[App] Adding ${creativeFiles.length} creative file(s) to queue`);
+      uploadQueue.addFiles(creativeFiles);
+      uploadQueue.start();
+    }
+    
+    // Tag files are handled by the modal (already set above)
+    if (tagFiles.length > 0) {
+      console.log(`[App] Detected ${tagFiles.length} tag file(s) - opening validator`);
+    }
+    
+    setLoading(false);
   };
 
   const openFileDialog = () => {
@@ -662,6 +705,19 @@ export default function App() {
         isOpen={showShortcutsHelp}
         onClose={() => setShowShortcutsHelp(false)}
       />
+
+      {/* Tag File Handler Modal */}
+      {showTagHandler && tagType && (
+        <TagFileHandler
+          files={tagFiles}
+          tagType={tagType}
+          onClose={() => {
+            setShowTagHandler(false);
+            setTagFiles([]);
+            setTagType(null);
+          }}
+        />
+      )}
 
       {/* Split Pane Preview - Only show for selected upload */}
       {selectedUploadId && (() => {
