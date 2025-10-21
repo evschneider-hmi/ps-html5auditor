@@ -507,10 +507,10 @@ export default function App() {
               marginBottom: 6,
             }}
           >
-            Drop ZIP here or click anywhere to choose files
+            Drop creatives or tags here to upload
           </div>
           <div style={{ fontSize: 12, opacity: 0.8 }}>
-            Accept: .zip (multiple allowed)
+            Accept: .zip, .xlsx, .xlsm, .xls, .csv (multiple allowed)
           </div>
           <div style={{ marginTop: 10 }}>
             <div
@@ -530,13 +530,13 @@ export default function App() {
                 userSelect: 'none',
               }}
             >
-              Upload ZIP files
+              Upload files
             </div>
           </div>
           <input
             ref={inputRef}
             type="file"
-            accept=".zip"
+            accept=".zip,.xlsx,.xlsm,.xls,.csv"
             multiple={true}
             onClick={(e) => {
               try {
@@ -568,34 +568,6 @@ export default function App() {
           )}
         </div>
       </div>
-
-      {/* Tag Testing Access Button (outside upload zone to avoid conflicts) */}
-      <div style={{ marginTop: 20, textAlign: 'center' }}>
-        <button
-          onClick={() => setActiveTab('tags')}
-          style={{
-            padding: '12px 24px',
-            fontSize: '14px',
-            fontWeight: 600,
-            background: activeTab === 'tags' ? 'var(--primary)' : 'transparent',
-            color: activeTab === 'tags' ? 'white' : 'var(--primary)',
-            border: '2px solid var(--primary)',
-            borderRadius: '8px',
-            cursor: 'pointer',
-          }}
-        >
-          {activeTab === 'tags' ? '✓ Tag Testing Mode Active' : 'Test Ad Tags (VAST, JS, Pixel)'}
-        </button>
-      </div>
-
-      {/* Tag Testing Panel (shown when tag testing mode is active) */}
-      {activeTab === 'tags' && (
-        <div style={{ marginTop: 20, padding: 20, border: '2px solid var(--primary)', borderRadius: 8 }}>
-          <TagTestingPanel />
-        </div>
-      )}
-
-
 
       {/* Results Section with Split Pane */}
       {uploads.length > 0 && (
