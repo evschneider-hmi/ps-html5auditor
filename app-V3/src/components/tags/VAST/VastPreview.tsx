@@ -112,6 +112,11 @@ export function VastPreview({ entry }: VastPreviewProps) {
         // Build tracker structure from parsed VAST data
         const trackersMap: Record<string, Tracker[]> = {};
         
+        // Error trackers
+        if (data.errorTrackers.length > 0) {
+          trackersMap.error = data.errorTrackers.map(url => ({ url }));
+        }
+        
         // Impression trackers
         if (data.impressionTrackers.length > 0) {
           trackersMap.impression = data.impressionTrackers.map(url => ({ url }));
@@ -383,8 +388,13 @@ export function VastPreview({ entry }: VastPreviewProps) {
                 <li>VAST Version: {vastData.version}</li>
                 <li>Duration: {vastData.duration}</li>
                 <li>Vendor: {vastData.vendor}</li>
+                {vastData.adId && <li>Ad ID: {vastData.adId}</li>}
+                {vastData.creativeId && <li>Creative ID: {vastData.creativeId}</li>}
+                {vastData.adTitle && <li>Ad Title: {vastData.adTitle}</li>}
+                {vastData.adSystem && <li>Ad System: {vastData.adSystem}</li>}
                 <li>Impressions: {vastData.impressionTrackers.length}</li>
                 <li>Click Trackers: {vastData.clickTrackers.length}</li>
+                {vastData.errorTrackers.length > 0 && <li>Error Trackers: {vastData.errorTrackers.length}</li>}
               </ul>
             </div>
             
@@ -558,8 +568,38 @@ export function VastPreview({ entry }: VastPreviewProps) {
                                 ›
                               </span>
                             </td>
-                            <td style={td}>{g.vendor}</td>
-                            <td style={td}>{g.event}</td>
+                            <td style={td}>
+                              {g.vendor}
+                              {g.vendor === 'vtrk.dv.tech' && (
+                                <span 
+                                  title="DoubleVerify event router - used for error handling and redirect-based tracking"
+                                  style={{ 
+                                    marginLeft: 4, 
+                                    fontSize: 10, 
+                                    color: 'var(--text-secondary, #999)',
+                                    cursor: 'help'
+                                  }}
+                                >
+                                  ⓘ
+                                </span>
+                              )}
+                            </td>
+                            <td style={td}>
+                              {g.event}
+                              {g.event === 'error' && (
+                                <span 
+                                  title="Error tracker - fires only if VAST playback fails (not an active error)"
+                                  style={{ 
+                                    marginLeft: 4, 
+                                    fontSize: 10, 
+                                    color: 'var(--warning, #f59e0b)',
+                                    cursor: 'help'
+                                  }}
+                                >
+                                  ⚠
+                                </span>
+                              )}
+                            </td>
                             <td style={td}>
                               {g.firedCount > 0 ? (
                                 <span style={{ color: 'var(--ok, #22c55e)', fontWeight: 600 }}>

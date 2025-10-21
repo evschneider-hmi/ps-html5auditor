@@ -12,9 +12,14 @@ export function classifyVendor(url: string): { vendor: string; host: string } {
       return { vendor: 'Innovid', host };
     }
     
-    // DoubleVerify
+    // DoubleVerify (main tracking endpoints)
     if (host.includes('doubleverify.com') || host.includes('doubleclickbygoogle.net')) {
       return { vendor: 'DoubleVerify', host };
+    }
+    
+    // DoubleVerify (vtrk - event router/error handling)
+    if (host.includes('dv.tech')) {
+      return { vendor: 'vtrk.dv.tech', host };
     }
     
     // Flashtalking

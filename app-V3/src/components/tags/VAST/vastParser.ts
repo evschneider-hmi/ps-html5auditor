@@ -20,8 +20,13 @@ export async function parseVastXml(xmlOrUrl: string): Promise<ParsedVastData> {
         clickThrough: '',
         impressionTrackers: [],
         clickTrackers: [],
+        errorTrackers: [],
         trackingEvents: {},
         vendor: '',
+        adId: '',
+        creativeId: '',
+        adTitle: '',
+        adSystem: '',
         warnings: [],
         errors: ['Failed to fetch VAST URL: ' + (error as Error).message],
       };
@@ -46,8 +51,13 @@ export async function parseVastXml(xmlOrUrl: string): Promise<ParsedVastData> {
       clickThrough: '',
       impressionTrackers: [],
       clickTrackers: [],
+      errorTrackers: [],
       trackingEvents: {},
       vendor: '',
+      adId: '',
+      creativeId: '',
+      adTitle: '',
+      adSystem: '',
       warnings,
       errors,
     };
@@ -56,6 +66,28 @@ export async function parseVastXml(xmlOrUrl: string): Promise<ParsedVastData> {
   // Extract VAST version
   const vastElement = xmlDoc.querySelector('VAST');
   const version = vastElement?.getAttribute('version') || '';
+
+  // Extract Ad ID
+  const adElement = xmlDoc.querySelector('Ad');
+  const adId = adElement?.getAttribute('id') || '';
+
+  // Extract Creative ID
+  const creativeElement = xmlDoc.querySelector('Creative');
+  const creativeId = creativeElement?.getAttribute('id') || '';
+
+  // Extract AdTitle
+  let adTitle = '';
+  const adTitleElement = xmlDoc.querySelector('AdTitle');
+  if (adTitleElement) {
+    adTitle = adTitleElement.textContent?.trim() || '';
+  }
+
+  // Extract AdSystem
+  let adSystem = '';
+  const adSystemElement = xmlDoc.querySelector('AdSystem');
+  if (adSystemElement) {
+    adSystem = adSystemElement.textContent?.trim() || '';
+  }
 
   // Extract duration
   let duration = '';
@@ -112,6 +144,14 @@ export async function parseVastXml(xmlOrUrl: string): Promise<ParsedVastData> {
     warnings.push('No impression trackers found');
   }
 
+  // Extract error trackers
+  const errorTrackers: string[] = [];
+  const errorElements = xmlDoc.querySelectorAll('Error');
+  errorElements.forEach(el => {
+    const url = el.textContent?.trim();
+    if (url) errorTrackers.push(url);
+  });
+
   // Extract click trackers
   const clickTrackers: string[] = [];
   const clickTrackingElements = xmlDoc.querySelectorAll('ClickTracking');
@@ -157,8 +197,13 @@ export async function parseVastXml(xmlOrUrl: string): Promise<ParsedVastData> {
     clickThrough,
     impressionTrackers,
     clickTrackers,
+    errorTrackers,
     trackingEvents,
     vendor: vendor || 'Unknown',
+    adId,
+    creativeId,
+    adTitle,
+    adSystem,
     warnings,
     errors,
   };

@@ -26,9 +26,14 @@ export interface ParsedVastData {
   clickThrough: string;
   impressionTrackers: string[];
   clickTrackers: string[];
+  errorTrackers: string[];
   // ALL VAST tracking events
   trackingEvents: Record<string, string[]>;
   vendor: string;
+  adId: string;
+  creativeId: string;
+  adTitle: string;
+  adSystem: string;
   warnings: string[];
   errors: string[];
 }
