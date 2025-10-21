@@ -833,26 +833,90 @@ export function VastPreview({ entry }: VastPreviewProps) {
                                 </tr>
                                 
                                 {/* Pixel URLs */}
-                                {isEventExpanded && evt.urls.map((url, urlIdx) => (
-                                  <tr key={`${evtIdx}-url-${urlIdx}`} style={{ background: 'var(--surface, #fff)' }}>
-                                    <td style={td}></td>
-                                    <td style={{ ...td, paddingLeft: 40 }} colSpan={2}>
-                                      <div style={{ 
-                                        fontFamily: 'monospace', 
-                                        fontSize: 11,
-                                        wordBreak: 'break-all',
-                                        color: 'var(--text-secondary, #6b7280)',
-                                        padding: '6px 8px',
-                                        background: 'var(--surface-2, #f9fafb)',
-                                        border: '1px solid var(--border, #e5e7eb)',
-                                        borderRadius: 4,
-                                        margin: '2px 0',
-                                      }}>
-                                        {url}
-                                      </div>
-                                    </td>
-                                  </tr>
-                                ))}
+                                {isEventExpanded && evt.urls.map((url, urlIdx) => {
+                                  // Detect wrapped/embedded URLs in parameters
+                                  const urlObj = (() => { try { return new URL(url); } catch { return null; } })();
+                                  const embeddedUrls: string[] = [];
+                                  
+                                  if (urlObj) {
+                                    // Check for common wrapper parameters that contain URLs
+                                    ['el', 'url', 'redirect', 'redir', 'r', 'destination', 'dest'].forEach(param => {
+                                      const value = urlObj.searchParams.get(param);
+                                      if (value) {
+                                        try {
+                                          // Try to decode and parse as URL
+                                          const decoded = decodeURIComponent(value);
+                                          if (decoded.startsWith('http://') || decoded.startsWith('https://')) {
+                                            embeddedUrls.push(decoded);
+                                          }
+                                        } catch {}
+                                      }
+                                    });
+                                  }
+                                  
+                                  return (
+                                    <React.Fragment key={`${evtIdx}-url-${urlIdx}`}>
+                                      <tr style={{ background: 'var(--surface, #fff)' }}>
+                                        <td style={td}></td>
+                                        <td style={{ ...td, paddingLeft: 40 }} colSpan={2}>
+                                          <div style={{ 
+                                            fontFamily: 'monospace', 
+                                            fontSize: 11,
+                                            wordBreak: 'break-all',
+                                            color: 'var(--text-secondary, #6b7280)',
+                                            padding: '6px 8px',
+                                            background: 'var(--surface-2, #f9fafb)',
+                                            border: '1px solid var(--border, #e5e7eb)',
+                                            borderRadius: 4,
+                                            margin: '2px 0',
+                                          }}>
+                                            {url}
+                                          </div>
+                                          
+                                          {/* Show embedded/wrapped URLs */}
+                                          {embeddedUrls.length > 0 && embeddedUrls.map((embUrl, embIdx) => {
+                                            const embHost = (() => { 
+                                              try { return new URL(embUrl).hostname; } 
+                                              catch { return ''; } 
+                                            })();
+                                            
+                                            return (
+                                              <div 
+                                                key={embIdx}
+                                                style={{
+                                                  marginTop: 6,
+                                                  paddingLeft: 12,
+                                                  borderLeft: '2px solid var(--warning, #f59e0b)',
+                                                  fontSize: 10,
+                                                }}
+                                                title="This URL is embedded in the wrapper's parameters and fires when the wrapper executes"
+                                              >
+                                                <div style={{ 
+                                                  fontWeight: 600, 
+                                                  color: 'var(--warning, #f59e0b)',
+                                                  marginBottom: 2,
+                                                }}>
+                                                  ↳ Wrapped: {embHost}
+                                                </div>
+                                                <div style={{
+                                                  fontFamily: 'monospace',
+                                                  color: 'var(--text-secondary, #6b7280)',
+                                                  wordBreak: 'break-all',
+                                                  padding: '4px 6px',
+                                                  background: 'var(--surface, #fff)',
+                                                  border: '1px dashed var(--warning, #f59e0b)',
+                                                  borderRadius: 4,
+                                                }}>
+                                                  {embUrl}
+                                                </div>
+                                              </div>
+                                            );
+                                          })}
+                                        </td>
+                                      </tr>
+                                    </React.Fragment>
+                                  );
+                                })}
                               </React.Fragment>
                             );
                           })}
