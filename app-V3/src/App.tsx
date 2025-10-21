@@ -11,6 +11,7 @@ import type { Upload, ActiveTab, CreativeSubtype } from './types';
 import { ResultsTable } from './components/ResultsTable';
 import { PreviewPanel } from './components/preview/PreviewPanel';
 import { FindingsList } from './components/FindingsList';
+import { TagTestingPanel } from './components/tags';
 
 import { BatchActions } from './components/BatchActions';
 import { downloadAllUploadsJson, downloadAllUploadsCsv } from './utils/export';
@@ -567,6 +568,32 @@ export default function App() {
           )}
         </div>
       </div>
+
+      {/* Tag Testing Access Button (outside upload zone to avoid conflicts) */}
+      <div style={{ marginTop: 20, textAlign: 'center' }}>
+        <button
+          onClick={() => setActiveTab('tags')}
+          style={{
+            padding: '12px 24px',
+            fontSize: '14px',
+            fontWeight: 600,
+            background: activeTab === 'tags' ? 'var(--primary)' : 'transparent',
+            color: activeTab === 'tags' ? 'white' : 'var(--primary)',
+            border: '2px solid var(--primary)',
+            borderRadius: '8px',
+            cursor: 'pointer',
+          }}
+        >
+          {activeTab === 'tags' ? '✓ Tag Testing Mode Active' : 'Test Ad Tags (VAST, JS, Pixel)'}
+        </button>
+      </div>
+
+      {/* Tag Testing Panel (shown when tag testing mode is active) */}
+      {activeTab === 'tags' && (
+        <div style={{ marginTop: 20, padding: 20, border: '2px solid var(--primary)', borderRadius: 8 }}>
+          <TagTestingPanel />
+        </div>
+      )}
 
 
 
