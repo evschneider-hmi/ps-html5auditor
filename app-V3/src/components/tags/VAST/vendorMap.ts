@@ -79,7 +79,7 @@ export function classifyVendor(url: string): { vendor: string; host: string } {
     
     // Disqo
     if (host.includes('activemetering.com')) {
-      return { vendor: 'Disqo', host };
+      return { vendor: 'DISQO', host };
     }
     
     // Phoenix

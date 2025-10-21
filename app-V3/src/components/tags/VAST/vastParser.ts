@@ -20,6 +20,7 @@ export async function parseVastXml(xmlOrUrl: string): Promise<ParsedVastData> {
         clickThrough: '',
         impressionTrackers: [],
         clickTrackers: [],
+        trackingEvents: {},
         vendor: '',
         warnings: [],
         errors: ['Failed to fetch VAST URL: ' + (error as Error).message],
@@ -45,6 +46,7 @@ export async function parseVastXml(xmlOrUrl: string): Promise<ParsedVastData> {
       clickThrough: '',
       impressionTrackers: [],
       clickTrackers: [],
+      trackingEvents: {},
       vendor: '',
       warnings,
       errors,
@@ -118,6 +120,20 @@ export async function parseVastXml(xmlOrUrl: string): Promise<ParsedVastData> {
     if (url) clickTrackers.push(url);
   });
 
+  // Extract ALL tracking events from <TrackingEvents>
+  const trackingEvents: Record<string, string[]> = {};
+  const trackingElements = xmlDoc.querySelectorAll('Tracking');
+  trackingElements.forEach(el => {
+    const eventType = el.getAttribute('event');
+    const url = el.textContent?.trim();
+    if (eventType && url) {
+      if (!trackingEvents[eventType]) {
+        trackingEvents[eventType] = [];
+      }
+      trackingEvents[eventType].push(url);
+    }
+  });
+
   // Detect vendor from URL or trackers
   let vendor = '';
   if (fetchedUrl) {
@@ -141,6 +157,7 @@ export async function parseVastXml(xmlOrUrl: string): Promise<ParsedVastData> {
     clickThrough,
     impressionTrackers,
     clickTrackers,
+    trackingEvents,
     vendor: vendor || 'Unknown',
     warnings,
     errors,

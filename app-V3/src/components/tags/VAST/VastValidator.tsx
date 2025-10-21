@@ -56,6 +56,12 @@ export const VastValidator: React.FC<VastValidatorProps> = ({ initialFiles }) =>
       await processVastUrls(newEntries);
       
       setEntries(prev => [...prev, ...newEntries]);
+      
+      // Auto-select first entry
+      if (newEntries.length > 0 && !selectedEntry) {
+        setSelectedEntry(newEntries[0]);
+      }
+      
       setLoading(false);
     };
 
@@ -171,8 +177,8 @@ export const VastValidator: React.FC<VastValidatorProps> = ({ initialFiles }) =>
         </div>
       )}
 
-      {/* Split-pane layout: Table on left, Preview on right */}
-      <div style={{ display: 'grid', gridTemplateColumns: selectedEntry ? '1fr 1fr' : '1fr', gap: 16 }}>
+      {/* Layout: Table, then Preview below */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {/* Data Table */}
         <VastDataTable
           entries={entries}
@@ -181,9 +187,14 @@ export const VastValidator: React.FC<VastValidatorProps> = ({ initialFiles }) =>
           selectedEntryId={selectedEntry?.id}
         />
 
-        {/* Preview Panel */}
+        {/* Preview Panel - appears below table when row is selected */}
         {selectedEntry && (
-          <div style={{ position: 'sticky', top: 20, alignSelf: 'flex-start' }}>
+          <div style={{ 
+            border: '1px solid var(--border, #e0e0e0)', 
+            borderRadius: 6,
+            padding: 16,
+            background: 'var(--surface, #fff)',
+          }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <h3 style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>Preview</h3>
               <button

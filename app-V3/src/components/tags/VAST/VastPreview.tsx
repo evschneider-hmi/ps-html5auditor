@@ -105,7 +105,7 @@ export function VastPreview({ entry }: VastPreviewProps) {
         
         setVastData(data);
         
-        // Build tracker structure
+        // Build tracker structure from parsed VAST data
         const trackersMap: Record<string, Tracker[]> = {};
         
         // Impression trackers
@@ -118,15 +118,15 @@ export function VastPreview({ entry }: VastPreviewProps) {
           trackersMap.click = data.clickTrackers.map(url => ({ url }));
         }
         
-        // Add common VAST events (will be populated from full VAST parse if available)
-        trackersMap.start = [];
-        trackersMap.firstQuartile = [];
-        trackersMap.midpoint = [];
-        trackersMap.thirdQuartile = [];
-        trackersMap.complete = [];
-        trackersMap.pause = [];
-        trackersMap.mute = [];
-        trackersMap.unmute = [];
+        // Add ALL tracking events from VAST
+        Object.entries(data.trackingEvents).forEach(([eventName, urls]) => {
+          trackersMap[eventName] = urls.map(url => ({ url }));
+        });
+        
+        // Also add creativeView if we have impressions
+        if (data.impressionTrackers.length > 0) {
+          trackersMap.creativeView = data.impressionTrackers.map(url => ({ url }));
+        }
         
         setTrackers(trackersMap);
         setLoading(false);
