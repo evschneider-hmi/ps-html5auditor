@@ -23,6 +23,7 @@ interface GroupedTracker {
   event: string;
   count: number;
   firedCount: number;
+  urls: string[];
 }
 
 const Step: React.FC<{ label: string; done?: boolean; hint?: string }> = ({ label, done, hint }) => (
@@ -84,6 +85,9 @@ export function VastPreview({ entry }: VastPreviewProps) {
   const [timeline, setTimeline] = useState<EventRow[]>([]);
   const [trackers, setTrackers] = useState<Record<string, Tracker[]>>({});
   const [duration, setDuration] = useState<number | undefined>(undefined);
+  
+  // Expandable tracker rows
+  const [expandedTrackers, setExpandedTrackers] = useState<Set<string>>(new Set());
   
   // Load VAST XML and parse
   useEffect(() => {
@@ -275,7 +279,7 @@ export function VastPreview({ entry }: VastPreviewProps) {
   // Group trackers by vendor
   const groupedTrackers = useMemo(() => {
     const groups: GroupedTracker[] = [];
-    const vendorMap = new Map<string, Map<string, { count: number; firedCount: number }>>();
+    const vendorMap = new Map<string, Map<string, { count: number; firedCount: number; urls: string[] }>>();
     
     Object.entries(trackers).forEach(([event, trackerList]) => {
       trackerList.forEach(t => {
@@ -287,11 +291,12 @@ export function VastPreview({ entry }: VastPreviewProps) {
         
         const eventMap = vendorMap.get(vendor)!;
         if (!eventMap.has(event)) {
-          eventMap.set(event, { count: 0, firedCount: 0 });
+          eventMap.set(event, { count: 0, firedCount: 0, urls: [] });
         }
         
         const stats = eventMap.get(event)!;
         stats.count++;
+        stats.urls.push(t.url);
         if (t.firedAt) stats.firedCount++;
       });
     });
@@ -304,6 +309,7 @@ export function VastPreview({ entry }: VastPreviewProps) {
           event,
           count: stats.count,
           firedCount: stats.firedCount,
+          urls: stats.urls,
         });
       });
     });
@@ -497,7 +503,7 @@ export function VastPreview({ entry }: VastPreviewProps) {
             
             <div style={{ fontSize: 12, fontWeight: 700, marginTop: 12 }}>Trackers</div>
             <div style={{
-              maxHeight: 200,
+              maxHeight: 400,
               overflow: 'auto',
               border: '1px solid var(--border, #e5e7eb)',
               borderRadius: 6,
@@ -507,6 +513,7 @@ export function VastPreview({ entry }: VastPreviewProps) {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                 <thead>
                   <tr style={{ background: 'var(--table-head, #f9fafb)' }}>
+                    <th style={{ ...th, width: 30 }}></th>
                     <th style={th}>Vendor</th>
                     <th style={th}>Event</th>
                     <th style={th}>Status</th>
@@ -515,26 +522,79 @@ export function VastPreview({ entry }: VastPreviewProps) {
                 <tbody>
                   {groupedTrackers.length === 0 ? (
                     <tr>
-                      <td style={td} colSpan={3}>(none)</td>
+                      <td style={td} colSpan={4}>(none)</td>
                     </tr>
                   ) : (
-                    groupedTrackers.map((g, i) => (
-                      <tr key={i} style={{ borderTop: '1px solid var(--border, #e5e7eb)' }}>
-                        <td style={td}>{g.vendor}</td>
-                        <td style={td}>{g.event}</td>
-                        <td style={td}>
-                          {g.firedCount > 0 ? (
-                            <span style={{ color: 'var(--ok, #22c55e)', fontWeight: 600 }}>
-                              {g.firedCount}/{g.count} fired
-                            </span>
-                          ) : (
-                            <span style={{ color: 'var(--text-secondary, #6b7280)' }}>
-                              {g.count} pending
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    ))
+                    groupedTrackers.map((g, i) => {
+                      const trackerId = `${g.vendor}-${g.event}`;
+                      const isExpanded = expandedTrackers.has(trackerId);
+                      
+                      return (
+                        <React.Fragment key={i}>
+                          <tr 
+                            style={{ 
+                              borderTop: '1px solid var(--border, #e5e7eb)',
+                              cursor: 'pointer',
+                              background: isExpanded ? 'var(--surface-2, #f9fafb)' : 'transparent',
+                            }}
+                            onClick={() => {
+                              setExpandedTrackers(prev => {
+                                const next = new Set(prev);
+                                if (next.has(trackerId)) {
+                                  next.delete(trackerId);
+                                } else {
+                                  next.add(trackerId);
+                                }
+                                return next;
+                              });
+                            }}
+                          >
+                            <td style={{ ...td, textAlign: 'center', fontSize: 14 }}>
+                              <span style={{ 
+                                display: 'inline-block',
+                                transition: 'transform 0.2s',
+                                transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                              }}>
+                                ▶
+                              </span>
+                            </td>
+                            <td style={td}>{g.vendor}</td>
+                            <td style={td}>{g.event}</td>
+                            <td style={td}>
+                              {g.firedCount > 0 ? (
+                                <span style={{ color: 'var(--ok, #22c55e)', fontWeight: 600 }}>
+                                  {g.firedCount}/{g.count} fired
+                                </span>
+                              ) : (
+                                <span style={{ color: 'var(--text-secondary, #6b7280)' }}>
+                                  {g.count} pending
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                          {isExpanded && g.urls.map((url, urlIdx) => (
+                            <tr key={`${i}-url-${urlIdx}`} style={{ background: 'var(--surface-2, #f9fafb)' }}>
+                              <td style={td}></td>
+                              <td style={{ ...td, paddingLeft: 20 }} colSpan={3}>
+                                <div style={{ 
+                                  fontFamily: 'monospace', 
+                                  fontSize: 11,
+                                  wordBreak: 'break-all',
+                                  color: 'var(--text-secondary, #6b7280)',
+                                  padding: '4px 8px',
+                                  background: 'var(--surface, #fff)',
+                                  border: '1px solid var(--border, #e5e7eb)',
+                                  borderRadius: 4,
+                                  margin: '4px 0',
+                                }}>
+                                  {url}
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </React.Fragment>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
