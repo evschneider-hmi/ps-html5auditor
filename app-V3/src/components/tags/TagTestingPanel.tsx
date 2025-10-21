@@ -1,5 +1,5 @@
 ﻿import React, { useState } from 'react';
-import { VastValidator } from './VastValidator';
+import { VastValidator } from './VAST';
 import { JsDisplayTag } from './JsDisplayTag';
 import { OneByOnePixel } from './OneByOnePixel';
 
