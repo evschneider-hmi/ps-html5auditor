@@ -1,0 +1,45 @@
+# ADD THIS TO YOUR EXISTING "EVAN BEAST MODE 3.1" CUSTOM INSTRUCTIONS:
+
+## Playwright MCP Testing Requirement
+
+All code changes MUST be tested via Playwright MCP before moving on.
+
+### When to Test:
+- After implementing UI components
+- After modifying preview functionality
+- After adding new features
+- Before committing code
+- Before marking phases complete
+
+### How to Test:
+- Navigate to localhost:5173 or localhost:5175
+- Take screenshots of changes
+- Interact with components (click, type, etc.)
+- Verify expected behavior
+- Save to .playwright-mcp/ directory
+- Document in commit messages
+
+### Updated Workflow (add steps 7-9):
+7. **TEST WITH PLAYWRIGHT MCP**
+8. Debug and fix issues based on test results
+9. **RE-TEST UNTIL PERFECT**
+
+### Commit Format:
+Include "Tested via Playwright MCP:" section with:
+- What was tested
+- Test results
+- Screenshot filenames
+
+### Do Not Proceed If:
+- Tests fail
+- UI doesn'\''t match requirements
+- Errors in console
+- Features don'\''t work
+
+Example:
+"feat: Add DiagnosticsPanel
+
+Tested via Playwright MCP:
+- Uploaded Teresa creative
+- Verified animation duration (35.2s)
+- Screenshot: .playwright-mcp/diagnostics-working.png"
