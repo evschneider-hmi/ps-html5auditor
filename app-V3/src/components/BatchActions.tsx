@@ -27,6 +27,7 @@ interface BatchActionsProps {
   onBulkDelete: (ids: string[]) => void;
   onBulkExport: (ids: string[], format: 'json' | 'csv') => void;
   className?: string;
+  activeTab?: 'creatives' | 'tags' | null;
 }
 
 export const BatchActions: React.FC<BatchActionsProps> = ({
@@ -37,6 +38,7 @@ export const BatchActions: React.FC<BatchActionsProps> = ({
   onBulkDelete,
   onBulkExport,
   className = '',
+  activeTab = null,
 }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [exportFormat, setExportFormat] = useState<'json' | 'csv'>('json');
@@ -44,6 +46,10 @@ export const BatchActions: React.FC<BatchActionsProps> = ({
   const selectedCount = selectedIds.size;
   const allSelected = selectedCount === uploads.length && uploads.length > 0;
   const someSelected = selectedCount > 0 && selectedCount < uploads.length;
+
+  // Determine label based on active tab
+  const itemLabel = activeTab === 'tags' ? 'tag' : 'creative';
+  const itemLabelPlural = activeTab === 'tags' ? 'tags' : 'creatives';
 
   const handleToggleAll = () => {
     if (allSelected || someSelected) {
@@ -91,7 +97,7 @@ export const BatchActions: React.FC<BatchActionsProps> = ({
               </>
             ) : (
               <>
-                {uploads.length} creative{uploads.length !== 1 ? 's' : ''}
+                {uploads.length} {uploads.length !== 1 ? itemLabelPlural : itemLabel}
               </>
             )}
           </span>

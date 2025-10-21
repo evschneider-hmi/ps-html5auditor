@@ -7,3 +7,5 @@ export { OneByOnePixel } from './OneByOnePixel';
 export type { OneByOnePixelProps } from './OneByOnePixel';
 export { TagFileHandler } from './TagFileHandler';
 export type { TagFileHandlerProps } from './TagFileHandler';
+export { TagPanel } from './TagPanel';
+export type { TagPanelProps } from './TagPanel';

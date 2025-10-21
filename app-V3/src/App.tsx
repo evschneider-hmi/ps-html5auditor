@@ -11,7 +11,7 @@ import type { Upload, ActiveTab, CreativeSubtype } from './types';
 import { ResultsTable } from './components/ResultsTable';
 import { PreviewPanel } from './components/preview/PreviewPanel';
 import { FindingsList } from './components/FindingsList';
-import { TagTestingPanel, TagFileHandler } from './components/tags';
+import { TagPanel } from './components/tags';
 import { detectTagType, type TagType } from './utils/tagTypeDetector';
 
 import { BatchActions } from './components/BatchActions';
@@ -52,11 +52,6 @@ export default function App() {
 
   // Keyboard shortcuts help modal state
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
-
-  // Tag file handler modal state
-  const [tagFiles, setTagFiles] = useState<File[]>([]);
-  const [tagType, setTagType] = useState<TagType | null>(null);
-  const [showTagHandler, setShowTagHandler] = useState(false);
 
   const inputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -174,6 +169,19 @@ export default function App() {
     return sortUploads(filteredUploads, sortConfig);
   }, [filteredUploads, sortConfig]);
 
+  // Auto-select first filtered upload when active tab changes
+  useEffect(() => {
+    if (!activeTab || !showTabs) return;
+    
+    // If currently selected upload is not in filtered list, auto-select first one
+    const currentlySelectedInFiltered = selectedUploadId && 
+      filteredUploads.some(u => u.id === selectedUploadId);
+    
+    if (!currentlySelectedInFiltered && filteredUploads.length > 0) {
+      setSelectedUploadId(filteredUploads[0].id);
+    }
+  }, [activeTab, filteredUploads, selectedUploadId, showTabs]);
+
   // Apply theme
   useEffect(() => {
     try {
@@ -233,7 +241,7 @@ export default function App() {
     
     // Separate files by type
     const creativeFiles: File[] = [];
-    const tagFiles: File[] = [];
+    const newTagUploads: Upload[] = [];
     
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -244,17 +252,57 @@ export default function App() {
       if (detectedType === 'creative') {
         creativeFiles.push(file);
       } else if (detectedType === 'vast' || detectedType === 'js-display' || detectedType === '1x1-pixel') {
-        tagFiles.push(file);
-        
-        // Show tag handler modal with the first detected tag type
-        if (!showTagHandler) {
-          setTagType(detectedType);
-          setTagFiles([file]);
-          setShowTagHandler(true);
-        }
+        // Create a tag upload immediately
+        const tagUpload: Upload = {
+          id: `tag-${Date.now()}-${i}`,
+          timestamp: Date.now(),
+          type: 'tag',
+          subtype: 'adtag',
+          bundle: {
+            id: `tag-${Date.now()}-${i}`,
+            name: file.name,
+            bytes: new Uint8Array(),
+            files: {},
+            lowerCaseIndex: {},
+          },
+          bundleResult: {
+            bundleId: `tag-${Date.now()}-${i}`,
+            bundleName: file.name,
+            primary: undefined,
+            adSize: { width: 0, height: 0 },
+            findings: [],
+            references: [],
+            summary: {
+              status: 'PASS',
+              totalFindings: 0,
+              fails: 0,
+              warns: 0,
+              pass: 0,
+              orphanCount: 0,
+              missingAssetCount: 0,
+            },
+          },
+          findings: [],
+          tagType: detectedType,
+          tagFiles: [file],
+        };
+        newTagUploads.push(tagUpload);
       } else {
         // Unknown type - default to creative processing
         creativeFiles.push(file);
+      }
+    }
+    
+    // Add tag uploads immediately
+    if (newTagUploads.length > 0) {
+      const allUploads = [...uploads, ...newTagUploads];
+      setUploads(allUploads);
+      
+      // Select the first tag upload
+      const firstTagId = newTagUploads[0]?.id;
+      if (firstTagId) {
+        setSelectedUploadId(firstTagId);
+        setActiveTab('tags');
       }
     }
     
@@ -263,11 +311,6 @@ export default function App() {
       console.log(`[App] Adding ${creativeFiles.length} creative file(s) to queue`);
       uploadQueue.addFiles(creativeFiles);
       uploadQueue.start();
-    }
-    
-    // Tag files are handled by the modal (already set above)
-    if (tagFiles.length > 0) {
-      console.log(`[App] Detected ${tagFiles.length} tag file(s) - opening validator`);
     }
     
     setLoading(false);
@@ -668,6 +711,7 @@ export default function App() {
               onSelectNone={handleSelectNone}
               onBulkDelete={handleBulkDelete}
               onBulkExport={handleBulkExport}
+              activeTab={activeTab}
             />
 
             {/* Results Grid or Table */}
@@ -706,23 +750,13 @@ export default function App() {
         onClose={() => setShowShortcutsHelp(false)}
       />
 
-      {/* Tag File Handler Modal */}
-      {showTagHandler && tagType && (
-        <TagFileHandler
-          files={tagFiles}
-          tagType={tagType}
-          onClose={() => {
-            setShowTagHandler(false);
-            setTagFiles([]);
-            setTagType(null);
-          }}
-        />
-      )}
-
       {/* Split Pane Preview - Only show for selected upload */}
       {selectedUploadId && (() => {
         const selectedUpload = uploads.find(u => u.id === selectedUploadId);
         if (!selectedUpload) return null;
+        
+        // Determine if this is a creative or tag upload
+        const isTagUpload = selectedUpload.type === 'tag';
         
         return (
           <div 
@@ -735,54 +769,66 @@ export default function App() {
               borderRadius: 8,
             }}
           >
-            {/* Left: Findings/Checks List */}
-            <div
-              className="left"
-              style={{
-                width: `${Math.round(split * 1000) / 10}%`,
-                minWidth: 280,
-                overflow: 'hidden',
-                display: 'flex',
-                flexDirection: 'column',
-              }}
-            >
-              <FindingsList
-                findings={selectedUpload.findings}
-                creativeName={selectedUpload.bundle.name}
-                onClose={() => setSelectedUploadId(null)}
-              />
-            </div>
+            {/* Left: Findings/Checks List (only for creatives) */}
+            {!isTagUpload && (
+              <div
+                className="left"
+                style={{
+                  width: `${Math.round(split * 1000) / 10}%`,
+                  minWidth: 280,
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column',
+                }}
+              >
+                <FindingsList
+                  findings={selectedUpload.findings}
+                  creativeName={selectedUpload.bundle.name}
+                  onClose={() => setSelectedUploadId(null)}
+                />
+              </div>
+            )}
 
-            {/* Divider */}
-            <div
-              role="separator"
-              aria-orientation="vertical"
-              title="Drag to resize"
-              className="separator"
-              onMouseDown={(e) => {
-                dragging.current = true;
-                document.body.style.cursor = 'col-resize';
-                e.preventDefault();
-              }}
-            >
-              <i />
-            </div>
+            {/* Divider (only for creatives) */}
+            {!isTagUpload && (
+              <div
+                role="separator"
+                aria-orientation="vertical"
+                title="Drag to resize"
+                className="separator"
+                onMouseDown={(e) => {
+                  dragging.current = true;
+                  document.body.style.cursor = 'col-resize';
+                  e.preventDefault();
+                }}
+              >
+                <i />
+              </div>
+            )}
 
-            {/* Right: Preview Panel */}
+            {/* Right: Preview Panel or Tag Panel */}
             <div
               className="right"
               style={{
-                width: `${Math.round((1 - split) * 1000) / 10}%`,
-                minWidth: 320,
+                width: isTagUpload ? '100%' : `${Math.round((1 - split) * 1000) / 10}%`,
+                minWidth: isTagUpload ? '100%' : 320,
                 overflow: 'hidden',
               }}
             >
-              <PreviewPanel
-                bundle={selectedUpload.bundle}
-                bundleResult={selectedUpload.bundleResult}
-                findings={selectedUpload.findings}
-                creativeName={selectedUpload.bundle.name}
-              />
+              {isTagUpload ? (
+                <TagPanel
+                  files={selectedUpload.tagFiles || []}
+                  tagType={selectedUpload.tagType || 'unknown'}
+                  tagName={selectedUpload.bundle.name}
+                />
+              ) : (
+                <PreviewPanel
+                  bundle={selectedUpload.bundle}
+                  bundleResult={selectedUpload.bundleResult}
+                  findings={selectedUpload.findings}
+                  creativeName={selectedUpload.bundle.name}
+                />
+              )}
             </div>
           </div>
         );
