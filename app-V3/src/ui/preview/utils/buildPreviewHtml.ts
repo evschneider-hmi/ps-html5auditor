@@ -202,132 +202,7 @@ const rewriteHtmlUrls = (
   );
 };
 
-/**
- * Generates animation tracking script
- * Hooks into GSAP and Anime.js to track animation duration
- */
-const getAnimationTrackerScript = (): string => {
-  return `
-(function() {
-  var jsAnimMaxDuration = 0;
-  var timelines = [];
-  window.__audit_last_summary = window.__audit_last_summary || {};
-  window.__audit_last_summary.animationTracking = "pending";
-  
-  function notifyParent() {
-    try {
-      parent.postMessage({
-        __audit_event: 1,
-        type: "tracking-update",
-        animationTracking: window.__audit_last_summary.animationTracking,
-        animMaxDurationS: window.__audit_last_summary.animMaxDurationS
-      }, "*");
-    } catch(e) {}
-  }
-  
-  notifyParent();
-  
-  function pollTimelines() {
-    try {
-      for (var i = 0; i < timelines.length; i++) {
-        var tl = timelines[i];
-        if (!tl || !tl.duration) continue;
-        var dur = tl.duration();
-        if (dur > jsAnimMaxDuration) {
-          jsAnimMaxDuration = dur;
-          window.__audit_last_summary.animMaxDurationS = jsAnimMaxDuration;
-          window.__audit_last_summary.animationTracking = "detected";
-          notifyParent();
-        }
-      }
-    } catch(e) {}
-  }
-  
-  // GSAP hook
-  var _gsap = null;
-  Object.defineProperty(window, "gsap", {
-    get: function() { return _gsap; },
-    set: function(value) {
-      _gsap = value;
-      if (value && value.timeline) {
-        var origTimeline = value.timeline;
-        value.timeline = function() {
-          var tl = origTimeline.apply(this, arguments);
-          timelines.push(tl);
-          return tl;
-        };
-        
-        ["to", "from", "fromTo"].forEach(function(method) {
-          if (value[method]) {
-            var origMethod = value[method];
-            value[method] = function() {
-              var args = Array.prototype.slice.call(arguments);
-              try {
-                if (args[1] && typeof args[1] === "object") {
-                  var duration = args[1].duration || 0;
-                  if (duration > jsAnimMaxDuration) {
-                    jsAnimMaxDuration = duration;
-                    window.__audit_last_summary.animMaxDurationS = jsAnimMaxDuration;
-                    window.__audit_last_summary.animationTracking = "detected";
-                    notifyParent();
-                  }
-                }
-              } catch(e) {}
-              return origMethod.apply(value, args);
-            };
-          }
-        });
-        
-        setTimeout(function() { pollTimelines(); }, 500);
-        setTimeout(function() { pollTimelines(); }, 1000);
-        setTimeout(function() { pollTimelines(); }, 2000);
-        setTimeout(function() { pollTimelines(); }, 5000);
-        setTimeout(function() {
-          pollTimelines();
-          if (window.__audit_last_summary.animationTracking === "pending") {
-            window.__audit_last_summary.animationTracking = "none";
-            notifyParent();
-          }
-        }, 10000);
-      }
-    },
-    configurable: true
-  });
-  
-  // Anime.js hook
-  var checkAnime = setInterval(function() {
-    try {
-      var anime = window.anime;
-      if (anime && typeof anime === "function") {
-        clearInterval(checkAnime);
-        var origAnime = anime;
-        window.anime = function() {
-          try {
-            var config = arguments[0];
-            if (config && typeof config === "object") {
-              var duration = (config.duration || 0) / 1000;
-              if (duration > jsAnimMaxDuration) {
-                jsAnimMaxDuration = duration;
-                window.__audit_last_summary.animMaxDurationS = jsAnimMaxDuration;
-                window.__audit_last_summary.animationTracking = "detected";
-                notifyParent();
-              }
-            }
-          } catch(e) {}
-          return origAnime.apply(this, arguments);
-        };
-        for (var key in origAnime) {
-          if (origAnime.hasOwnProperty(key)) {
-            window.anime[key] = origAnime[key];
-          }
-        }
-      }
-    } catch(e) {}
-  }, 100);
-  setTimeout(function() { clearInterval(checkAnime); }, 5000);
-})();
-`;
-};
+import { getEnhancedProbeScript } from './enhancedProbe';
 
 /**
  * Generates CreateJS interceptor script
@@ -475,8 +350,8 @@ ${jsContent}
     }
   }
   
-  // Inject animation tracker BEFORE inlined scripts
-  const animTrackerTag = `<script data-preview-animation-tracker>\n${getAnimationTrackerScript()}\n</script>`;
+  // Inject enhanced animation tracker BEFORE inlined scripts
+  const animTrackerTag = `<script data-preview-animation-tracker>\n${getEnhancedProbeScript()}\n</script>`;
   if (html.includes('</head>')) {
     html = html.replace('</head>', animTrackerTag + '\n</head>');
   } else if (html.includes('<body')) {
