@@ -19,53 +19,46 @@ export const VastValidator: React.FC<VastValidatorProps> = ({ initialFiles }) =>
 
   // Auto-process initialFiles when component mounts
   useEffect(() => {
-    if (initialFiles && initialFiles.length > 0) {
-      // Create a proper FileList-like object
-      const dt = new DataTransfer();
-      initialFiles.forEach(file => dt.items.add(file));
-      handleFileUpload(dt.files);
-    }
-  }, []); // Run once on mount
+    if (!initialFiles || initialFiles.length === 0) return;
 
-  const handleFileUpload = useCallback(async (files: FileList | null) => {
-    if (!files || files.length === 0) return;
+    const processFiles = async () => {
+      setLoading(true);
+      setAlerts([]);
+      setInfo([]);
 
-    setLoading(true);
-    setAlerts([]);
-    setInfo([]);
+      const newEntries: VastEntry[] = [];
+      const newInfo: string[] = [];
+      const newAlerts: string[] = [];
 
-    const newEntries: VastEntry[] = [];
-    const newInfo: string[] = [];
-    const newAlerts: string[] = [];
-
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      
-      try {
-        if (file.name.match(/\.(xlsx|xlsm|xls|csv)$/i)) {
-          // Parse Excel/CSV
-          const parsed = await parseExcelFile(file);
-          newEntries.push(...parsed);
-          newInfo.push(`Extracted ${parsed.length} VAST tags from ${file.name}`);
-        } else if (file.name.match(/\.zip$/i)) {
-          newAlerts.push(`ZIP file support not yet implemented: ${file.name}`);
-        } else {
-          newAlerts.push(`Unsupported file type: ${file.name}`);
+      for (const file of initialFiles) {
+        try {
+          if (file.name.match(/\.(xlsx|xlsm|xls|csv)$/i)) {
+            // Parse Excel/CSV
+            const parsed = await parseExcelFile(file);
+            newEntries.push(...parsed);
+            newInfo.push(`Extracted ${parsed.length} VAST tags from ${file.name}`);
+          } else if (file.name.match(/\.zip$/i)) {
+            newAlerts.push(`ZIP file support not yet implemented: ${file.name}`);
+          } else {
+            newAlerts.push(`Unsupported file type: ${file.name}`);
+          }
+        } catch (error) {
+          newAlerts.push(`Error parsing ${file.name}: ${(error as Error).message}`);
         }
-      } catch (error) {
-        newAlerts.push(`Error parsing ${file.name}: ${(error as Error).message}`);
       }
-    }
 
-    setInfo(newInfo);
-    setAlerts(newAlerts);
-    
-    // Process VAST URLs
-    await processVastUrls(newEntries);
-    
-    setEntries(prev => [...prev, ...newEntries]);
-    setLoading(false);
-  }, []);
+      setInfo(newInfo);
+      setAlerts(newAlerts);
+      
+      // Process VAST URLs
+      await processVastUrls(newEntries);
+      
+      setEntries(prev => [...prev, ...newEntries]);
+      setLoading(false);
+    };
+
+    processFiles();
+  }, []); // Run once on mount
 
   const processVastUrls = async (entries: VastEntry[]) => {
     for (const entry of entries) {
@@ -132,71 +125,41 @@ export const VastValidator: React.FC<VastValidatorProps> = ({ initialFiles }) =>
 
   return (
     <div style={{ padding: 20 }}>
-      {/* Upload Controls */}
-      <div style={{ marginBottom: 20 }}>
-        <label
-          htmlFor="vast-file-upload"
+      {/* Action Controls */}
+      <div style={{ marginBottom: 20, display: 'flex', gap: 12 }}>
+        <button
+          onClick={() => setShowUrlModal(true)}
           style={{
-            display: 'inline-block',
-            padding: '60px 40px',
-            border: '2px dashed var(--border, #ddd)',
-            borderRadius: 8,
-            background: 'var(--surface-1, #fafafa)',
+            padding: '10px 20px',
+            background: 'var(--primary, #4f46e5)',
+            color: 'white',
+            border: 'none',
+            borderRadius: 6,
             cursor: 'pointer',
-            textAlign: 'center',
-            width: '100%',
-            marginBottom: 12,
+            fontWeight: 600,
+            fontSize: 13,
           }}
         >
-          <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>
-            Drop Excel/CSV/Zip or click anywhere to choose files
-          </div>
-          <div style={{ fontSize: 12, color: 'var(--text-secondary, #666)' }}>
-            Accept: .xlsx, .xlsm, .xls, .csv, .zip (multiple allowed)
-          </div>
-          <input
-            id="vast-file-upload"
-            type="file"
-            multiple
-            accept=".xlsx,.xlsm,.xls,.csv,.zip"
-            onChange={(e) => handleFileUpload(e.target.files)}
-            style={{ display: 'none' }}
-          />
-        </label>
+          Enter VAST URL
+        </button>
 
-        <div style={{ display: 'flex', gap: 12 }}>
+        {entries.length > 0 && (
           <button
-            onClick={() => setShowUrlModal(true)}
+            onClick={handleClearAll}
             style={{
               padding: '10px 20px',
-              background: 'var(--primary, #4f46e5)',
+              background: 'var(--danger, #ef4444)',
               color: 'white',
               border: 'none',
               borderRadius: 6,
               cursor: 'pointer',
               fontWeight: 600,
+              fontSize: 13,
             }}
           >
-            Enter VAST URL
+            Clear Uploads
           </button>
-
-          {entries.length > 0 && (
-            <button
-              onClick={handleClearAll}
-              style={{
-                padding: '10px 20px',
-                background: 'var(--danger, #ef4444)',
-                color: 'white',
-                border: 'none',
-                borderRadius: 6,
-                cursor: 'pointer',
-                fontWeight: 600,
-              }}
-            >
-              Clear Uploads
-            </button>
-          )}
-        </div>
+        )}
       </div>
 
       {/* Loading State */}
