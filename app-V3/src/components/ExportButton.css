@@ -1,0 +1,171 @@
+/* Export Button Styles */
+
+.export-button-container {
+  position: relative;
+  display: inline-block;
+}
+
+.export-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.export-button:hover:not(.disabled) {
+  background: var(--color-primary-dark);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.export-button:active:not(.disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.export-button.disabled {
+  background: var(--color-disabled);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.export-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.dropdown-icon {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s ease;
+}
+
+.export-button:hover:not(.disabled) .dropdown-icon {
+  transform: translateY(1px);
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Dropdown Menu */
+
+.export-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 280px;
+  background: var(--color-surface);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--color-border);
+  z-index: 1000;
+  overflow: hidden;
+  animation: dropdown-appear 0.2s ease-out;
+}
+
+@keyframes dropdown-appear {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.export-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.export-option:last-child {
+  border-bottom: none;
+}
+
+.export-option:hover {
+  background: var(--color-hover);
+}
+
+.export-option:active {
+  background: var(--color-active);
+}
+
+.option-icon {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
+.option-content {
+  flex: 1;
+}
+
+.option-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 2px;
+}
+
+.option-description {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .export-dropdown {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* Mobile responsive */
+@media (max-width: 640px) {
+  .export-dropdown {
+    min-width: 240px;
+  }
+  
+  .export-option {
+    padding: 12px 14px;
+  }
+  
+  .option-title {
+    font-size: 13px;
+  }
+  
+  .option-description {
+    font-size: 11px;
+  }
+}
