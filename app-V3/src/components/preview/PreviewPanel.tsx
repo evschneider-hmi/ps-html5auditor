@@ -6,6 +6,7 @@ import { AssetsView } from './AssetsView';
 import { JsonView } from './JsonView';
 import { MetadataButton } from './MetadataButton';
 import enablerShimSource from './enablerShim.js?raw';
+import { getEnhancedProbeScript } from '../../ui/preview/utils/enhancedProbe';
 
 export interface PreviewPanelProps {
   bundle: ZipBundle;
@@ -333,6 +334,17 @@ const generatePreviewHtml = (
       html = enablerShimTag + '\n' + html;
     }
     
+    // Inject Enhanced Probe for animation tracking and diagnostics
+    const probeScript = getEnhancedProbeScript();
+    const probeTag = '<script data-v3-enhanced-probe>\n' + probeScript + '\n</' + 'script>';
+    if (html.includes('</head>')) {
+      html = html.replace('</head>', probeTag + '\n</head>');
+    } else if (html.includes('<body')) {
+      html = html.replace('<body', probeTag + '\n<body');
+    } else {
+      html = probeTag + '\n' + html;
+    }
+    
     return html;
   } catch (error) {
     console.error('[V3 Preview] Failed to generate preview HTML:', error);
@@ -471,7 +483,27 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
     };
   }, [previewHtml, iframeKey]);
 
-  const handleRefresh = useCallback(() => {
+  // Listen for diagnostics messages from enhanced probe
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      try {
+        if (!event.data || typeof event.data !== 'object') return;
+        
+        if (event.data.type === 'tracking-update') {
+          console.log('[V3 Preview] Diagnostics update received:', event.data.data);
+          // TODO: Store diagnostics in state and pass to DiagnosticsPanel
+          // For now, just log to verify probe is working
+        }
+      } catch (error) {
+        console.error('[V3 Preview] Error handling message:', error);
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  const handleReload = useCallback(() => {
     setIframeKey(prev => prev + 1);
   }, []);
 
@@ -555,7 +587,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
           </div>
           <MetadataButton bundle={bundle} bundleResult={bundleResult} />
           <button
-            onClick={handleRefresh}
+            onClick={handleReload}
             style={{
               background: 'none',
               border: 'none',
