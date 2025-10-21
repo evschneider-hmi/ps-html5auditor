@@ -160,6 +160,32 @@ export async function parseVastXml(xmlOrUrl: string): Promise<ParsedVastData> {
     if (url) clickTrackers.push(url);
   });
 
+  // Extract embedded click trackers from ClickThrough URL
+  // Innovid often wraps CM360 click trackers in their ClickThrough as a 'click=' parameter
+  if (clickThrough) {
+    try {
+      const clickThroughUrl = new URL(clickThrough);
+      // Check for common parameter names that contain embedded click trackers
+      const clickParams = ['click', 'clickurl', 'clickthrough', 'redirect', 'redir'];
+      
+      for (const param of clickParams) {
+        const embeddedUrl = clickThroughUrl.searchParams.get(param);
+        if (embeddedUrl) {
+          // Decode the embedded URL
+          const decodedUrl = decodeURIComponent(embeddedUrl);
+          // Check if it's a valid tracking URL (not just a landing page)
+          if (decodedUrl.includes('doubleclick.net/ddm/trackclk') || 
+              decodedUrl.includes('ad.doubleclick.net/ddm/clk') ||
+              decodedUrl.match(/track(clk|click)/i)) {
+            clickTrackers.push(decodedUrl);
+          }
+        }
+      }
+    } catch (e) {
+      // Invalid URL or parsing error, skip embedded extraction
+    }
+  }
+
   // Extract ALL tracking events from <TrackingEvents>
   const trackingEvents: Record<string, string[]> = {};
   const trackingElements = xmlDoc.querySelectorAll('Tracking');
