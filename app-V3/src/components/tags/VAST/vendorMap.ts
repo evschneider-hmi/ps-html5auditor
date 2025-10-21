@@ -2,7 +2,7 @@
  * Vendor classification utilities for VAST tracking URLs
  */
 
-export function classifyVendor(url: string): { vendor: string; host: string } {
+export function classifyVendor(url: string): { vendor: string; host: string; isErrorHandling?: boolean } {
   try {
     const urlObj = new URL(url);
     const host = urlObj.hostname.toLowerCase();
@@ -17,9 +17,9 @@ export function classifyVendor(url: string): { vendor: string; host: string } {
       return { vendor: 'DoubleVerify', host };
     }
     
-    // DoubleVerify (vtrk - event router/error handling)
+    // DoubleVerify (vtrk - event router/error handling) - merge into DoubleVerify
     if (host.includes('dv.tech')) {
-      return { vendor: 'vtrk.dv.tech', host };
+      return { vendor: 'DoubleVerify', host, isErrorHandling: true };
     }
     
     // Flashtalking

@@ -33,9 +33,17 @@ interface PartnerTrackers {
   hasClick: boolean;
   impressionCount: number;
   impressionFired: number;
+  impressionUrls: string[];
   clickCount: number;
   clickFired: number;
+  clickUrls: string[];
   otherEvents: {
+    event: string;
+    count: number;
+    firedCount: number;
+    urls: string[];
+  }[];
+  errorHandlingEvents: {
     event: string;
     count: number;
     firedCount: number;
@@ -149,11 +157,6 @@ export function VastPreview({ entry }: VastPreviewProps) {
         Object.entries(data.trackingEvents).forEach(([eventName, urls]) => {
           trackersMap[eventName] = urls.map(url => ({ url }));
         });
-        
-        // Also add creativeView if we have impressions
-        if (data.impressionTrackers.length > 0) {
-          trackersMap.creativeView = data.impressionTrackers.map(url => ({ url }));
-        }
         
         setTrackers(trackersMap);
         setLoading(false);
@@ -305,26 +308,35 @@ export function VastPreview({ entry }: VastPreviewProps) {
     const vendorMap = new Map<string, {
       host: string;
       events: Map<string, { count: number; firedCount: number; urls: string[] }>;
+      errorHandlingEvents: Map<string, { count: number; firedCount: number; urls: string[] }>;
     }>();
     
-    // Group all trackers by vendor
+    // Group all trackers by vendor FIRST (each URL classified to its own vendor)
     Object.entries(trackers).forEach(([event, trackerList]) => {
       trackerList.forEach(t => {
-        const { vendor, host } = classifyVendor(t.url);
+        const classification = classifyVendor(t.url);
+        const { vendor, host, isErrorHandling } = classification;
         
+        // Initialize vendor if not exists
         if (!vendorMap.has(vendor)) {
           vendorMap.set(vendor, {
             host,
             events: new Map(),
+            errorHandlingEvents: new Map(),
           });
         }
         
         const vendorData = vendorMap.get(vendor)!;
-        if (!vendorData.events.has(event)) {
-          vendorData.events.set(event, { count: 0, firedCount: 0, urls: [] });
+        
+        // Determine which event map to use (error handling vs regular)
+        const targetMap = isErrorHandling ? vendorData.errorHandlingEvents : vendorData.events;
+        
+        // Initialize event for this vendor if not exists
+        if (!targetMap.has(event)) {
+          targetMap.set(event, { count: 0, firedCount: 0, urls: [] });
         }
         
-        const stats = vendorData.events.get(event)!;
+        const stats = targetMap.get(event)!;
         stats.count++;
         stats.urls.push(t.url);
         if (t.firedAt) stats.firedCount++;
@@ -333,16 +345,17 @@ export function VastPreview({ entry }: VastPreviewProps) {
     
     // Build partner summary with impression/click highlighted
     vendorMap.forEach((vendorData, vendor) => {
-      const impression = vendorData.events.get('impression') || vendorData.events.get('creativeView');
+      const impression = vendorData.events.get('impression');
       const click = vendorData.events.get('click');
       
       const otherEvents: PartnerTrackers['otherEvents'] = [];
+      const errorHandlingEvents: PartnerTrackers['errorHandlingEvents'] = [];
       let totalEvents = 0;
       
       vendorData.events.forEach((stats, event) => {
         totalEvents++;
-        // Skip impression/creativeView/click from "other" since we show them separately
-        if (event !== 'impression' && event !== 'creativeView' && event !== 'click') {
+        // Skip impression/click from "other" since we show them separately
+        if (event !== 'impression' && event !== 'click') {
           otherEvents.push({
             event,
             count: stats.count,
@@ -352,6 +365,17 @@ export function VastPreview({ entry }: VastPreviewProps) {
         }
       });
       
+      // Add error handling events
+      vendorData.errorHandlingEvents.forEach((stats, event) => {
+        totalEvents++;
+        errorHandlingEvents.push({
+          event,
+          count: stats.count,
+          firedCount: stats.firedCount,
+          urls: stats.urls,
+        });
+      });
+      
       partners.push({
         vendor,
         host: vendorData.host,
@@ -359,9 +383,12 @@ export function VastPreview({ entry }: VastPreviewProps) {
         hasClick: !!click,
         impressionCount: impression?.count || 0,
         impressionFired: impression?.firedCount || 0,
+        impressionUrls: impression?.urls || [],
         clickCount: click?.count || 0,
         clickFired: click?.firedCount || 0,
+        clickUrls: click?.urls || [],
         otherEvents: otherEvents.sort((a, b) => a.event.localeCompare(b.event)),
+        errorHandlingEvents: errorHandlingEvents.sort((a, b) => a.event.localeCompare(b.event)),
         totalEvents,
       });
     });
@@ -641,16 +668,16 @@ export function VastPreview({ entry }: VastPreviewProps) {
                       // Get display name for partner
                       const getPartnerDisplayName = (vendor: string): string => {
                         if (vendor === 'Google') return 'CM360';
-                        if (vendor === 'vtrk.dv.tech') return 'DoubleVerify (error handling)';
                         return vendor;
                       };
                       
-                      // Build ordered list of all events (impression, click, then others in specific order)
+                      // Build ordered list of all events (impression, click, then others in specific order, then error handling)
                       const orderedEvents: Array<{
                         event: string;
                         count: number;
                         firedCount: number;
                         urls: string[];
+                        isErrorHandling?: boolean;
                       }> = [];
                       
                       // Define event order
@@ -671,19 +698,13 @@ export function VastPreview({ entry }: VastPreviewProps) {
                         'verificationNotExecuted',
                       ];
                       
-                      // Helper to get URLs for impression/click from trackers
-                      const getTrackerUrls = (event: string): string[] => {
-                        const eventTrackers = trackers[event];
-                        return eventTrackers ? eventTrackers.map(t => t.url) : [];
-                      };
-                      
                       // Add impression if present
                       if (partner.hasImpression) {
                         orderedEvents.push({
                           event: 'impression',
                           count: partner.impressionCount,
                           firedCount: partner.impressionFired,
-                          urls: getTrackerUrls('impression').concat(getTrackerUrls('creativeView')),
+                          urls: partner.impressionUrls,
                         });
                       }
                       
@@ -693,7 +714,7 @@ export function VastPreview({ entry }: VastPreviewProps) {
                           event: 'click',
                           count: partner.clickCount,
                           firedCount: partner.clickFired,
-                          urls: getTrackerUrls('click'),
+                          urls: partner.clickUrls,
                         });
                       }
                       
@@ -711,6 +732,16 @@ export function VastPreview({ entry }: VastPreviewProps) {
                           orderedEvents.push(evt);
                         }
                       });
+                      
+                      // Add error handling events at the end
+                      if (partner.errorHandlingEvents.length > 0) {
+                        partner.errorHandlingEvents.forEach(evt => {
+                          orderedEvents.push({
+                            ...evt,
+                            isErrorHandling: true,
+                          });
+                        });
+                      }
                       
                       return (
                         <React.Fragment key={i}>
@@ -806,6 +837,16 @@ export function VastPreview({ entry }: VastPreviewProps) {
                                     style={{ ...td, paddingLeft: 24 }} 
                                     title={tooltip}
                                   >
+                                    {/* Show "Error Handling" prefix for error handling events */}
+                                    {evt.isErrorHandling && (
+                                      <span style={{ 
+                                        color: 'var(--warning, #f59e0b)', 
+                                        fontWeight: 600,
+                                        marginRight: 4,
+                                      }}>
+                                        Error Handling:
+                                      </span>
+                                    )}
                                     {label}
                                     {evt.event === 'error' && (
                                       <span 
