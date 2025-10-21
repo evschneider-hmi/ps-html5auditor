@@ -43,13 +43,53 @@ export function classifyVendor(url: string): { vendor: string; host: string } {
     }
     
     // Nielsen
-    if (host.includes('imrworldwide.com') || host.includes('nielsenonline.com')) {
+    if (host.includes('imrworldwide.com') || host.includes('nielsenonline.com') || host.includes('secure-gl.imrworldwide.com')) {
       return { vendor: 'Nielsen', host };
     }
     
     // Extreme Reach
     if (host.includes('extremereach.com') || host.includes('extremereach.io')) {
       return { vendor: 'Extreme Reach', host };
+    }
+    
+    // Adelaide
+    if (host.includes('a47b.com')) {
+      return { vendor: 'Adelaide', host };
+    }
+    
+    // Kantar
+    if (host.includes('insightexpressai.com')) {
+      return { vendor: 'Kantar', host };
+    }
+    
+    // Dynata
+    if (host.includes('researchnow.com')) {
+      return { vendor: 'Dynata', host };
+    }
+    
+    // Connect (Horizon Next)
+    if (host.includes('hrzn-nxt.com')) {
+      return { vendor: 'Connect', host };
+    }
+    
+    // LiveRamp
+    if (host.includes('rlcdn.com')) {
+      return { vendor: 'LiveRamp', host };
+    }
+    
+    // Disqo
+    if (host.includes('activemetering.com')) {
+      return { vendor: 'Disqo', host };
+    }
+    
+    // Phoenix
+    if (host.includes('imtwjwoasak.com')) {
+      return { vendor: 'Phoenix', host };
+    }
+    
+    // Upwave
+    if (host.includes('surveywall-api.survata.com')) {
+      return { vendor: 'Upwave', host };
     }
     
     // Default to host if no match
