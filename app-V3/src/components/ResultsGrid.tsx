@@ -3,6 +3,7 @@ import type { Upload } from '../types';
 import type { Finding } from '../logic/types';
 import { ProfileBadge } from './ProfileBadge';
 import { Icon } from './Icon';
+import { isPriorityCheck } from '../utils/grouping';
 import './ResultsGrid.css';
 
 interface ResultsGridProps {
@@ -43,21 +44,17 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({
         const isSelected = selectedIds.has(upload.id);
         const isHovered = hoveredRemoveId === upload.id;
 
-        // Calculate status metrics
+        // Calculate status metrics from Priority checks only
+        // Overall status and issue counts based on Priority checks (matches V2 behavior)
         const findings = upload.findings || [];
-        const fails = findings.filter((f: Finding) => f.severity === 'FAIL').length;
-        const warns = findings.filter((f: Finding) => f.severity === 'WARN').length;
-        const passes = findings.filter((f: Finding) => f.severity === 'PASS').length;
+        const priorityFindings = findings.filter((f: Finding) => isPriorityCheck(f));
         
-        // Overall status determined by Priority checks only (matches V2 behavior)
-        const priorityFindings = findings.filter((f: Finding) => {
-          const { isPriorityCheck } = require('../utils/grouping');
-          return isPriorityCheck(f);
-        });
-        const priorityFails = priorityFindings.filter((f: Finding) => f.severity === 'FAIL').length;
-        const priorityWarns = priorityFindings.filter((f: Finding) => f.severity === 'WARN').length;
+        const fails = priorityFindings.filter((f: Finding) => f.severity === 'FAIL').length;
+        const warns = priorityFindings.filter((f: Finding) => f.severity === 'WARN').length;
+        const passes = priorityFindings.filter((f: Finding) => f.severity === 'PASS').length;
         
-        const status = priorityFails > 0 ? 'FAIL' : priorityWarns > 0 ? 'WARN' : 'PASS';
+        // Status: FAIL if any priority check fails, otherwise PASS (warnings don't affect status)
+        const status = fails > 0 ? 'FAIL' : 'PASS';
         
         const dimensions = upload.bundleResult.adSize
           ? `${upload.bundleResult.adSize.width}×${upload.bundleResult.adSize.height}`

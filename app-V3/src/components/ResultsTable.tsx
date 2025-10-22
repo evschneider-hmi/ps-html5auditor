@@ -4,6 +4,7 @@ import type { Finding } from '../logic/types';
 import { ProfileBadge } from './ProfileBadge';
 import { Icon } from './Icon';
 import type { SortConfig } from './SortControls';
+import { isPriorityCheck } from '../utils/grouping';
 
 interface ResultsTableProps {
   uploads: Upload[];
@@ -154,20 +155,19 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({
 
   // Compute status and issues for each upload
   // Overall status determined by Priority checks only (matches V2 behavior)
+  // Status: FAIL if any priority check fails, otherwise PASS (warnings don't affect status)
   const getUploadStatus = (upload: Upload) => {
-    const { isPriorityCheck } = require('../utils/grouping');
     const priorityFindings = upload.findings.filter((f: Finding) => isPriorityCheck(f));
     const fails = priorityFindings.filter((f: Finding) => f.severity === 'FAIL').length;
-    const warns = priorityFindings.filter((f: Finding) => f.severity === 'WARN').length;
 
-    if (fails > 0) return 'FAIL';
-    if (warns > 0) return 'WARN';
-    return 'PASS';
+    return fails > 0 ? 'FAIL' : 'PASS';
   };
 
   const getIssuesSummary = (upload: Upload) => {
-    const fails = upload.findings.filter((f: Finding) => f.severity === 'FAIL').length;
-    const warns = upload.findings.filter((f: Finding) => f.severity === 'WARN').length;
+    // Issue counts based on Priority checks only
+    const priorityFindings = upload.findings.filter((f: Finding) => isPriorityCheck(f));
+    const fails = priorityFindings.filter((f: Finding) => f.severity === 'FAIL').length;
+    const warns = priorityFindings.filter((f: Finding) => f.severity === 'WARN').length;
     return { fails, warns };
   };
 
