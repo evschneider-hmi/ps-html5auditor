@@ -109,6 +109,8 @@ export const getEnhancedProbeScript = (): string => {
         var dur = tl.duration();
         if (dur > jsAnimMaxDuration) {
           jsAnimMaxDuration = dur;
+          summary.animMaxDurationS = jsAnimMaxDuration;
+          summary.animationTracking = 'detected';
           console.log('[Enhanced Probe] GSAP timeline duration updated:', dur + 's');
           notifyAnimation();
         }
@@ -119,85 +121,82 @@ export const getEnhancedProbeScript = (): string => {
   }
   
   function notifyAnimation() {
-    summary.animMaxDurationS = Math.max(summary.animMaxDurationS || 0, jsAnimMaxDuration);
     post({
       type: 'tracking-update',
       animMaxDurationS: summary.animMaxDurationS,
-      animationDetected: true
+      animationDetected: true,
+      animationTracking: summary.animationTracking
     });
   }
   
-  // GSAP Detection & Hooking
+  // GSAP Detection & Hooking (V2 approach - intercept assignment proactively)
   console.log('[Enhanced Probe] Installing GSAP interceptor');
-  var checkGSAP = setInterval(function() {
-    try {
-      var gsap = window.gsap;
-      if (gsap && gsap.timeline) {
-        clearInterval(checkGSAP);
-        jsAnimDetected = true;
-        console.log('[Enhanced Probe] GSAP detected, hooking timeline creation');
+  var _gsap = null;
+  
+  try {
+    Object.defineProperty(window, 'gsap', {
+      get: function() { return _gsap; },
+      set: function(value) {
+        console.log('[Enhanced Probe] GSAP being assigned to window');
+        _gsap = value;
         
-        // Hook timeline creation
-        var origTimeline = gsap.timeline;
-        gsap.timeline = function() {
-          var tl = origTimeline.apply(this, arguments);
-          timelines.push(tl);
+        if (value && value.timeline) {
+          jsAnimDetected = true;
+          console.log('[Enhanced Probe] GSAP detected, hooking timeline creation');
           
-          // Check duration on common method calls
-          ['to', 'from', 'fromTo', 'add', 'call'].forEach(function(method) {
-            if (tl[method]) {
-              var orig = tl[method];
-              tl[method] = function() {
-                var result = orig.apply(tl, arguments);
+          // Hook timeline() creation
+          var origTimeline = value.timeline;
+          value.timeline = function() {
+            var tl = origTimeline.apply(this, arguments);
+            timelines.push(tl);
+            console.log('[Enhanced Probe] Timeline created, total tracked:', timelines.length);
+            return tl;
+          };
+          
+          // Hook direct gsap.to/from/fromTo calls
+          ['to', 'from', 'fromTo'].forEach(function(method) {
+            if (value[method]) {
+              var origMethod = value[method];
+              value[method] = function() {
+                var args = Array.prototype.slice.call(arguments);
                 try {
-                  var dur = tl.duration();
-                  if (dur > jsAnimMaxDuration) {
-                    jsAnimMaxDuration = dur;
-                    notifyAnimation();
+                  if (args[1] && typeof args[1] === 'object') {
+                    var duration = args[1].duration || 0;
+                    if (duration > jsAnimMaxDuration) {
+                      jsAnimMaxDuration = duration;
+                      summary.animMaxDurationS = jsAnimMaxDuration;
+                      summary.animationTracking = 'detected';
+                      console.log('[Enhanced Probe] GSAP.' + method + ' duration:', duration + 's');
+                      notifyAnimation();
+                    }
                   }
                 } catch(e) {}
-                return result;
+                return origMethod.apply(value, args);
               };
             }
           });
           
-          return tl;
-        };
-        
-        // Hook direct gsap.to/from/fromTo calls
-        ['to', 'from', 'fromTo'].forEach(function(method) {
-          if (gsap[method]) {
-            var origMethod = gsap[method];
-            gsap[method] = function() {
-              var args = Array.prototype.slice.call(arguments);
-              try {
-                if (args[1] && typeof args[1] === 'object') {
-                  var duration = args[1].duration || 0;
-                  if (duration > jsAnimMaxDuration) {
-                    jsAnimMaxDuration = duration;
-                    console.log('[Enhanced Probe] GSAP.' + method + ' duration:', duration + 's');
-                    notifyAnimation();
-                  }
-                }
-              } catch(e) {}
-              return origMethod.apply(gsap, args);
-            };
-          }
-        });
-        
-        // Poll timelines at increasing intervals
-        setTimeout(pollTimelines, 500);
-        setTimeout(pollTimelines, 1000);
-        setTimeout(pollTimelines, 2000);
-        setTimeout(pollTimelines, 5000);
-        setTimeout(pollTimelines, 10000);
-        setTimeout(pollTimelines, 30000);
-      }
-    } catch(e) {
-      console.error('[Enhanced Probe] GSAP hook error:', e);
-    }
-  }, 100);
-  setTimeout(function() { clearInterval(checkGSAP); }, 5000);
+          // Start polling timelines for duration updates (Teresa timelines build up over time)
+          setTimeout(pollTimelines, 500);
+          setTimeout(pollTimelines, 1000);
+          setTimeout(pollTimelines, 2000);
+          setTimeout(pollTimelines, 3000);
+          setTimeout(pollTimelines, 5000);
+          setTimeout(pollTimelines, 8000);
+          setTimeout(function() {
+            pollTimelines();
+            if (summary.animationTracking === 'pending') {
+              summary.animationTracking = jsAnimDetected ? 'detected' : 'none';
+              console.log('[Enhanced Probe] Animation tracking finalized:', summary.animationTracking);
+            }
+          }, 10000);
+        }
+      },
+      configurable: true
+    });
+  } catch(e) {
+    console.error('[Enhanced Probe] GSAP property interceptor failed:', e);
+  }
   
   // Anime.js Detection & Hooking
   console.log('[Enhanced Probe] Installing Anime.js interceptor');
@@ -214,9 +213,11 @@ export const getEnhancedProbeScript = (): string => {
           try {
             var config = arguments[0];
             if (config && typeof config === 'object') {
-              var duration = (config.duration || 0) / 1000; // ms  seconds
+              var duration = (config.duration || 0) / 1000; // ms → seconds
               if (duration > jsAnimMaxDuration) {
                 jsAnimMaxDuration = duration;
+                summary.animMaxDurationS = jsAnimMaxDuration;
+                summary.animationTracking = 'detected';
                 console.log('[Enhanced Probe] Anime.js duration:', duration + 's');
                 notifyAnimation();
               }
