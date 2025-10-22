@@ -3,31 +3,34 @@
  * 
  * Validates filenames follow CM360 naming conventions.
  * 
- * CM360 Requirements:
+ * CM360 Requirements (per Google H5 Validator testing):
  * - No special characters: % # ? ; \ : * " | < >
- * - No control characters (spaces, dashes in some contexts)
+ * - Spaces ARE allowed (Google's validator accepts them)
  * - ZIP filename must contain size token (e.g., "banner_300x250.zip")
+ * 
+ * Evidence: Google's official H5 Validator (h5validator.appspot.com) accepts
+ * filenames with spaces like "ACC_NEW_Spirit of Honda Value RV2...zip"
  * 
  * Why This Matters:
  * - Special characters cause upload errors
- * - URL encoding issues in trafficking
+ * - URL encoding issues in trafficking (but spaces are handled)
  * - File system compatibility problems
  * - Size token helps trafficking team identify creative
  * - Prevents mismatch between creative size and trafficking setup
  * 
  * Best Practice:
- * - Use lowercase with underscores: banner_300x250.zip
+ * - Use underscores for consistency: banner_300x250.zip
  * - Include size in ZIP name: campaign_300x250_v1.zip
- * - Avoid spaces, use underscores instead
+ * - Spaces work but underscores preferred
  */
 
 import type { Check, CheckContext } from '../types';
 import type { Finding } from '../../types';
 
-// Pattern: Characters that CM360 disallows (per CM360 documentation)
-// NOTE: Hyphens, underscores, and dots are ALLOWED (industry standard)
-// Only truly problematic characters are flagged: % # ? ; \ : * " | < > and spaces
-const DISALLOWED_CHARS = /[%#?;\\:*"|<>\s]/g;
+// Pattern: Characters that CM360 actually disallows (verified via Google H5 Validator)
+// NOTE: Spaces, hyphens, underscores, and dots are ALLOWED
+// Only truly problematic characters: % # ? ; \ : * " | < >
+const DISALLOWED_CHARS = /[%#?;\\:*"|<>]/g;
 
 export const filenamesCheck: Check = {
   id: 'bad-filenames',
