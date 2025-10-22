@@ -307,12 +307,11 @@ export const buildPreviewHtml = async ({
     }
   }
   
-  // Inline JavaScript files (except Enabler and special files)
+  // Inline JavaScript files (except Enabler)
+  // NOTE: ISI_Expander and PauseButton MUST be inlined for Teresa creatives
   const jsFilePaths = Object.keys(files).filter(path =>
     path.endsWith('.js') && 
-    !path.includes('Enabler') && 
-    !path.includes('ISI_Expander') &&
-    !path.includes('PauseButton')
+    !path.includes('Enabler')
   );
   
   for (const jsPath of jsFilePaths) {
@@ -385,6 +384,17 @@ ${jsContent}
   html = html.replace(
     /(var\s+)?extJavascript\s*=\s*document\.createElement\(['"]script['"]\);[\s\S]*?extJavascript\.setAttribute\(['"]src['"],\s*Enabler\.getUrl\(['"]combined\.js['"]\)\);[\s\S]*?appendChild\(extJavascript\);/gi,
     '// Preview: JavaScript inlined, dynamic loading removed'
+  );
+  
+  // Remove dynamic loading for Teresa-specific files (ISI_Expander.js, PauseButton.js)
+  html = html.replace(
+    /extJavascript\s*=\s*document\.createElement\(['"]script['"]\);[\s\S]*?extJavascript\.setAttribute\(['"]src['"],\s*Enabler\.getUrl\(['"]ISI_Expander\.js['"]\)\);[\s\S]*?appendChild\(extJavascript\);/gi,
+    '// Preview: ISI_Expander.js inlined, dynamic loading removed'
+  );
+  
+  html = html.replace(
+    /extJavascript\s*=\s*document\.createElement\(['"]script['"]\);[\s\S]*?extJavascript\.setAttribute\(['"]src['"],\s*Enabler\.getUrl\(['"]PauseButton\.js['"]\)\);[\s\S]*?appendChild\(extJavascript\);/gi,
+    '// Preview: PauseButton.js inlined, dynamic loading removed'
   );
   
   // Rewrite HTML URLs to use blob URLs
