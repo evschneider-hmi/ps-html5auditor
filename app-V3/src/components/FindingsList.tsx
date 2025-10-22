@@ -156,7 +156,7 @@ const SPEC_TEXT: Record<string, string> = {
     'CM360: Exactly one root entry HTML; all other files referenced by it.',
   'file-limits': 'CM360: ≤ 100 files and ≤ 10 MB upload (compressed).',
   'allowed-ext':
-    'CM360: Only typical creative extensions allowed (html, js, css, images, fonts, etc.) and no OS metadata artifacts (e.g., __MACOSX, Thumbs.db, .DS_Store).',
+    'CM360: Only typical creative extensions allowed (html, js, css, images, fonts, etc.). OS artifacts (Thumbs.db, .DS_Store, __MACOSX) trigger warnings but should be cleaned before upload.',
   'iframe-safe':
     'CM360: No cross-frame DOM access (parent/top/document.domain).',
   clicktag:
