@@ -153,9 +153,12 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({
   };
 
   // Compute status and issues for each upload
+  // Overall status determined by Priority checks only (matches V2 behavior)
   const getUploadStatus = (upload: Upload) => {
-    const fails = upload.findings.filter((f: Finding) => f.severity === 'FAIL').length;
-    const warns = upload.findings.filter((f: Finding) => f.severity === 'WARN').length;
+    const { isPriorityCheck } = require('../utils/grouping');
+    const priorityFindings = upload.findings.filter((f: Finding) => isPriorityCheck(f));
+    const fails = priorityFindings.filter((f: Finding) => f.severity === 'FAIL').length;
+    const warns = priorityFindings.filter((f: Finding) => f.severity === 'WARN').length;
 
     if (fails > 0) return 'FAIL';
     if (warns > 0) return 'WARN';

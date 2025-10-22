@@ -49,7 +49,15 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({
         const warns = findings.filter((f: Finding) => f.severity === 'WARN').length;
         const passes = findings.filter((f: Finding) => f.severity === 'PASS').length;
         
-        const status = fails > 0 ? 'FAIL' : warns > 0 ? 'WARN' : 'PASS';
+        // Overall status determined by Priority checks only (matches V2 behavior)
+        const priorityFindings = findings.filter((f: Finding) => {
+          const { isPriorityCheck } = require('../utils/grouping');
+          return isPriorityCheck(f);
+        });
+        const priorityFails = priorityFindings.filter((f: Finding) => f.severity === 'FAIL').length;
+        const priorityWarns = priorityFindings.filter((f: Finding) => f.severity === 'WARN').length;
+        
+        const status = priorityFails > 0 ? 'FAIL' : priorityWarns > 0 ? 'WARN' : 'PASS';
         
         const dimensions = upload.bundleResult.adSize
           ? `${upload.bundleResult.adSize.width}×${upload.bundleResult.adSize.height}`
