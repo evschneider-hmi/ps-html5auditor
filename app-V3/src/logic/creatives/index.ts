@@ -15,6 +15,8 @@ import { iframeSafeCheck } from './html5/cm360/iframeSafe';
 import { noWebStorageCheck } from './html5/cm360/noWebStorage';
 import { gwdEnvCheck } from './html5/cm360/gwdEnvCheck';
 import { hardcodedClickCheck } from './html5/cm360/hardcodedClick';
+import { primaryAssetCheck } from './html5/cm360/primaryAsset';
+import { httpsOnlyCheck } from './html5/cm360/httpsOnly';
 
 // Import common checks
 import { packagingCheck } from './common/packaging';
@@ -76,10 +78,12 @@ export const ALL_CHECKS: Check[] = [
   packagingCheck,
   allowedExtensionsCheck,
   fileLimitsCheck,
+  primaryAssetCheck,    // NEW: Sprint 1 addition
   
   // CM360 Checks - Batch 2 (Structure)
   entryHtmlCheck,
   filenamesCheck,
+  httpsOnlyCheck,       // NEW: Sprint 1 addition
   
   // CM360 Checks - Batch 3 (Code Analysis)
   iframeSafeCheck,
