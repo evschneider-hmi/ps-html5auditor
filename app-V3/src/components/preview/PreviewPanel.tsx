@@ -245,11 +245,13 @@ const generatePreviewHtml = (
       });
     
     // Inline JavaScript files (combined.js and similar)
+    // NOTE: Teresa creatives - only inline combined.js, let ISI_Expander and PauseButton load dynamically via blob URLs
+    // This matches V2 behavior which successfully renders Teresa creatives
     Array.from(bufferMap.entries())
       .filter(([jsPath]) => 
         jsPath.endsWith('.js') && 
-        !jsPath.includes('Enabler') && 
-        !jsPath.includes('ISI_Expander') && 
+        !jsPath.includes('Enabler') &&
+        !jsPath.includes('ISI_Expander') &&
         !jsPath.includes('PauseButton')
       )
       .forEach(([jsPath, jsBuffer]) => {
@@ -288,6 +290,13 @@ const generatePreviewHtml = (
           console.error('[V3 Preview] Failed to inline JavaScript:', jsPath, error);
         }
       });
+    
+    // Remove dynamic loading for combined.js (now inlined)
+    // But keep ISI_Expander and PauseButton dynamic loading - they'll use blob URLs via Enabler shim
+    html = html.replace(
+      /(var\s+)?extJavascript\s*=\s*document\.createElement\(['"]script['"]\);[\s\S]*?extJavascript\.setAttribute\(['"]src['"],\s*Enabler\.getUrl\(['"]combined\.js['"]\)\);[\s\S]*?appendChild\(extJavascript\);/gi,
+      '// Preview: JavaScript inlined, dynamic loading removed'
+    );
     
     // CRITICAL: Inject CSS to remove scrollbars and ensure clean preview
     // NOTE: Don't override width/height as some creatives use media queries that depend on exact dimensions
@@ -333,6 +342,13 @@ const generatePreviewHtml = (
     } else {
       html = enablerShimTag + '\n' + html;
     }
+    
+    // CRITICAL: Remove external Enabler.js script to prevent it from overwriting our shim
+    // Teresa and other CM360 creatives load Enabler from CDN, but we need our shim with blob URL support
+    html = html.replace(
+      /<script[^>]+src=["']https?:\/\/[^"']*\/Enabler\.js["'][^>]*>[\s\S]*?<\/script>/gi,
+      '<!-- V3 Preview: External Enabler script removed, using shim instead -->'
+    );
     
     // Inject Enhanced Probe for animation tracking and diagnostics
     const probeScript = getEnhancedProbeScript();
