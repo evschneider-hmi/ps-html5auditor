@@ -90,9 +90,9 @@ export function useSessionId(): UseSessionIdResult {
     if (saved) {
       setSessionId(newSessionId);
       updateURLWithSessionId(newSessionId);
-      console.log('✅ Session created:', newSessionId);
+      console.log('Session created:', newSessionId);
     } else {
-      console.error('❌ Failed to create session');
+      console.error('Failed to create session');
     }
 
     return newSessionId;
@@ -114,9 +114,9 @@ export function useSessionId(): UseSessionIdResult {
     });
 
     if (saved) {
-      console.log('✅ Session updated:', sessionId);
+      console.log('Session updated:', sessionId);
     } else {
-      console.error('❌ Failed to update session');
+      console.error('Failed to update session');
     }
   }, [sessionId]);
 
@@ -135,10 +135,10 @@ export function useSessionId(): UseSessionIdResult {
     if (sessionData) {
       setSessionId(urlSessionId);
       setIsSessionLoaded(true);
-      console.log('✅ Session loaded from URL:', urlSessionId);
+      console.log('Session loaded from URL:', urlSessionId);
       return sessionData;
     } else {
-      console.warn('❌ Session not found or expired:', urlSessionId);
+      console.warn('Session not found or expired:', urlSessionId);
       return null;
     }
   }, []);

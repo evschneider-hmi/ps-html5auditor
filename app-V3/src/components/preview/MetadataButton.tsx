@@ -265,15 +265,15 @@ export const MetadataButton: React.FC<MetadataButtonProps> = ({ bundleResult, bu
                   }}
                 >
                   <p style={{ margin: '0 0 8px 0' }}>
-                    <strong>⚠️ Visibility Guard:</strong> This preview is simulated in a sandboxed iframe. Some features
+                    <strong>△ Visibility Guard:</strong> This preview is simulated in a sandboxed iframe. Some features
                     may behave differently in production environments.
                   </p>
                   <p style={{ margin: '0 0 8px 0' }}>
-                    <strong>🔗 Clickthrough URLs:</strong> Click tracking is simulated. Actual click behavior will vary
+                    <strong>Clickthrough URLs:</strong> Click tracking is simulated. Actual click behavior will vary
                     based on ad server configuration.
                   </p>
                   <p style={{ margin: 0 }}>
-                    <strong>🌐 External Resources:</strong> External HTTP requests may be blocked by the sandbox. Use
+                    <strong>External Resources:</strong> External HTTP requests may be blocked by the sandbox. Use
                     HTTPS for all external resources.
                   </p>
                 </div>

@@ -134,7 +134,7 @@ export const PreviewPane: React.FC<PreviewPaneProps> = ({
         {/* Error state */}
         {state.error && !state.loading && (
           <div className="preview-pane__error">
-            <div className="preview-pane__error-icon">⚠️</div>
+            <div className="preview-pane__error-icon">△</div>
             <h3>Preview Failed</h3>
             <p>{state.error}</p>
             <button
@@ -193,22 +193,22 @@ export const PreviewPane: React.FC<PreviewPaneProps> = ({
         <div className="preview-pane__diagnostics">
           {state.diagnostics.domContentLoaded && (
             <span title="DOMContentLoaded">
-              ⏱ {state.diagnostics.domContentLoaded}ms
+              T {state.diagnostics.domContentLoaded}ms
             </span>
           )}
           {state.diagnostics.frames !== undefined && (
             <span title="Frames observed">
-              🎞 {state.diagnostics.frames} frames
+              {state.diagnostics.frames} frames
             </span>
           )}
           {state.diagnostics.consoleErrors !== undefined && state.diagnostics.consoleErrors > 0 && (
             <span title="Console errors" className="preview-pane__diagnostic--error">
-              ❌ {state.diagnostics.consoleErrors} errors
+              ✕ {state.diagnostics.consoleErrors} errors
             </span>
           )}
           {state.dimensions && (
             <span title="Creative dimensions">
-              📐 {state.dimensions.width}x{state.dimensions.height}
+              {state.dimensions.width}x{state.dimensions.height}
             </span>
           )}
         </div>

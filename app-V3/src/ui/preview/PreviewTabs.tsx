@@ -39,14 +39,14 @@ const TAB_LABELS: Record<PreviewTab, string> = {
 };
 
 /**
- * Tab icons (emoji for now, can be replaced with icon library)
+ * Tab icons (simple text characters)
  */
 const TAB_ICONS: Record<PreviewTab, string> = {
-  preview: '👁',
-  source: '📝',
-  assets: '📁',
-  json: '{ }',
-  diagnostics: '📊'
+  preview: 'P',
+  source: 'S',
+  assets: 'A',
+  json: 'J',
+  diagnostics: 'D'
 };
 
 /**

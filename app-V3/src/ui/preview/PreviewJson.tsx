@@ -208,7 +208,7 @@ export const PreviewJson: React.FC<PreviewJsonProps> = ({
             className="preview-json__button"
             onClick={handleCopy}
           >
-            {copySuccess ? '✓ Copied' : '📋 Copy'}
+            {copySuccess ? '✓ Copied' : 'Copy'}
           </button>
         </div>
       </div>

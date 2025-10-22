@@ -187,7 +187,7 @@ export const PreviewControls: React.FC<PreviewControlsProps> = ({
           disabled={!ready}
           title="Resize preview"
         >
-          📐 Resize
+          Resize
         </button>
         
         <button
@@ -195,7 +195,7 @@ export const PreviewControls: React.FC<PreviewControlsProps> = ({
           onClick={handleDebugToggle}
           title="Toggle debug mode (D)"
         >
-          🐛 Debug
+          Debug
         </button>
         
         <button
@@ -204,7 +204,7 @@ export const PreviewControls: React.FC<PreviewControlsProps> = ({
           disabled={!ready || !html}
           title="Export preview HTML (E)"
         >
-          💾 Export
+          Export
         </button>
       </div>
       

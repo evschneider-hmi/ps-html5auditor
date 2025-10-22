@@ -687,7 +687,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
           alignItems: 'center',
           gap: '8px',
         }}>
-          <span style={{ fontSize: '16px' }}>⚠️</span>
+          <span style={{ fontSize: '16px' }}>△</span>
           <div>
             <div style={{ fontWeight: 600, marginBottom: '4px' }}>
               Warning: Some assets failed to load ({assetLoadErrors.length})

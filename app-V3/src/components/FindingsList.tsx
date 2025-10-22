@@ -468,15 +468,16 @@ const HelpIcon: React.FC<{
             zIndex: 100,
             pointerEvents: 'auto',
             whiteSpace: 'pre-wrap',
-            maxWidth: 420,
-            background: 'var(--card)',
+            width: 480,
+            maxWidth: 480,
+            background: 'var(--surface)',
             border: '1px solid var(--border)',
-            borderRadius: 8,
-            padding: 12,
-            fontSize: 12,
-            lineHeight: 1.5,
+            borderRadius: 10,
+            padding: 16,
+            fontSize: 13,
+            lineHeight: 1.6,
             color: 'var(--text)',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            boxShadow: '0 8px 24px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.08)',
           }}
         >
           {desc}
@@ -553,7 +554,7 @@ export const FindingsList: React.FC<FindingsListProps> = ({ findings, creativeNa
 
   const badge = (severity: string) => {
     const color = severity === 'FAIL' ? '#ef4444' : severity === 'WARN' ? '#f59e0b' : '#10b981';
-    const icon = severity === 'FAIL' ? '✕' : severity === 'WARN' ? '⚠' : '✓';
+    const icon = severity === 'FAIL' ? '✕' : severity === 'WARN' ? '△' : '✓';
     return (
       <span
         style={{
@@ -565,8 +566,8 @@ export const FindingsList: React.FC<FindingsListProps> = ({ findings, creativeNa
           borderRadius: '50%',
           backgroundColor: color,
           color: '#fff',
-          fontSize: severity === 'WARN' ? 13 : 12,
-          fontWeight: 700,
+          fontSize: severity === 'WARN' ? 14 : 12,
+          fontWeight: severity === 'WARN' ? 400 : 700,
         }}
       >
         {icon}

@@ -520,7 +520,7 @@ function generateChecksHTML(findings: any[], profile: ExportProfile): string {
   const checksHTML = findings
     .map(finding => {
       const icon =
-        finding.severity === 'FAIL' ? '✗' : finding.severity === 'WARN' ? '⚠' : '✓';
+        finding.severity === 'FAIL' ? 'F' : finding.severity === 'WARN' ? 'W' : 'P';
       const severity = finding.severity.toLowerCase();
       
       const offendersHTML =

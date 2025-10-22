@@ -856,7 +856,7 @@ export function VastPreview({ entry }: VastPreviewProps) {
                                           color: 'var(--warning, #f59e0b)',
                                         }}
                                       >
-                                        ⚠
+                                        △
                                       </span>
                                     )}
                                   </td>

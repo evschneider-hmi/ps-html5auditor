@@ -382,14 +382,14 @@ function addChecksSection(
     
     // Status icon
     let statusColor = COLORS.success;
-    let statusSymbol = '✓';
+    let statusSymbol = 'P';
     
     if (finding.severity === 'FAIL') {
       statusColor = COLORS.error;
-      statusSymbol = '✗';
+      statusSymbol = 'F';
     } else if (finding.severity === 'WARN') {
       statusColor = COLORS.warning;
-      statusSymbol = '⚠';
+      statusSymbol = 'W';
     }
     
     doc.setFontSize(10);

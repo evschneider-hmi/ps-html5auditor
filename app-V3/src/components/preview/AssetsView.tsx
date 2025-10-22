@@ -16,17 +16,17 @@ const formatBytes = (bytes: number): string => {
 const getFileIcon = (path: string): string => {
   const ext = path.split('.').pop()?.toLowerCase() || '';
   
-  if (['html', 'htm'].includes(ext)) return '📄';
-  if (['css'].includes(ext)) return '🎨';
-  if (['js'].includes(ext)) return '📜';
-  if (['json'].includes(ext)) return '📋';
-  if (['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp'].includes(ext)) return '🖼️';
-  if (['mp4', 'webm', 'ogg'].includes(ext)) return '🎬';
-  if (['mp3', 'wav', 'ogg'].includes(ext)) return '🔊';
-  if (['zip', 'rar', '7z'].includes(ext)) return '📦';
-  if (['txt', 'md'].includes(ext)) return '📝';
+  if (['html', 'htm'].includes(ext)) return 'H';
+  if (['css'].includes(ext)) return 'C';
+  if (['js'].includes(ext)) return 'J';
+  if (['json'].includes(ext)) return '{';
+  if (['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp'].includes(ext)) return 'I';
+  if (['mp4', 'webm', 'ogg'].includes(ext)) return 'V';
+  if (['mp3', 'wav', 'ogg'].includes(ext)) return 'A';
+  if (['zip', 'rar', '7z'].includes(ext)) return 'Z';
+  if (['txt', 'md'].includes(ext)) return 'T';
   
-  return '📎';
+  return 'F';
 };
 
 const getFileType = (path: string): string => {

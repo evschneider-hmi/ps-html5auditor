@@ -96,7 +96,7 @@ export const PreviewDiagnosticsPanel: React.FC<PreviewDiagnosticsProps> = ({
     {
       id: 'timing',
       title: 'Timing Metrics',
-      icon: '⏱',
+      icon: 'T',
       metrics: [
         { key: 'domContentLoaded', label: 'DOMContentLoaded', format: formatters.milliseconds },
         { key: 'visualStart', label: 'Visual Start', format: formatters.milliseconds },
@@ -106,7 +106,7 @@ export const PreviewDiagnosticsPanel: React.FC<PreviewDiagnosticsProps> = ({
     {
       id: 'tracking',
       title: 'Tracking & Libraries',
-      icon: '📊',
+      icon: 'L',
       metrics: [
         { key: 'jquery', label: 'jQuery Detected', format: formatters.boolean, isIssue: issueCheckers.isDetected },
         { key: 'clickUrl', label: 'Click URL', format: formatters.url }
@@ -115,7 +115,7 @@ export const PreviewDiagnosticsPanel: React.FC<PreviewDiagnosticsProps> = ({
     {
       id: 'errors',
       title: 'Errors & Warnings',
-      icon: '⚠️',
+      icon: '△',
       metrics: [
         { key: 'consoleErrors', label: 'Console Errors', format: formatters.number, isIssue: issueCheckers.hasErrors },
         { key: 'consoleWarnings', label: 'Console Warnings', format: formatters.number, isIssue: issueCheckers.hasWarnings },
@@ -125,7 +125,7 @@ export const PreviewDiagnosticsPanel: React.FC<PreviewDiagnosticsProps> = ({
     {
       id: 'animation',
       title: 'Animation',
-      icon: '🎞',
+      icon: 'A',
       metrics: [
         { key: 'frames', label: 'Frames Observed', format: formatters.number },
         { key: 'animMaxDurationS', label: 'Max Duration', format: formatters.seconds },
@@ -136,7 +136,7 @@ export const PreviewDiagnosticsPanel: React.FC<PreviewDiagnosticsProps> = ({
     {
       id: 'network',
       title: 'Network',
-      icon: '🌐',
+      icon: 'N',
       metrics: [
         { key: 'network', label: 'Network Requests', format: formatters.number },
         { key: 'initialRequests', label: 'Initial Requests', format: formatters.number },
@@ -152,7 +152,7 @@ export const PreviewDiagnosticsPanel: React.FC<PreviewDiagnosticsProps> = ({
     {
       id: 'dom',
       title: 'DOM & Content',
-      icon: '📄',
+      icon: 'D',
       metrics: [
         { key: 'domImages', label: 'DOM Images', format: formatters.number },
         { key: 'domBgUrls', label: 'Background URLs', format: formatters.number },
@@ -163,7 +163,7 @@ export const PreviewDiagnosticsPanel: React.FC<PreviewDiagnosticsProps> = ({
     {
       id: 'storage',
       title: 'Storage & Privacy',
-      icon: '🔒',
+      icon: 'S',
       metrics: [
         { key: 'cookies', label: 'Cookies Set', format: formatters.number },
         { key: 'localStorage', label: 'localStorage Access', format: formatters.number },
@@ -173,7 +173,7 @@ export const PreviewDiagnosticsPanel: React.FC<PreviewDiagnosticsProps> = ({
     {
       id: 'performance',
       title: 'Performance',
-      icon: '⚡',
+      icon: 'P',
       metrics: [
         { key: 'memoryMB', label: 'Current Memory', format: formatters.megabytes },
         { key: 'memoryMinMB', label: 'Min Memory', format: formatters.megabytes },
@@ -184,7 +184,7 @@ export const PreviewDiagnosticsPanel: React.FC<PreviewDiagnosticsProps> = ({
     {
       id: 'rewrites',
       title: 'URL Rewrites',
-      icon: '🔗',
+      icon: 'R',
       metrics: [
         { key: 'rewrites', label: 'Total Rewrites', format: formatters.number },
         { key: 'imgRewrites', label: 'Image Rewrites', format: formatters.number },
@@ -199,7 +199,7 @@ export const PreviewDiagnosticsPanel: React.FC<PreviewDiagnosticsProps> = ({
     {
       id: 'border',
       title: 'Border Detection',
-      icon: '🔲',
+      icon: 'B',
       metrics: [
         { key: 'borderSides', label: 'Border Sides', format: formatters.number },
         { key: 'borderCssRules', label: 'Border CSS Rules', format: formatters.number }
@@ -208,7 +208,7 @@ export const PreviewDiagnosticsPanel: React.FC<PreviewDiagnosticsProps> = ({
     {
       id: 'other',
       title: 'Other',
-      icon: '📋',
+      icon: 'O',
       metrics: [
         { key: 'enablerStub', label: 'Enabler Stub Active', format: formatters.boolean }
       ]
@@ -336,13 +336,13 @@ export const PreviewDiagnosticsPanel: React.FC<PreviewDiagnosticsProps> = ({
             className="preview-diagnostics__button"
             onClick={handleCopy}
           >
-            {copySuccess ? '✓ Copied' : '📋 Copy'}
+            {copySuccess ? '✓ Copied' : 'Copy'}
           </button>
           <button
             className="preview-diagnostics__button"
             onClick={handleExport}
           >
-            💾 Export
+            Export
           </button>
         </div>
       </div>
