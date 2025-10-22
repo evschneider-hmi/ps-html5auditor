@@ -30,6 +30,7 @@ import { hostedSizeCheck } from './html5/iab/hostedSize';
 import { cssEmbeddedCheck } from './html5/iab/cssEmbedded';
 import { indexFileCheck } from './html5/iab/indexFile';
 import { videoCheck } from './html5/iab/video';
+import { weightBudgetsCheck } from './html5/iab/weightBudgets';
 
 // IAB Checks - Batch 2 (Runtime Probe)
 import { dialogsCheck } from './html5/iab/dialogs';
@@ -97,6 +98,7 @@ export const ALL_CHECKS: Check[] = [
   cssEmbeddedCheck,
   indexFileCheck,
   videoCheck,
+  weightBudgetsCheck,
   
   // IAB Checks - Batch 2 (Runtime Probe)
   dialogsCheck,
