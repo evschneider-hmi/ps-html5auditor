@@ -24,11 +24,10 @@
 import type { Check, CheckContext } from '../types';
 import type { Finding } from '../../types';
 
-// Pattern: Characters that CM360 disallows
-const DISALLOWED_CHARS = /[%#?;\\:*"|<>]/g;
-
-// Pattern: Control characters that may cause issues
-const CONTROL_CHARS = /[ -]/;
+// Pattern: Characters that CM360 disallows (per CM360 documentation)
+// NOTE: Hyphens, underscores, and dots are ALLOWED (industry standard)
+// Only truly problematic characters are flagged: % # ? ; \ : * " | < > and spaces
+const DISALLOWED_CHARS = /[%#?;\\:*"|<>\s]/g;
 
 export const filenamesCheck: Check = {
   id: 'bad-filenames',
@@ -46,24 +45,14 @@ export const filenamesCheck: Check = {
     // Check each file for problematic characters
     for (const filePath of files) {
       const filename = (filePath.split('/').pop() || filePath).toString();
-      const issues: string[] = [];
       
-      // Check for disallowed special characters
+      // Check for disallowed special characters (excluding hyphens, underscores, dots)
       const matches = filename.match(DISALLOWED_CHARS);
       if (matches && matches.length) {
         const uniqueChars = Array.from(new Set(matches));
-        issues.push(`illegal character(s): ${uniqueChars.join(' ')}`);
-      }
-      
-      // Check for control characters (spaces, dashes in problematic positions)
-      if (CONTROL_CHARS.test(filename)) {
-        issues.push('control characters present');
-      }
-      
-      if (issues.length) {
         disallowedOffenders.push({
           path: filePath,
-          detail: issues.join('; ')
+          detail: `illegal character(s): ${uniqueChars.join(' ')}`
         });
       }
     }

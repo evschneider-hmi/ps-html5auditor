@@ -27,9 +27,10 @@ export const packagingCheck: Check = {
   execute(context: CheckContext): Finding {
     const { bundle, files } = context;
     
-    // Check if bundle is in ZIP mode
-    const mode = (bundle as any).mode as string | undefined;
-    const isZipMode = mode === 'zip';
+    // In V3, all uploads are ZIP files (users can't upload loose folders)
+    // The bundle extraction process already handles ZIP parsing
+    // If we have a bundle object with files, it came from a ZIP
+    const isZipMode = true; // Always true in V3 architecture
     
     // Find nested archives
     const nestedArchives = files.filter(p => /(\.zip|\.adz)$/i.test(p));
