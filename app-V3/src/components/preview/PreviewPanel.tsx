@@ -381,6 +381,9 @@ const generatePreviewHtml = (
       html = enablerShimTag + '\n' + html;
     }
     
+    // NOTE: Blob map is injected via iframe load event handler (see useEffect below)
+    // This matches V2's approach: inject AFTER iframe HTML loads but BEFORE scripts need it
+    
     // CRITICAL: Remove external Enabler.js script to prevent it from overwriting our shim
     // Teresa and other CM360 creatives load Enabler from CDN, but we need our shim with blob URL support
     html = html.replace(
@@ -483,59 +486,6 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
       cleanupBlobUrls();
     };
   }, []);
-
-  // Monitor asset loading errors in iframe
-  useEffect(() => {
-    if (!iframeRef.current || !previewHtml) return;
-
-    const iframe = iframeRef.current;
-    const errors: string[] = [];
-
-    const checkAssetLoading = () => {
-      try {
-        const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-        if (!iframeDoc) return;
-
-        // Check for failed images
-        const images = iframeDoc.querySelectorAll('img');
-        console.log('[V3 Preview] Checking image loading, found:', images.length, 'images');
-        
-        images.forEach((img) => {
-          const imgSrc = img.src.split('/').pop() || 'unknown';
-          console.log('[V3 Preview] Image check:', imgSrc, '- complete:', img.complete, 'naturalHeight:', img.naturalHeight);
-          
-          if (!img.complete || img.naturalHeight === 0) {
-            errors.push(`Image: ${imgSrc}`);
-            console.error('[V3 Preview] ✗ Image failed to load:', img.src);
-          }
-        });
-
-        // NOTE: Script and stylesheet checks disabled because:
-        // 1. We inline combined.js and combined.css directly into HTML
-        // 2. Dynamic scripts loaded via Enabler.getUrl() use blob map (not src attributes)
-        // 3. These checks were causing false positive warnings
-
-        if (errors.length > 0) {
-          console.warn('[V3 Preview] Asset loading errors detected:', errors);
-          setAssetLoadErrors(errors);
-        } else {
-          console.log('[V3 Preview] ✓ All images loaded successfully');
-          setAssetLoadErrors([]);
-        }
-      } catch (e) {
-        console.warn('[V3 Preview] Could not check asset loading:', e);
-      }
-    };
-
-    // Check after iframe loads and after a short delay for dynamic loading
-    iframe.addEventListener('load', () => {
-      setTimeout(checkAssetLoading, 1000);
-    });
-
-    return () => {
-      iframe.removeEventListener('load', checkAssetLoading);
-    };
-  }, [previewHtml, iframeKey]);
 
   // Listen for diagnostics messages from enhanced probe
   useEffect(() => {
