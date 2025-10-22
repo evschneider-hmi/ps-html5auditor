@@ -153,6 +153,35 @@ const generatePreviewHtml = (
     const decoder = new TextDecoder('utf-8');
     let html = decoder.decode(htmlBuffer);
     
+    // Teresa fix: Strip inline positioning styles that position elements offscreen
+    // GSAP animations should move them into view, but if animations fail they stay offscreen
+    // Remove inline `left:` styles so CSS positioning (fixed to left: 0px) takes effect
+    const beforeTeresaFix = html;
+    
+    // DEBUG: Check if we have any style="..." with left: in it
+    const hasStyleLeft = html.match(/style=["'][^"']*left:/gi);
+    console.log('[V3 Preview] Found style attributes with left:', hasStyleLeft ? hasStyleLeft.length : 0);
+    if (hasStyleLeft && hasStyleLeft.length > 0) {
+      console.log('[V3 Preview] First match:', hasStyleLeft[0]);
+    }
+    
+    html = html.replace(
+      /(<[^>]+\s)style=["']([^"']*?)\bleft:\s*-?\d+px;?\s*([^"']*)["']/gi,
+      (_match, tagStart, styleBefore, styleAfter) => {
+        const remainingStyle = (styleBefore + ' ' + styleAfter).trim();
+        if (remainingStyle) {
+          return `${tagStart}style="${remainingStyle}"`;
+        } else {
+          return tagStart.trimEnd();  // Remove empty style attribute
+        }
+      }
+    );
+    if (html !== beforeTeresaFix) {
+      console.log('[V3 Preview] Teresa inline positioning styles stripped for visibility');
+    } else {
+      console.log('[V3 Preview] No Teresa inline positioning styles found to strip');
+    }
+    
     // CRITICAL: Rewrite all img src attributes to use blob URLs
     // This is necessary for static <img> tags that load before JavaScript runs
     // (e.g., Google Web Designer creatives with hardcoded images)
@@ -236,6 +265,9 @@ const generatePreviewHtml = (
             }
           );
           
+          // FIX: Don't modify CSS positioning - let GSAP animations work naturally
+          // Combined.js now executes properly after window.load with GSAP loaded from CDN
+          
           const styleTag = '<style data-v3-inlined="' + cssPath + '">\n' + cssContent + '\n</style>';
           html = html.replace('</head>', styleTag + '\n</head>');
           console.log('[V3 Preview] Inlined CSS file:', cssPath, '(' + cssContent.length + ' bytes)');
@@ -244,15 +276,17 @@ const generatePreviewHtml = (
         }
       });
     
-    // Inline JavaScript files (combined.js and similar)
-    // NOTE: Teresa creatives - only inline combined.js, let ISI_Expander and PauseButton load dynamically via blob URLs
-    // This matches V2 behavior which successfully renders Teresa creatives
+    // Inline JavaScript files
+    // NOTE: Teresa creatives load combined.js dynamically via Enabler.getUrl() in enablerInitHandler
+    // We should NOT inline combined.js, ISI_Expander.js, or PauseButton.js - let them load via blob URLs
+    // This matches V2's successful approach and avoids race conditions with window.onload
     Array.from(bufferMap.entries())
       .filter(([jsPath]) => 
         jsPath.endsWith('.js') && 
         !jsPath.includes('Enabler') &&
         !jsPath.includes('ISI_Expander') &&
-        !jsPath.includes('PauseButton')
+        !jsPath.includes('PauseButton') &&
+        !jsPath.includes('combined.js')  // Don't inline combined.js - let it load dynamically
       )
       .forEach(([jsPath, jsBuffer]) => {
         try {
@@ -266,16 +300,19 @@ const generatePreviewHtml = (
             .replace(/<!--/g, '<\\!--')
             .replace(/-->/g, '--\\>');
           
-          // Wrap in DOMContentLoaded
+          // CRITICAL: Wait for both DOM and external GSAP/CDN scripts to load
+          // Teresa creatives load GSAP from CDN, and combined.js depends on it
+          // We need to wait for window.load (all resources) not just DOMContentLoaded
           const wrappedJS = '(function() {\n' +
             '  function executeInlinedScript() {\n' +
             '    console.log("[V3 Preview] Executing inlined script: ' + jsPath + '");\n' +
             jsContent + '\n' +
             '  }\n' +
-            '  if (document.readyState === "loading") {\n' +
-            '    document.addEventListener("DOMContentLoaded", executeInlinedScript);\n' +
-            '  } else {\n' +
+            '  // Wait for window.load to ensure GSAP and other CDN resources are ready\n' +
+            '  if (document.readyState === "complete") {\n' +
             '    executeInlinedScript();\n' +
+            '  } else {\n' +
+            '    window.addEventListener("load", executeInlinedScript);\n' +
             '  }\n' +
             '})();';
           
@@ -291,12 +328,9 @@ const generatePreviewHtml = (
         }
       });
     
-    // Remove dynamic loading for combined.js (now inlined)
-    // But keep ISI_Expander and PauseButton dynamic loading - they'll use blob URLs via Enabler shim
-    html = html.replace(
-      /(var\s+)?extJavascript\s*=\s*document\.createElement\(['"]script['"]\);[\s\S]*?extJavascript\.setAttribute\(['"]src['"],\s*Enabler\.getUrl\(['"]combined\.js['"]\)\);[\s\S]*?appendChild\(extJavascript\);/gi,
-      '// Preview: JavaScript inlined, dynamic loading removed'
-    );
+    // Don't remove dynamic loading - combined.js should load via Enabler.getUrl()
+    // The blob URL will be resolved by our Enabler shim
+    // html = html.replace(...) - REMOVED
     
     // CRITICAL: Inject CSS to remove scrollbars and ensure clean preview
     // NOTE: Don't override width/height as some creatives use media queries that depend on exact dimensions
@@ -305,6 +339,10 @@ const generatePreviewHtml = (
       '  margin: 0 !important;\n' +
       '  padding: 0 !important;\n' +
       '  overflow: hidden !important;\n' +
+      '}\n' +
+      '/* DEBUG: Force Teresa container visible */\n' +
+      '#container {\n' +
+      '  opacity: 1 !important;\n' +
       '}\n' +
       '</' + 'style>';
     
