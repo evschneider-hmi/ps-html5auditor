@@ -333,12 +333,14 @@ const generatePreviewHtml = (
     // html = html.replace(...) - REMOVED
     
     // CRITICAL: Inject CSS to remove scrollbars and ensure clean preview
-    // NOTE: Don't override width/height as some creatives use media queries that depend on exact dimensions
+    // NOTE: Must set html/body to 100% width/height so absolute positioned containers render
     const previewStyleTag = '<style data-v3-preview-styles>\n' +
       'html, body {\n' +
       '  margin: 0 !important;\n' +
       '  padding: 0 !important;\n' +
       '  overflow: hidden !important;\n' +
+      '  width: 100% !important;\n' +
+      '  height: 100% !important;\n' +
       '}\n' +
       '/* DEBUG: Force Teresa container visible */\n' +
       '#container {\n' +
@@ -486,6 +488,69 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
       cleanupBlobUrls();
     };
   }, []);
+
+  // Apply visibility guard (V2 approach) - force iframe content visible
+  useEffect(() => {
+    if (!iframeRef.current || !previewHtml) return;
+
+    const iframe = iframeRef.current;
+    
+    const applyVisibilityGuard = () => {
+      try {
+        const doc = iframe.contentDocument;
+        if (!doc || !doc.documentElement || !doc.body) return;
+
+        const elements = [doc.documentElement, doc.body];
+        for (const el of elements) {
+          if (!el || !el.style) continue;
+          
+          // Force visibility with !important
+          el.style.setProperty('opacity', '1', 'important');
+          el.style.setProperty('visibility', 'visible', 'important');
+          el.style.setProperty('pointer-events', 'auto', 'important');
+          
+          if (el === doc.body) {
+            el.style.setProperty('display', 'block', 'important');
+          }
+        }
+        
+        console.log('[V3 Preview] Visibility guard applied to iframe');
+      } catch (error) {
+        console.warn('[V3 Preview] Visibility guard failed:', error);
+      }
+    };
+
+    const handleIframeLoad = () => {
+      // Apply visibility guard immediately
+      applyVisibilityGuard();
+      
+      // Keep applying it via MutationObserver to prevent creative from hiding itself
+      try {
+        const doc = iframe.contentDocument;
+        if (!doc || !doc.documentElement) return;
+
+        const observer = new MutationObserver(() => {
+          applyVisibilityGuard();
+        });
+
+        observer.observe(doc.documentElement, {
+          attributes: true,
+          attributeFilter: ['style', 'class'],
+          subtree: true,
+        });
+
+        console.log('[V3 Preview] Visibility guard MutationObserver installed');
+      } catch (error) {
+        console.warn('[V3 Preview] Failed to install MutationObserver:', error);
+      }
+    };
+
+    iframe.addEventListener('load', handleIframeLoad);
+
+    return () => {
+      iframe.removeEventListener('load', handleIframeLoad);
+    };
+  }, [previewHtml, iframeKey]);
 
   // Listen for diagnostics messages from enhanced probe
   useEffect(() => {
