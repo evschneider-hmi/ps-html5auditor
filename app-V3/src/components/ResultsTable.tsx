@@ -259,6 +259,9 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({
           padding: 10px 12px;
           border-bottom: 1px solid var(--border);
           vertical-align: middle;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
 
         .results-table .name-cell {
@@ -266,6 +269,8 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({
           align-items: center;
           gap: 10px;
           position: relative;
+          min-width: 0;
+          max-width: 100%;
         }
 
         .results-table .name-cell .remove-btn {
@@ -484,13 +489,13 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({
                     >
                       ×
                     </button>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                      <span style={{ fontWeight: 500 }}>
-                        {upload.creativeMetadata?.fullName || upload.bundle.name}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0 }}>
+                      <span style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {(upload.creativeMetadata?.fullName || upload.bundle.name).replace(/\.zip$/i, '')}
                       </span>
                       {upload.creativeMetadata && upload.creativeMetadata.fullName !== upload.bundle.name && (
-                        <span style={{ fontSize: '11px', color: 'var(--muted)' }}>
-                          {upload.bundle.name}
+                        <span style={{ fontSize: '11px', color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {upload.bundle.name.replace(/\.zip$/i, '')}
                         </span>
                       )}
                     </div>

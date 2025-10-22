@@ -128,14 +128,14 @@ export const ResultsGrid: React.FC<ResultsGridProps> = ({
             {/* Card Body */}
             <div className="card-body">
               {/* Name */}
-              <div className="card-name" title={upload.creativeMetadata?.fullName || upload.bundle.name}>
-                {upload.creativeMetadata?.fullName || upload.bundle.name}
+              <div className="card-name" title={(upload.creativeMetadata?.fullName || upload.bundle.name).replace(/\.zip$/i, '')}>
+                {(upload.creativeMetadata?.fullName || upload.bundle.name).replace(/\.zip$/i, '')}
               </div>
               
               {/* Show original filename if creative name is different */}
               {upload.creativeMetadata && upload.creativeMetadata.fullName !== upload.bundle.name && (
                 <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>
-                  {upload.bundle.name}
+                  {upload.bundle.name.replace(/\.zip$/i, '')}
                 </div>
               )}
 
