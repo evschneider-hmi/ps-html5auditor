@@ -463,7 +463,7 @@ const HelpIcon: React.FC<{
           style={{
             position: 'absolute',
             top: '50%',
-            right: '110%',
+            left: '110%',
             transform: 'translateY(-50%)',
             zIndex: 100,
             pointerEvents: 'auto',

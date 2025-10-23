@@ -489,15 +489,10 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({
                     >
                       ×
                     </button>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0 }}>
+                    <div style={{ minWidth: 0 }}>
                       <span style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {(upload.creativeMetadata?.fullName || upload.bundle.name).replace(/\.zip$/i, '')}
                       </span>
-                      {upload.creativeMetadata && upload.creativeMetadata.fullName !== upload.bundle.name && (
-                        <span style={{ fontSize: '11px', color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {upload.bundle.name.replace(/\.zip$/i, '')}
-                        </span>
-                      )}
                     </div>
                   </div>
                 </td>
