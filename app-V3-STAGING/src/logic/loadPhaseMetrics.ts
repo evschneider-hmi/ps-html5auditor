@@ -2,29 +2,30 @@
  * Load Phase Categorization and Metrics Calculation
  * 
  * Categorizes assets into initial vs. subload (polite) phases and calculates:
- * - File sizes (initial, polite, total)
+ * - File sizes (initial, polite, total) using gzip compression
  * - Request counts (initial, polite, total)
  * - Host counts (for IAB host request limits)
  * 
  * SIZE CALCULATION METHODOLOGY:
- * - Uses raw file bytes from ZIP (uncompressed individual file sizes)
- * - IAB spec technically requires gzip-compressed sizes (HTTP transfer)
- * - Raw bytes are conservative (always >= gzip) ensuring IAB compliance
- * - TODO: Add gzip compression estimation for more accurate metrics (requires pako library)
+ * - Uses gzip compression for accurate HTTP transfer sizes (matches CM360)
+ * - IAB spec requires compressed sizes (what actually transfers over network)
+ * - Matches V2's test suite approach using pako.gzip()
+ * - Cached per file to avoid redundant compression
  * 
  * V2 COMPATIBILITY:
- * - V2 relies on runtime probe for compressed sizes
- * - V3 provides static analysis fallback using raw bytes
+ * - V2 test suite uses pako.gzip() for expected metrics
+ * - V3-STAGING uses same approach for static analysis
  * - Runtime probe (when implemented) will override with actual network metrics
  */
 
+import pako from 'pako';
 import type { Reference, ZipBundle, BundleResult } from './types';
 
 export interface LoadPhaseMetrics {
-  // File sizes (in bytes, compressed)
+  // File sizes (in bytes, gzip compressed - matches CM360/IAB)
   initialBytes: number;
   subloadBytes: number;
-  totalBytes: number;
+  totalBytes: number; // uncompressed total for reference
   
   // Request counts
   initialRequests: number;
@@ -34,6 +35,31 @@ export interface LoadPhaseMetrics {
   // Host counts
   initialHosts: number;
   totalHosts: number;
+}
+
+/**
+ * Compute gzip-compressed size of a file
+ * Cached to avoid redundant compression
+ */
+const gzipCache = new Map<string, number>();
+
+function computeGzipSize(path: string, bytes: Uint8Array): number {
+  const key = path.toLowerCase();
+  
+  if (gzipCache.has(key)) {
+    return gzipCache.get(key)!;
+  }
+  
+  let size = bytes.length;
+  try {
+    size = pako.gzip(bytes).length;
+  } catch (err) {
+    // Fallback to raw size if gzip fails
+    console.warn(`[loadPhaseMetrics] Gzip failed for ${path}, using raw size:`, err);
+  }
+  
+  gzipCache.set(key, size);
+  return size;
 }
 
 /**
@@ -81,6 +107,7 @@ function categorizeAssetPhase(ref: Reference, primaryPath: string): 'initial' | 
 
 /**
  * Calculate load phase metrics from references and bundle
+ * Uses gzip compression for accurate HTTP transfer sizes (matches CM360)
  */
 export function calculateLoadPhaseMetrics(
   refs: Reference[],
@@ -100,10 +127,14 @@ export function calculateLoadPhaseMetrics(
     if (!ref.inZip) {
       // External asset - track host
       if (ref.external) {
-        totalHosts.add(new URL(ref.url).hostname);
-        const phase = categorizeAssetPhase(ref, primaryPath);
-        if (phase === 'initial') {
-          initialHosts.add(new URL(ref.url).hostname);
+        try {
+          totalHosts.add(new URL(ref.url).hostname);
+          const phase = categorizeAssetPhase(ref, primaryPath);
+          if (phase === 'initial') {
+            initialHosts.add(new URL(ref.url).hostname);
+          }
+        } catch {
+          // Invalid URL, skip
         }
       }
       continue; // Don't count size for external assets
@@ -120,25 +151,25 @@ export function calculateLoadPhaseMetrics(
     }
   }
   
-  // Calculate sizes
+  // Calculate gzip-compressed sizes (matches CM360/V2 test suite)
   let initialBytes = 0;
   let subloadBytes = 0;
   
   for (const path of initialAssets) {
     const fileBytes = bundle.files[path];
     if (fileBytes) {
-      initialBytes += fileBytes.length;
+      initialBytes += computeGzipSize(path, fileBytes);
     }
   }
   
   for (const path of subloadAssets) {
     const fileBytes = bundle.files[path];
     if (fileBytes) {
-      subloadBytes += fileBytes.length;
+      subloadBytes += computeGzipSize(path, fileBytes);
     }
   }
   
-  // Total bytes from all files in bundle
+  // Total bytes: uncompressed size of all files (for reference)
   const totalBytes = Object.values(bundle.files).reduce(
     (sum, bytes) => sum + bytes.length,
     0
