@@ -9,6 +9,7 @@ import { parsePrimary } from '../logic/parse';
 import { runAllChecks } from '../logic/creatives';
 import { defaultSettings } from '../logic/profiles';
 import { detectCreativeMetadata } from '../utils/creativeMetadataDetector';
+import { calculateLoadPhaseMetrics } from '../logic/loadPhaseMetrics';
 import type { Upload, CreativeSubtype } from '../types';
 import type { BundleResult } from '../logic/types';
 
@@ -92,7 +93,15 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
     const parseResult = await parsePrimary(zipBundle, discovery.primary);
     sendProgress('parsing', 60, `Parse complete (${parseResult.references.length} references)`);
 
-    // Step 4: Build BundleResult
+    // Step 4: Calculate load phase metrics
+    sendProgress('analyzing', 62, 'Calculating load phase metrics...');
+    const phaseMetrics = calculateLoadPhaseMetrics(
+      parseResult.references,
+      zipBundle,
+      discovery.primary.path
+    );
+
+    // Step 5: Build BundleResult
     const partial: BundleResult = {
       bundleId: zipBundle.id,
       bundleName: zipBundle.name,
@@ -110,12 +119,19 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
         orphanCount: 0,
         missingAssetCount: 0,
       },
-      totalBytes: zipBundle.bytes.length,
+      // File size metrics
+      totalBytes: phaseMetrics.totalBytes,
+      initialBytes: phaseMetrics.initialBytes,
+      subloadBytes: phaseMetrics.subloadBytes,
       zippedBytes: zipBundle.bytes.length,
+      // Request count metrics
+      initialRequests: phaseMetrics.initialRequests,
+      subloadRequests: phaseMetrics.subloadRequests,
+      totalRequests: phaseMetrics.totalRequests,
     };
 
-    // Step 5: Build CheckContext (70%)
-    sendProgress('preparing', 65, 'Preparing check context...');
+    // Step 6: Build CheckContext (70%)
+    sendProgress('preparing', 68, 'Preparing check context...');
     const primaryPath = discovery.primary.path;
     const htmlText = new TextDecoder().decode(zipBundle.files[primaryPath]);
     const bundleFiles = Object.keys(zipBundle.files);
@@ -130,22 +146,22 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
       entryName: primaryPath.split('/').pop(),
       isIabProfile: false,
     };
-    sendProgress('preparing', 70, 'Context ready');
+    sendProgress('preparing', 72, 'Context ready');
 
-    // Step 6: Run checks (90%)
-    sendProgress('checking', 75, 'Running quality checks...');
+    // Step 7: Run checks (90%)
+    sendProgress('checking', 77, 'Running quality checks...');
     const results = await runAllChecks(context, {
       profile: 'CM360',
     });
     sendProgress('checking', 90, `Checks complete (${results.length} results)`);
 
-    // Step 7: Detect creative metadata (95%)
+    // Step 8: Detect creative metadata (95%)
     sendProgress('finalizing', 93, 'Detecting creative metadata...');
     const creativeMetadata = detectCreativeMetadata(file.name);
     const subtype: CreativeSubtype = 'html5';
     sendProgress('finalizing', 95, 'Finalizing upload...');
 
-    // Step 8: Create upload record
+    // Step 9: Create upload record
     const upload: Upload = {
       id: zipBundle.id,
       timestamp: Date.now(),
