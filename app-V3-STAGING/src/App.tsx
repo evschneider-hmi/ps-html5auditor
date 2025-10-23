@@ -27,6 +27,8 @@ import { sortUploads, toggleSort } from './utils/sorting';
 import { detectCreativeMetadata } from './utils/creativeMetadataDetector';
 import { useUploadQueue } from './hooks/useUploadQueue';
 import { ErrorDialog } from './components/ErrorDialog';
+import ShareButton from './components/ShareButton';
+import { loadSessionFromCloud, getSessionIdFromUrl } from './services/firebase';
 
 export default function App() {
   // Upload state
@@ -215,6 +217,42 @@ export default function App() {
       else cls.remove('theme-dark');
     } catch {}
   }, [dark]);
+
+  // Load shared session from URL on mount
+  useEffect(() => {
+    const loadSharedSession = async () => {
+      const sessionId = getSessionIdFromUrl();
+      if (!sessionId) return;
+
+      console.log('[App] Loading shared session:', sessionId);
+      try {
+        const session = await loadSessionFromCloud(sessionId);
+        if (!session) {
+          alert('Shared session not found or expired');
+          return;
+        }
+
+        // Restore session state
+        setUploads(session.uploads);
+        setSelectedUploadId(session.selectedUploadId);
+        setActiveTab(session.activeTab);
+        setViewMode(session.viewMode);
+        setSortConfig(session.sortConfig as SortConfig);
+
+        // Show success notification
+        setTimeout(() => {
+          alert('✅ Shared audit results loaded successfully!');
+        }, 500);
+
+        console.log('[App] Shared session loaded:', session.uploads.length, 'uploads');
+      } catch (error) {
+        console.error('[App] Error loading shared session:', error);
+        alert('Failed to load shared session');
+      }
+    };
+
+    loadSharedSession();
+  }, []); // Only run once on mount
 
   // Persist split state
   useEffect(() => {
@@ -759,8 +797,17 @@ export default function App() {
             </div>
           )}
 
-          {/* Export Buttons */}
-          <ExportButton uploads={filteredUploads} />
+          {/* Export and Share Buttons */}
+          <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
+            <ShareButton 
+              uploads={filteredUploads}
+              selectedUploadId={selectedUploadId}
+              activeTab={activeTab}
+              viewMode={viewMode}
+              sortConfig={sortConfig}
+            />
+            <ExportButton uploads={filteredUploads} />
+          </div>
 
           {/* View Controls: ViewToggle */}
           <div style={{ 

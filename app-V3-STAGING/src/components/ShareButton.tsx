@@ -1,231 +1,185 @@
-/**
- * ShareButton Component
- * 
- * Provides UI for sharing the current session via URL.
- * Features:
- * - Copy shareable URL to clipboard
- * - Visual feedback (toast notification)
- * - Deep linking options (optional)
- * - Privacy notice
- */
-
-import React, { useState } from 'react';
-import { Icon } from './Icon';
-import { generateShareableURL, copyToClipboard } from '../utils/sessionStorage';
+﻿import { useState } from 'react';
+import { saveSessionToCloud, generateShareUrl } from '../services/firebase';
 
 interface ShareButtonProps {
-  sessionId: string | null;
-  activeTab?: string;
-  activeCheckId?: string;
-  className?: string;
-  style?: React.CSSProperties;
+  uploads: any[];
+  selectedUploadId: string | null;
+  activeTab: 'creatives' | 'tags' | null;
+  viewMode: 'list' | 'grid';
+  sortConfig: { field: string; direction: 'asc' | 'desc' };
 }
 
-export const ShareButton: React.FC<ShareButtonProps> = ({
-  sessionId,
+export default function ShareButton({
+  uploads,
+  selectedUploadId,
   activeTab,
-  activeCheckId,
-  className = '',
-  style,
-}) => {
-  const [showToast, setShowToast] = useState(false);
-  const [copyFailed, setCopyFailed] = useState(false);
+  viewMode,
+  sortConfig
+}: ShareButtonProps) {
+  const [isSharing, setIsSharing] = useState(false);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [showDialog, setShowDialog] = useState(false);
+  const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'error'>('idle');
 
   const handleShare = async () => {
-    if (!sessionId) {
+    if (uploads.length === 0) {
+      alert('No results to share. Please upload a creative or tag first.');
       return;
     }
 
-    // Generate shareable URL with optional deep link params
-    const shareableURL = generateShareableURL(sessionId, {
-      tab: activeTab,
-      checkId: activeCheckId,
-    });
-
-    // Copy to clipboard
-    const success = await copyToClipboard(shareableURL);
-
-    if (success) {
-      setShowToast(true);
-      setCopyFailed(false);
+    setIsSharing(true);
+    try {
+      const sessionId = await saveSessionToCloud(
+        uploads,
+        selectedUploadId,
+        activeTab,
+        viewMode,
+        sortConfig
+      );
+      const url = generateShareUrl(sessionId);
+      setShareUrl(url);
+      setShowDialog(true);
       
-      // Hide toast after 3 seconds
-      setTimeout(() => {
-        setShowToast(false);
-      }, 3000);
-    } else {
-      setShowToast(true);
-      setCopyFailed(true);
-      
-      setTimeout(() => {
-        setShowToast(false);
-        setCopyFailed(false);
-      }, 3000);
+      // Auto-copy to clipboard
+      try {
+        await navigator.clipboard.writeText(url);
+        setCopyStatus('copied');
+        setTimeout(() => setCopyStatus('idle'), 3000);
+      } catch (err) {
+        setCopyStatus('error');
+      }
+    } catch (error) {
+      console.error('Share failed:', error);
+      alert('Failed to create shareable link. Please try again.');
+    } finally {
+      setIsSharing(false);
     }
   };
 
-  // Don't render if no session
-  if (!sessionId) {
-    return null;
-  }
+  const handleCopy = async () => {
+    if (!shareUrl) return;
+    
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopyStatus('copied');
+      setTimeout(() => setCopyStatus('idle'), 2000);
+    } catch (err) {
+      setCopyStatus('error');
+    }
+  };
 
   return (
     <>
       <button
-        className={`share-button ${className}`}
         onClick={handleShare}
-        style={style}
-        title="Copy shareable URL to clipboard"
+        disabled={isSharing || uploads.length === 0}
+        title="Share results"
+        style={{
+          padding: '8px 16px',
+          background: isSharing ? '#94a3b8' : uploads.length === 0 ? '#cbd5e1' : '#3b82f6',
+          color: 'white',
+          border: 'none',
+          borderRadius: '6px',
+          cursor: isSharing || uploads.length === 0 ? 'not-allowed' : 'pointer',
+          fontSize: '14px',
+          fontWeight: '500',
+          transition: 'all 0.2s'
+        }}
       >
-        <Icon name="external-link" size={16} />
-        <span>Share Results</span>
+        {isSharing ? 'Creating Link...' : ' Share Results'}
       </button>
 
-      {showToast && (
-        <div className={`share-toast ${copyFailed ? 'share-toast--error' : ''}`}>
-          <Icon name={copyFailed ? 'error' : 'check'} size={16} />
-          <span>
-            {copyFailed
-              ? 'Failed to copy URL'
-              : 'URL copied to clipboard! Share it with your team.'}
-          </span>
+      {showDialog && shareUrl && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999
+          }}
+          onClick={() => setShowDialog(false)}
+        >
+          <div
+            style={{
+              background: 'white',
+              padding: '32px',
+              borderRadius: '12px',
+              maxWidth: '600px',
+              width: '90%',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 style={{ margin: '0 0 16px 0', fontSize: '24px', color: '#1e293b' }}>
+               Shareable Link Created
+            </h2>
+            <p style={{ margin: '0 0 20px 0', color: '#64748b', fontSize: '14px' }}>
+              Share this link with anyone. Results will be available for 7 days.
+            </p>
+            
+            <div style={{ 
+              display: 'flex', 
+              gap: '8px',
+              marginBottom: '20px'
+            }}>
+              <input
+                type="text"
+                value={shareUrl}
+                readOnly
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '6px',
+                  fontSize: '14px',
+                  fontFamily: 'monospace',
+                  background: '#f8fafc'
+                }}
+                onClick={(e) => (e.target as HTMLInputElement).select()}
+              />
+              <button
+                onClick={handleCopy}
+                style={{
+                  padding: '12px 20px',
+                  background: copyStatus === 'copied' ? '#10b981' : '#3b82f6',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {copyStatus === 'copied' ? ' Copied' : ' Copy'}
+              </button>
+            </div>
+
+            <button
+              onClick={() => setShowDialog(false)}
+              style={{
+                width: '100%',
+                padding: '12px',
+                background: '#f1f5f9',
+                color: '#475569',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: '500'
+              }}
+            >
+              Close
+            </button>
+          </div>
         </div>
       )}
-
-      <style>{`
-        .share-button {
-          display: inline-flex;
-          align-items: center;
-          gap: var(--space-2, 8px);
-          padding: var(--space-2, 8px) var(--space-4, 16px);
-          background: var(--primary-color, #4f46e5);
-          color: white;
-          border: none;
-          border-radius: var(--radius-md, 6px);
-          font-size: var(--text-sm, 14px);
-          font-weight: var(--font-medium, 500);
-          cursor: pointer;
-          transition: all var(--transition-fast, 150ms) ease;
-          box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.05));
-        }
-
-        .share-button:hover {
-          background: var(--primary-hover, #4338ca);
-          box-shadow: var(--shadow-md, 0 4px 6px rgba(0, 0, 0, 0.1));
-          transform: translateY(-1px);
-        }
-
-        .share-button:active {
-          transform: translateY(0);
-          box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.05));
-        }
-
-        .share-button:focus-visible {
-          outline: 2px solid var(--focus-ring-color, #4f46e5);
-          outline-offset: 2px;
-        }
-
-        .share-toast {
-          position: fixed;
-          bottom: var(--space-6, 24px);
-          right: var(--space-6, 24px);
-          display: flex;
-          align-items: center;
-          gap: var(--space-3, 12px);
-          padding: var(--space-4, 16px) var(--space-6, 24px);
-          background: var(--success-bg, #10b981);
-          color: white;
-          border-radius: var(--radius-lg, 8px);
-          box-shadow: var(--shadow-lg, 0 10px 15px rgba(0, 0, 0, 0.1));
-          font-size: var(--text-sm, 14px);
-          font-weight: var(--font-medium, 500);
-          z-index: var(--z-toast, 1500);
-          animation: slideInUp 0.3s ease;
-        }
-
-        .share-toast--error {
-          background: var(--error-bg, #ef4444);
-        }
-
-        @keyframes slideInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        /* Dark mode support */
-        @media (prefers-color-scheme: dark) {
-          .share-button {
-            background: var(--primary-color-dark, #6366f1);
-          }
-
-          .share-button:hover {
-            background: var(--primary-hover-dark, #818cf8);
-          }
-
-          .share-toast {
-            box-shadow: var(--shadow-lg, 0 10px 15px rgba(0, 0, 0, 0.3));
-          }
-        }
-      `}</style>
     </>
   );
-};
-
-/**
- * Privacy Notice Component
- * 
- * Displays information about session storage and data privacy
- */
-interface PrivacyNoticeProps {
-  className?: string;
 }
-
-export const SessionPrivacyNotice: React.FC<PrivacyNoticeProps> = ({ className = '' }) => {
-  return (
-    <div className={`session-privacy-notice ${className}`}>
-      <Icon name="info" size={16} />
-      <div className="session-privacy-notice__content">
-        Your data is stored locally in your browser for 7 days. Sessions currently work only on this device.
-        No data is sent to external servers.
-      </div>
-
-      <style>{`
-        .session-privacy-notice {
-          display: flex;
-          align-items: flex-start;
-          gap: var(--space-3, 12px);
-          padding: var(--space-4, 16px);
-          background: var(--info-bg, rgba(59, 130, 246, 0.1));
-          border: 1px solid var(--info-border, rgba(59, 130, 246, 0.2));
-          border-radius: var(--radius-md, 6px);
-          font-size: var(--text-sm, 14px);
-          line-height: var(--leading-relaxed, 1.625);
-          color: var(--text-secondary);
-        }
-
-        .session-privacy-notice__content {
-          flex: 1;
-        }
-
-        .session-privacy-notice__content strong {
-          color: var(--text-primary);
-          font-weight: var(--font-semibold, 600);
-        }
-
-        /* Dark mode */
-        @media (prefers-color-scheme: dark) {
-          .session-privacy-notice {
-            background: var(--info-bg-dark, rgba(59, 130, 246, 0.15));
-            border-color: var(--info-border-dark, rgba(59, 130, 246, 0.3));
-          }
-        }
-      `}</style>
-    </div>
-  );
-};
