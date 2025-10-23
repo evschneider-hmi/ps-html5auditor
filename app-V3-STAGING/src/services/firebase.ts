@@ -43,35 +43,59 @@ function simplifyUpload(upload: any) {
     subtype: upload.subtype,
     status: upload.status,
     uploadedAt: upload.uploadedAt,
+    timestamp: upload.timestamp,
+    findings: upload.findings || [],
+    creativeMetadata: upload.creativeMetadata,
+    tagType: upload.tagType,
   };
+
+    // Preserve bundle metadata (exclude File object, bytes array, and files object)
+  if (upload.bundle) {
+    const { file, bytes, files, ...bundleMeta } = upload.bundle;
+    simplified.bundle = bundleMeta;
+  }
 
   // Simplify bundleResult if it exists
   if (upload.bundleResult) {
+    const { content, rawFiles, ...rest } = upload.bundleResult;
     simplified.bundleResult = {
-      ...upload.bundleResult,
-      content: undefined, // Remove binary content
-      rawFiles: undefined, // Remove file buffers
-      files: upload.bundleResult.files ? upload.bundleResult.files.map((f: any) => ({
-        name: f.name,
-        path: f.path,
-        size: f.size,
-        gzipSize: f.gzipSize,
-        // Remove buffer data
-        buffer: undefined,
-        content: undefined,
-      })) : undefined,
+      ...rest,
+      files: upload.bundleResult.files ? upload.bundleResult.files.map((f: any) => {
+        const { buffer, content, ...fileRest } = f;
+        return {
+          name: f.name,
+          path: f.path,
+          size: f.size,
+          gzipSize: f.gzipSize,
+          ...fileRest, // Include other safe fields
+        };
+      }) : [],
     };
   }
 
   // Simplify tagResult if it exists (tags have much less data)
   if (upload.tagResult) {
-    simplified.tagResult = {
-      ...upload.tagResult,
-      raw: undefined, // Remove raw file data
-    };
+    const { rawFile, content, ...rest } = upload.tagResult;
+    simplified.tagResult = rest;
   }
 
   return simplified;
+}
+
+// Helper function to remove undefined values from objects
+function removeUndefined(obj: any): any {
+  if (Array.isArray(obj)) {
+    return obj.map(item => removeUndefined(item));
+  } else if (obj && typeof obj === 'object') {
+    const cleaned: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (value !== undefined) {
+        cleaned[key] = removeUndefined(value);
+      }
+    }
+    return cleaned;
+  }
+  return obj;
 }
 
 // Save session to Firestore
@@ -97,11 +121,15 @@ export async function saveSessionToCloud(
     expiresAt: expiresAt.toISOString()
   };
 
+  // Remove all undefined values before saving
+  const cleanedData = removeUndefined(sessionData);
+
   try {
-    await setDoc(doc(db, 'sessions', sessionId), sessionData);
+    await setDoc(doc(db, 'sessions', sessionId), cleanedData);
     return sessionId;
   } catch (error) {
     console.error('Error saving session:', error);
+    console.error('Session data:', JSON.stringify(cleanedData, null, 2));
     throw new Error('Failed to save session to cloud');
   }
 }

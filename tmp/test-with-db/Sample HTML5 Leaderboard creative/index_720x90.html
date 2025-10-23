@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>728x90</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+		<meta name="ad.size" content="width=728,height=90">
+    <link rel="shortcut icon" href="data:image/gif;base64,R0lGODlhEAAQAJECAPn786rKRQAAAKTGOSH/C1hNUCBEYXRhWE1QPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS4wLWMwNjAgNjEuMTM0Nzc3LCAyMDEwLzAyLzEyLTE3OjMyOjAwICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOnhtcE1NPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvbW0vIiB4bWxuczpzdFJlZj0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlUmVmIyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IE1hY2ludG9zaCIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDo2NDk2QkZBMzZEMjMxMUUwQTFCNkFGQ0NGMDExMDM3MyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDo2NDk2QkZBNDZEMjMxMUUwQTFCNkFGQ0NGMDExMDM3MyI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOjY0OTZCRkExNkQyMzExRTBBMUI2QUZDQ0YwMTEwMzczIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjY0OTZCRkEyNkQyMzExRTBBMUI2QUZDQ0YwMTEwMzczIi8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+Af/+/fz7+vn49/b19PPy8fDv7u3s6+rp6Ofm5eTj4uHg397d3Nva2djX1tXU09LR0M/OzczLysnIx8bFxMPCwcC/vr28u7q5uLe2tbSzsrGwr66trKuqqainpqWko6KhoJ+enZybmpmYl5aVlJOSkZCPjo2Mi4qJiIeGhYSDgoGAf359fHt6eXh3dnV0c3JxcG9ubWxramloZ2ZlZGNiYWBfXl1cW1pZWFdWVVRTUlFQT05NTEtKSUhHRkVEQ0JBQD8+PTw7Ojk4NzY1NDMyMTAvLi0sKyopKCcmJSQjIiEgHx4dHBsaGRgXFhUUExIREA8ODQwLCgkIBwYFBAMCAQAAIfkEAQAAAgAsAAAAABAAEAAAAiuUNXepOjHiAG0hieqVnLnOaeK3gUloYmh6qmxZgtfyNqxnM9E49+LuMxQAADs="/>
+    <script type="text/javascript">
+      var clickTag = "http://www.google.com";
+    </script>
+    <style type="text/css" media="screen">
+      html, body, div,
+      a, img {
+        margin: 0;
+        padding: 0;
+        border: 0;
+        font-size: 100%;
+        font: inherit;
+        vertical-align: baseline;
+      }
+      body {
+        line-height: 1;
+      }
+
+      body {
+        font-family:sans-serif;
+        background:white;
+        overflow:hidden;
+        width:728px;
+      }
+
+      #container {
+        position:relative;
+        overflow:hidden;
+        width:728px;
+        height:90px;
+        background-repeat:repeat-y;
+        background:url('background.png');
+      }
+
+      @media (min-width: 748px) {
+        body {
+          width:100%;
+        }
+        #container {
+          margin:0 auto;
+          text-align:center;
+        }
+      }
+
+      .layer {
+        height:90px;
+        width:728px;
+        position:absolute;
+        top:0;
+        left:0;
+        background-repeat:repeat;
+        background-color:transparent;
+        background-position:center bottom;
+        -webkit-transition-property:-webkit-transform;
+        -webkit-transition-duration:0.4s;
+        -webkit-transition-timing-function:ease-out;
+      }
+
+/* layer-n { width: w; left: (728-w)/2; } */
+
+      #layer-1 {
+        background-image:url('back_city.png');
+      }
+      #layer-2 {
+        background-image:url('middle_city.png');
+      }
+      #layer-3 {
+        background-image:url('front_city.png');
+      }
+
+      #google-logo {
+        position:absolute;
+        font-size:32px;
+        line-height:40px;
+        text-align:center;
+        top:0px;
+      }
+      #google-logo img {
+        vertical-align: middle;
+      }
+
+      .loading .layer {
+        -webkit-transform:translate3d(0,90px,0);
+      }
+
+      .intro .layer {
+        -webkit-transform:translate3d(0,0,0);
+      }
+      .intro #layer-3 {
+        -webkit-transition-duration:1.5s;
+        -webkit-transition-delay:0s;
+      }
+      .intro #layer-2 {
+        -webkit-transition-duration:1.6s;
+        -webkit-transition-delay:0.3s;
+      }
+      .intro #layer-1 {
+        -webkit-transition-duration:2.2s;
+        -webkit-transition-delay:0.5s;
+      }
+      .intro #google-logo {
+        -webkit-transition-duration:0;
+      }
+
+      .loading .layer > img {
+        -webkit-transform:translate3d(0,90px,0);
+      }
+      .layer > img {
+        -webkit-transform:translate3d(0,0,0);
+      }
+      .intro #google-logo > img {
+        -webkit-transition-duration:1.8s;
+      }
+      .intro #google-logo :nth-child(1) {
+        -webkit-transition-delay:1.8s;
+      }
+      .intro #google-logo :nth-child(2) {
+        -webkit-transition-delay:2s;
+      }
+      .intro #google-logo :nth-child(3) {
+        -webkit-transition-delay:2.2s;
+      }
+
+      .autoplay .layer {
+        -webkit-transition-duration:0;
+        -webkit-animation-name: autoplay;
+        -webkit-animation-duration: 40s;
+        -webkit-animation-iteration-count:infinite;
+        -webkit-animation-timing-function:linear;
+      }
+
+      @-webkit-keyframes autoplay {
+        from { -webkit-transform:translate3d(0,0,0); }
+        25% { -webkit-transform:translate3d(-17.6%,0,0); }
+        50% { -webkit-transform:translate3d(0,0,0); }
+        75% { -webkit-transform:translate3d(17.6%,0,0); }
+        to { -webkit-transform:translate3d(0,0,0); }
+      }
+
+    </style>
+    <script type="text/javascript" charset="utf-8">
+      if (!Function.prototype.bind) {
+        Function.prototype.bind = function(scope) {
+          var _function = this;
+
+          return function() {
+            return _function.apply(scope, arguments);
+          };
+        };
+      };
+
+      var myAd = function() {
+        this.aThreshold = 0.05;
+        this.ax = 0;
+        this.ay = 0;
+
+        this.el = {};
+        this.el.body = document.body;
+        this.el.logo = document.querySelector('#google-logo');
+        this.el.layers = document.querySelectorAll('.layer');
+        // This is set to the parent since this ad is in an iframe in the guide
+        this.window = window.parent;
+
+        // This can be calculated instead:
+        // x = (width - 728) / 2
+        this.panRange = [{x: 66, y:0},
+                         {x: 126, y:0},
+                         {x: 154, y:0},
+                         {x: 181, y:0}];
+
+        this.setLayerSize();
+
+        setTimeout(this.beginAnimation.bind(this), 1500);
+      };
+      myAd.prototype.autoplay = function(shouldAutoplay) {
+        this.el.body.className = shouldAutoplay ? 'autoplay' : 'motion';
+      };
+      myAd.prototype.beginAnimation = function() {
+        this.bindEvents();
+        this.el.body.className = 'intro';
+      };
+      myAd.prototype.bindEvents = function() {
+        document.addEventListener('touchmove', this, false);
+        this.el.logo.addEventListener('click', this, false);
+        this.el.logo.lastElementChild.addEventListener('webkitTransitionEnd', this, false);
+      };
+      myAd.prototype.clickHandler = function(e) {
+        e.preventDefault();
+        // admob.opener.openOverlay(...);
+      };
+      /** @inheritDoc */
+      myAd.prototype.disposeInternal = function() {
+        this.window.removeEventListener('devicemotion', this, false);
+        document.removeEventListener('touchmove', this, false);
+        this.el.logo.removeEventListener('click', this, false);
+        this.el.layers = null;
+        this.el.logo = null;
+      };
+      myAd.prototype.deviceMotionHandler = function(e) {
+        var ax, ay;
+        switch(this.window.orientation){
+        case -90:
+          // Landscape, right-side down
+          ay = e.accelerationIncludingGravity.x;
+          ax = e.accelerationIncludingGravity.y;
+          break;
+        case 90:
+          // Landscape, left-side down
+          ay = -e.accelerationIncludingGravity.x;
+          ax = -e.accelerationIncludingGravity.y;
+          break;
+        case 180:
+          // Upside-down portrait
+          ay = e.accelerationIncludingGravity.y;
+          ax = -e.accelerationIncludingGravity.x;
+          break;
+        default:
+          // Portrait
+          ay = -e.accelerationIncludingGravity.y;
+          ax = e.accelerationIncludingGravity.x;
+        }
+
+        // if (Math.abs(this.ax - ax) > this.aThreshold) {
+          this.ax = ax;
+        // }
+        // if (Math.abs(this.ay - ay) > this.aThreshold) {
+          this.ay = ay;
+        // }
+
+        var x = this.ax / 7;
+        var y = (this.ay - 6) / 5;
+
+        if (x > 1) x = 1;
+        if (x < -1) x = -1;
+        if (y > 1) y = 1;
+        if (y < -1) y = -1;
+
+        this.move(x, y);
+      };
+      myAd.prototype.deviceOrientationHandler = function(e) {
+        switch(this.window.orientation){
+        case -90:
+          // Landscape, right-side down
+          ay = e.gamma;
+          ax = -e.beta;
+          break;
+        case 90:
+          // Landscape, left-side down
+          ay = -e.gamma;
+          ax = e.beta;
+          break;
+        case 180:
+          // Upside-down portrait
+          ay = -e.beta;
+          ax = -e.gamma;
+          break;
+        default:
+          // Portrait
+          ay = e.beta;
+          ax = e.gamma;
+        }
+
+        this.ax = ax;
+        this.ay = ay;
+
+        var x = this.ax / 45;
+        // Expected from 20 to 90
+        var y = (this.ay - 55) / 35;
+
+        if (x > 1) x = 1;
+        if (x < -1) x = -1;
+        if (y > 1) y = 1;
+        if (y < -1) y = -1;
+
+        this.move(x, y);
+      };
+      myAd.prototype.handleEvent = function(e) {
+        switch(e.type){
+        case 'click':
+          this.clickHandler(e);
+          break;
+        case 'devicemotion':
+          this.deviceMotionHandler(e);
+          break;
+        case 'deviceorientation':
+          this.deviceOrientationHandler(e);
+          break;
+        case 'touchmove':
+          e.preventDefault();
+          break;
+        case 'webkitTransitionEnd':
+          this.transitionEndHandler(e);
+          break;
+        default:
+        }
+      };
+      myAd.prototype.move = function(x, y) {
+        var translate;
+        for (var i=0, node; node = this.el.layers[i++];) {
+          translate = 'translate3d(' + x * this.panRange[i-1].x + 'px,' +
+              y * this.panRange[i-1].y + 'px, 0)';
+          node.style.WebkitTransform = translate;
+        }
+      };
+      myAd.prototype.setLayerSize = function() {
+        for (var i=0, node; node = this.el.layers[i++];) {
+          var width = this.panRange[i-1].x * 2 + 728;
+          node.style.width = width + 'px';
+          node.style.left = -1 * this.panRange[i-1].x + 'px';
+        }
+      };
+      myAd.prototype.transitionEndHandler = function(e) {
+        this.el.logo.removeEventListener('webkitTransitionEnd', this, false);
+        if (this.window.DeviceMotionEvent || this.window.DeviceOrientationEvent) {
+
+          // The iPad 1 has DeviceOrientationEvent defined even though there
+          // is no gyroscope present.
+          var that = this;
+          var orientationTest = function(e) {
+            this.window.removeEventListener('devicemotion', that, false);
+            this.window.removeEventListener('deviceorientation', orientationTest,
+                false);
+          };
+
+          this.window.addEventListener('devicemotion', this, false);
+          this.window.addEventListener('deviceorientation', this, false);
+          this.window.addEventListener('deviceorientation', orientationTest, false);
+
+          this.autoplay(false);
+        } else {
+          this.autoplay(true);
+        }
+      };
+
+      window.onload = function(e) {
+        window.ad = new myAd();
+      };
+    </script>
+  </head>
+  <body class="loading">
+	<a href="javascript:window.open(window.clickTag)">
+    <div id="container">
+      <div id="layer-1" class="layer"></div>
+      <div id="layer-2" class="layer"></div>
+      <div id="google-logo" class="layer">
+        <img src="google_logo.png" />
+        <img src="heart.png" />
+        <img src="html5_logo.png" />
+      </div>
+      <div id="layer-3" class="layer"></div>
+    </div>
+</a>
+  </body>
+</html>
