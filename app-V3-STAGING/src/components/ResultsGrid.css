@@ -1,0 +1,264 @@
+/* ResultsGrid.css */
+
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.results-grid-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 60px 20px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.results-grid-empty p {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* Card Styling */
+.results-card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  transition: all 150ms ease;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.results-card:hover {
+  border-color: var(--primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.results-card.selected {
+  border-color: var(--primary);
+  background: rgba(99, 102, 241, 0.05);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+.results-card.remove-hover {
+  opacity: 0.5;
+}
+
+/* Card Header */
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.card-checkbox-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-checkbox-btn .checkbox {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface-1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 120ms ease;
+}
+
+.card-checkbox-btn .checkbox.checked {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+.card-checkbox-btn:hover .checkbox {
+  border-color: var(--primary);
+}
+
+.card-status-badge {
+  flex: 1;
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+
+.card-status-badge.pass {
+  background: var(--pass-bg);
+  color: var(--pass-text);
+}
+
+.card-status-badge.warn {
+  background: var(--warn-bg);
+  color: var(--warn-text);
+}
+
+.card-status-badge.fail {
+  background: var(--fail-bg);
+  color: var(--fail-text);
+}
+
+.card-remove-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 120ms ease;
+  opacity: 0;
+}
+
+.results-card:hover .card-remove-btn,
+.card-remove-btn:focus-visible {
+  opacity: 1;
+}
+
+.card-remove-btn:hover {
+  background: var(--danger);
+  color: white;
+  border-color: var(--danger);
+  transform: scale(1.1);
+}
+
+/* Card Body */
+.card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card-name {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card-dimensions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* Stats Grid */
+.card-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.stat-label {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+}
+
+.stat-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Issues */
+.card-issues {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.issue-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.issue-badge.fail {
+  background: var(--fail-bg);
+  color: var(--fail-text);
+}
+
+.issue-badge.warn {
+  background: var(--warn-bg);
+  color: var(--warn-text);
+}
+
+.issue-badge.pass {
+  background: var(--pass-bg);
+  color: var(--pass-text);
+}
+
+/* Profile */
+.card-profile {
+  display: flex;
+  gap: 6px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .results-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .results-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1440px) {
+  .results-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+}
+
+@media (min-width: 1440px) {
+  .results-grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+}

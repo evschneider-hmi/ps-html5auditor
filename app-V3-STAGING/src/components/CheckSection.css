@@ -1,0 +1,149 @@
+/* CheckSection Component Styles */
+
+.check-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-3);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: all var(--transition-base) ease;
+}
+
+.check-section:hover {
+  border-color: var(--tab-active-border);
+  box-shadow: var(--shadow-md);
+}
+
+.check-section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--split-title-bg);
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+
+.check-section.collapsed .check-section-header {
+  border-bottom: none;
+}
+
+.check-section-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text);
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  text-align: left;
+  transition: color var(--transition-fast) ease;
+}
+
+.check-section-toggle:hover {
+  color: var(--accent);
+}
+
+.check-section-toggle:focus-visible {
+  outline: 2px solid var(--focus-ring-color);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: var(--radius-sm);
+}
+
+.check-section-title {
+  flex: 1;
+  min-width: 0;
+}
+
+.check-section-count {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--muted);
+  margin-left: var(--space-1);
+}
+
+.check-section-badges {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.check-section-content {
+  padding: var(--space-4);
+}
+
+.check-section-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-8);
+  color: var(--muted);
+  font-size: var(--text-sm);
+  font-style: italic;
+}
+
+/* Animation for expand/collapse */
+.check-section-content {
+  animation: slideDown var(--transition-base) ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Chevron icon animation */
+.check-section-toggle svg {
+  transition: transform var(--transition-fast) ease;
+}
+
+.check-section.expanded .check-section-toggle svg {
+  transform: rotate(0deg);
+}
+
+.check-section.collapsed .check-section-toggle svg {
+  transform: rotate(-90deg);
+}
+
+/* Help button positioning */
+.check-section-header .help {
+  position: static;
+  margin-left: auto;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .check-section-header {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .check-section-toggle {
+    width: 100%;
+  }
+
+  .check-section-badges {
+    width: 100%;
+    margin-left: var(--space-8);
+  }
+}
+
+/* Dark Mode Adjustments */
+@media (prefers-color-scheme: dark) {
+  .check-section:hover {
+    box-shadow: var(--shadow-lg);
+  }
+}

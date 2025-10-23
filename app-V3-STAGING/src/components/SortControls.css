@@ -1,0 +1,85 @@
+/* SortControls.css */
+
+.sort-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sort-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  user-select: none;
+}
+
+.sort-buttons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.sort-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 120ms ease;
+  user-select: none;
+}
+
+.sort-btn:hover {
+  background: var(--surface-2);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.sort-btn.active {
+  background: var(--surface-2);
+  color: var(--primary);
+  border-color: var(--primary);
+  font-weight: 600;
+}
+
+.sort-btn.active:hover {
+  background: var(--surface-2);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.2);
+}
+
+.sort-arrow {
+  font-size: 14px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.sort-btn.active .sort-arrow {
+  color: var(--primary);
+}
+
+/* Responsive - compact on mobile */
+@media (max-width: 640px) {
+  .sort-controls {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .sort-btn {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+  
+  .sort-label {
+    font-size: 12px;
+  }
+}

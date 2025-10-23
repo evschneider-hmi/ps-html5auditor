@@ -1,0 +1,113 @@
+/* FilterControls Component Styles */
+
+.filter-controls {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.filter-controls-header {
+  display: none; /* Hide filters header for more compact design */
+}
+
+.filter-controls-body {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  user-select: none;
+}
+
+.filter-options {
+  display: flex;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
+.filter-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 120ms ease;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.filter-option:hover {
+  background: var(--surface-2);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.filter-option.active {
+  background: var(--surface-2);
+  border-color: var(--primary);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.filter-option.active:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.filter-controls-footer {
+  margin-top: 8px;
+  padding: 0;
+  border: none;
+}
+
+.filter-results-count {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+/* Responsive Design */
+@media (min-width: 768px) {
+  .filter-controls-body {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .filter-group {
+    flex: 1;
+  }
+}
+
+/* Dark Mode Adjustments */
+@media (prefers-color-scheme: dark) {
+  .filter-option:hover {
+    box-shadow: var(--shadow-sm);
+  }
+}
+
+/* Search Input Styles - Hidden for sleeker design */
+.filter-search {
+  display: none;
+}

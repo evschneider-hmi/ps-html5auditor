@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Creative Suite Auditor V3 - STAGING</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23f59e0b'/%3E%3Ctext x='16' y='21' font-size='14' text-anchor='middle' fill='white' font-family='Arial, sans-serif'%3EV3%3C/text%3E%3C/svg%3E"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      // Minimal error overlay to surface blank-screen issues during dev (only active in dev)
+      if (import.meta.env && import.meta.env.DEV) {
+        (function(){
+          function show(msg){
+            try {
+              var el = document.getElementById('dev-error');
+              if(!el){
+                el = document.createElement('pre');
+                el.id = 'dev-error';
+                el.style.position = 'fixed';
+                el.style.bottom = '8px';
+                el.style.left = '8px';
+                el.style.maxWidth = '90vw';
+                el.style.maxHeight = '40vh';
+                el.style.overflow = 'auto';
+                el.style.padding = '8px 10px';
+                el.style.background = 'rgba(0,0,0,0.75)';
+                el.style.color = '#fbbf24';
+                el.style.font = '12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+                el.style.zIndex = '2147483647';
+                el.style.border = '1px solid #4b5563';
+                el.style.borderRadius = '6px';
+                document.body.appendChild(el);
+              }
+              el.textContent = String(msg || 'Unknown error');
+            } catch(e){}
+          }
+          window.addEventListener('error', function(e){ show(e && (e.message || e.error && e.error.message) || 'Error'); });
+          window.addEventListener('unhandledrejection', function(e){ try{ show(e && e.reason && (e.reason.stack || e.reason.message || String(e.reason)) || 'Unhandled rejection'); }catch(_){ show('Unhandled rejection'); } });
+          // If nothing mounts after a short delay, show a hint
+          setTimeout(function(){
+            try { if(!document.getElementById('root')?.firstChild){ show('Nothing rendered. Add ?strip=1 to URL to load minimal shell.'); } } catch(_){ }
+          }, 1500);
+        })();
+      }
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

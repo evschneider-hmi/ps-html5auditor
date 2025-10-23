@@ -1,0 +1,229 @@
+/* WorkspaceTabs.css */
+
+.workspace-tabs {
+  background: var(--surface-1);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 16px 0;
+}
+
+.workspace-tabs-list {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.workspace-tabs-list::-webkit-scrollbar {
+  height: 4px;
+}
+
+.workspace-tabs-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.workspace-tabs-list::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+
+/* Individual Tab */
+.workspace-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 120ms ease;
+  user-select: none;
+  min-width: 120px;
+  max-width: 200px;
+  position: relative;
+}
+
+.workspace-tab:hover {
+  background: var(--surface-1);
+  color: var(--text);
+  border-color: var(--primary);
+}
+
+.workspace-tab.active {
+  background: var(--background);
+  color: var(--text);
+  border-color: var(--border);
+  border-bottom-color: var(--background);
+  z-index: 1;
+  margin-bottom: -1px;
+  padding-bottom: 9px;
+}
+
+.workspace-tab.active:hover {
+  background: var(--background);
+  border-color: var(--border);
+  border-bottom-color: var(--background);
+}
+
+/* Tab Name */
+.workspace-tab-name {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Tab Input (Editing) */
+.workspace-tab-input {
+  flex: 1;
+  background: var(--background);
+  border: 1px solid var(--primary);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  outline: none;
+  font-family: inherit;
+}
+
+/* Upload Count Badge */
+.workspace-tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  background: var(--primary);
+  color: white;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.workspace-tab.active .workspace-tab-count {
+  background: var(--primary);
+}
+
+/* Close Button */
+.workspace-tab-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 120ms ease;
+  opacity: 0;
+}
+
+.workspace-tab:hover .workspace-tab-close {
+  opacity: 1;
+}
+
+.workspace-tab-close:hover {
+  background: var(--danger);
+  color: white;
+}
+
+.workspace-tab-close:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.workspace-tab-close:disabled:hover {
+  background: transparent;
+  color: var(--muted);
+}
+
+/* New Workspace Button */
+.workspace-tab-new {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 120ms ease;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.workspace-tab-new:hover {
+  background: var(--surface-2);
+  border-color: var(--primary);
+  border-style: solid;
+  color: var(--primary);
+}
+
+/* Info Section */
+.workspace-tabs-info {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 4px 0;
+  margin-top: 4px;
+}
+
+.workspace-tabs-hint {
+  font-size: 11px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .workspace-tabs {
+    padding: 6px 12px 0;
+  }
+
+  .workspace-tab {
+    min-width: 100px;
+    max-width: 150px;
+    padding: 6px 10px;
+  }
+
+  .workspace-tab-new span {
+    display: none;
+  }
+
+  .workspace-tab-new {
+    padding: 6px 10px;
+  }
+
+  .workspace-tabs-hint {
+    display: none;
+  }
+}
+
+/* Dark mode adjustments */
+.theme-dark .workspace-tab {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.theme-dark .workspace-tab:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.theme-dark .workspace-tab.active {
+  background: var(--background);
+}
