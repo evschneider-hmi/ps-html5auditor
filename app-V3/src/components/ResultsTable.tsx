@@ -219,8 +219,13 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({
           text-align: left;
           padding: 10px 12px;
           border-bottom: 2px solid var(--border);
+          border-right: 1px solid var(--border);
           white-space: nowrap;
           user-select: none;
+        }
+
+        .results-table thead th:last-child {
+          border-right: none;
         }
 
         .results-table thead th .resize-handle {
@@ -491,7 +496,7 @@ export const ResultsTable: React.FC<ResultsTableProps> = ({
                     </button>
                     <div style={{ minWidth: 0 }}>
                       <span style={{ fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {(upload.creativeMetadata?.fullName || upload.bundle.name).replace(/\.zip$/i, '')}
+                        {upload.bundle.name.replace(/\.zip$/i, '')}
                       </span>
                     </div>
                   </div>
