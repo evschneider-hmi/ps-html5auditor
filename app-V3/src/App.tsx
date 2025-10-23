@@ -222,13 +222,18 @@ export default function App() {
   useEffect(() => {
     const loadSharedSession = async () => {
       const sessionId = getSessionIdFromUrl();
-      if (!sessionId) return;
+      if (!sessionId) {
+        console.log('[App] No session ID in URL');
+        return;
+      }
 
       console.log('[App] Loading shared session:', sessionId);
       try {
         const session = await loadSessionFromCloud(sessionId);
+        console.log('[App] loadSessionFromCloud returned:', session ? 'data' : 'null');
+        
         if (!session) {
-          alert('Shared session not found or expired');
+          alert('⚠️ Shared session not found or expired.\n\nThis could be because:\n• The session doesn\'t exist\n• The session expired (7-day limit)\n• Firestore security rules not configured');
           return;
         }
 
@@ -239,15 +244,16 @@ export default function App() {
         setViewMode(session.viewMode);
         setSortConfig(session.sortConfig as SortConfig);
 
-        // Show success notification
-        setTimeout(() => {
-          alert('✅ Shared audit results loaded successfully!');
-        }, 500);
-
         console.log('[App] Shared session loaded:', session.uploads.length, 'uploads');
+
+        // Show success notification AFTER results are displayed
+        setTimeout(() => {
+          alert(`✅ Shared audit results loaded successfully!\n\n${session.uploads.length} creative(s) loaded.\n\nNote: Preview and downloads are not available for shared sessions (only audit results).`);
+        }, 500);
       } catch (error) {
         console.error('[App] Error loading shared session:', error);
-        alert('Failed to load shared session');
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        alert(`❌ Failed to load shared session:\n\n${errorMsg}\n\nCheck console for details. You may need to configure Firestore security rules.`);
       }
     };
 

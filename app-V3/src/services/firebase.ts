@@ -136,27 +136,43 @@ export async function saveSessionToCloud(
 
 // Load session from Firestore
 export async function loadSessionFromCloud(sessionId: string): Promise<CloudSession | null> {
+  console.log('[Firebase] Loading session:', sessionId);
   try {
     const docRef = doc(db, 'sessions', sessionId);
+    console.log('[Firebase] Fetching document from Firestore...');
     const docSnap = await getDoc(docRef);
 
+    console.log('[Firebase] Document exists:', docSnap.exists());
     if (!docSnap.exists()) {
+      console.warn('[Firebase] Session document not found');
       return null;
     }
 
     const data = docSnap.data() as CloudSession;
+    console.log('[Firebase] Session data retrieved:', {
+      id: data.id,
+      uploads: data.uploads?.length || 0,
+      createdAt: data.createdAt,
+      expiresAt: data.expiresAt
+    });
 
     // Check if session is expired
     const expiresAt = new Date(data.expiresAt);
     if (expiresAt < new Date()) {
-      console.warn('Session expired');
+      console.warn('[Firebase] Session expired:', expiresAt);
       return null;
     }
 
+    console.log('[Firebase] ✓ Session loaded successfully');
     return data;
   } catch (error) {
-    console.error('Error loading session:', error);
-    return null;
+    console.error('[Firebase] Error loading session:', error);
+    console.error('[Firebase] Error details:', {
+      name: (error as any)?.name,
+      code: (error as any)?.code,
+      message: (error as any)?.message
+    });
+    throw error; // Re-throw so App.tsx can catch and display it
   }
 }
 
