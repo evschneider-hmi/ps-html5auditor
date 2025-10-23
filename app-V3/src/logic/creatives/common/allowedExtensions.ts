@@ -106,7 +106,7 @@ function isMacOSMetadata(path: string): boolean {
 export const allowedExtensionsCheck: Check = {
   id: 'allowed-ext',
   title: 'Allowed File Extensions',
-  description: 'CM360: Only typical creative extensions allowed (html, js, css, images, fonts, etc.)',
+  description: 'CM360: Only typical creative extensions allowed (html, js, css, images, fonts, etc.). Tracks 30+ explicitly banned file types including OS artifacts (Thumbs.db, .DS_Store, __MACOSX), archives, executables, documents, source files, and media files.',
   profiles: ['CM360'],
   priority: 'required',
   tags: ['extensions', 'files', 'cm360'],
