@@ -1,0 +1,138 @@
+﻿/* Error Dialog Styles */
+
+.error-dialog-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 10000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.error-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--bg-primary);
+  border: 1px solid var(--status-fail);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  z-index: 10001;
+  min-width: 400px;
+  max-width: 500px;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -45%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* Header */
+.error-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-primary);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.error-dialog-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--status-fail);
+}
+
+.error-dialog-title-row h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.error-dialog-close {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.error-dialog-close:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* Content */
+.error-dialog-content {
+  padding: 24px;
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.error-dialog-content p {
+  margin: 0;
+}
+
+/* Footer */
+.error-dialog-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border-primary);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.error-dialog-button {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 8px 24px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.error-dialog-button:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.error-dialog-button:active {
+  transform: translateY(0);
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .error-dialog {
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  }
+}

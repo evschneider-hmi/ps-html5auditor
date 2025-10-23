@@ -26,6 +26,7 @@ import { ResultsGrid } from './components/ResultsGrid';
 import { sortUploads, toggleSort } from './utils/sorting';
 import { detectCreativeMetadata } from './utils/creativeMetadataDetector';
 import { useUploadQueue } from './hooks/useUploadQueue';
+import { ErrorDialog } from './components/ErrorDialog';
 
 export default function App() {
   // Upload state
@@ -49,6 +50,9 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
+
+  // Error dialog state
+  const [errorDialog, setErrorDialog] = useState<{ title: string; message: string } | null>(null);
 
   // Keyboard shortcuts help modal state
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
@@ -238,6 +242,28 @@ export default function App() {
     // Reset error state
     setLoading(true);
     setError(null);
+    
+    // Check for duplicate names
+    const existingNames = new Set(uploads.map(u => u.bundle.name));
+    const duplicates: string[] = [];
+    
+    for (let i = 0; i < files.length; i++) {
+      const fileName = files[i].name;
+      if (existingNames.has(fileName)) {
+        duplicates.push(fileName);
+      }
+    }
+    
+    // Show error dialog if duplicates found
+    if (duplicates.length > 0) {
+      setLoading(false);
+      const fileList = duplicates.map(name => `• ${name}`).join('\n');
+      setErrorDialog({
+        title: 'Duplicate Files Detected',
+        message: `The following file(s) are already uploaded:\n\n${fileList}\n\nPlease remove or rename the existing file(s) before uploading again.`
+      });
+      return;
+    }
     
     // Separate files by type
     const creativeFiles: File[] = [];
@@ -748,6 +774,14 @@ export default function App() {
       <KeyboardShortcutsHelp
         isOpen={showShortcutsHelp}
         onClose={() => setShowShortcutsHelp(false)}
+      />
+
+      {/* Error Dialog */}
+      <ErrorDialog
+        isOpen={errorDialog !== null}
+        title={errorDialog?.title || ''}
+        message={errorDialog?.message || ''}
+        onClose={() => setErrorDialog(null)}
       />
 
       {/* Split Pane Preview - Only show for selected upload */}
