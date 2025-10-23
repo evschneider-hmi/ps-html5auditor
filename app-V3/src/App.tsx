@@ -245,12 +245,12 @@ export default function App() {
         setSortConfig(session.sortConfig as SortConfig);
 
         console.log('[App] Shared session loaded:', session.uploads.length, 'uploads');
-        console.log('[App] Restored uploads state:', uploads);
 
-        // Show success notification AFTER results are displayed (NO ALERT FOR NOW - for debugging)
-        // setTimeout(() => {
-        //   alert(`✅ Shared audit results loaded successfully!\n\n${session.uploads.length} creative(s) loaded.\n\nNote: Preview and downloads are not available for shared sessions (only audit results).`);
-        // }, 500);
+        // Show success notification AFTER results are displayed
+        setTimeout(() => {
+          console.log('[App] Showing success notification');
+          alert(`✅ Shared audit results loaded successfully!\n\n${session.uploads.length} creative(s) loaded.\n\n⚠️ Note: Previews and downloads are not available for shared sessions (only audit results and findings are shown).`);
+        }, 500);
       } catch (error) {
         console.error('[App] Error loading shared session:', error);
         const errorMsg = error instanceof Error ? error.message : String(error);

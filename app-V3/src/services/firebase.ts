@@ -49,10 +49,26 @@ function simplifyUpload(upload: any) {
     tagType: upload.tagType,
   };
 
-    // Preserve bundle metadata (exclude File object, bytes array, and files object)
+    // Preserve bundle metadata with stub values for excluded properties
   if (upload.bundle) {
     const { file, bytes, files, ...bundleMeta } = upload.bundle;
-    simplified.bundle = bundleMeta;
+    simplified.bundle = {
+      ...bundleMeta,
+      // Add stub values for properties that components may expect
+      bytes: new Uint8Array(0), // Empty array instead of undefined
+      files: {},                 // Empty object instead of undefined
+      file: null,                // Explicitly null
+    };
+  } else {
+    // If no bundle, create minimal stub
+    simplified.bundle = {
+      id: upload.id,
+      name: upload.name || 'Unknown',
+      bytes: new Uint8Array(0),
+      files: {},
+      file: null,
+      lowerCaseIndex: {},
+    };
   }
 
   // Simplify bundleResult if it exists
@@ -60,6 +76,8 @@ function simplifyUpload(upload: any) {
     const { content, rawFiles, ...rest } = upload.bundleResult;
     simplified.bundleResult = {
       ...rest,
+      content: null, // Explicitly null instead of undefined
+      rawFiles: [],  // Empty array instead of undefined
       files: upload.bundleResult.files ? upload.bundleResult.files.map((f: any) => {
         const { buffer, content, ...fileRest } = f;
         return {
@@ -67,9 +85,33 @@ function simplifyUpload(upload: any) {
           path: f.path,
           size: f.size,
           gzipSize: f.gzipSize,
-          ...fileRest, // Include other safe fields
+          buffer: null,  // Stub for buffer
+          content: null, // Stub for content
+          ...fileRest,   // Include other safe fields
         };
       }) : [],
+    };
+  } else {
+    // If no bundleResult, create minimal stub
+    simplified.bundleResult = {
+      bundleId: upload.id,
+      bundleName: upload.name || 'Unknown',
+      primary: undefined,
+      adSize: { width: 0, height: 0 },
+      findings: [],
+      references: [],
+      content: null,
+      rawFiles: [],
+      files: [],
+      summary: {
+        status: 'PASS',
+        totalFindings: 0,
+        fails: 0,
+        warns: 0,
+        pass: 0,
+        orphanCount: 0,
+        missingAssetCount: 0,
+      },
     };
   }
 
