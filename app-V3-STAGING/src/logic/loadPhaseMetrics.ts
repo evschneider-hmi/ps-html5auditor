@@ -1,10 +1,19 @@
 ﻿/**
  * Load Phase Categorization and Metrics Calculation
  * 
- * Categorizes assets into initial vs. subload (polite) phases and calculates:
- * - File sizes (initial, polite, total) using gzip compression
- * - Request counts (initial, polite, total)
+ * Categorizes assets into initial vs. subload and calculates:
+ * - File sizes (initial, polite/subload, total) using gzip compression
+ * - Request counts (initial, polite/subload, total)
  * - Host counts (for IAB host request limits)
+ * 
+ * IMPORTANT - CM360/IAB INTERPRETATION (Matches V2):
+ * - "Initial load" = ALL assets referenced by the creative (what it uses)
+ * - "Subload" = Unreferenced (orphaned) files in the ZIP
+ * 
+ * This matches CM360's interpretation where "initial load" budget includes
+ * all assets the creative needs (HTML, CSS, JS, images, fonts), regardless
+ * of whether they block render. "Subload" represents files that exist in
+ * the ZIP but are never used.
  * 
  * SIZE CALCULATION METHODOLOGY:
  * - Uses gzip compression for accurate HTTP transfer sizes (matches CM360)
@@ -15,7 +24,7 @@
  * V2 COMPATIBILITY:
  * - V2 test suite uses pako.gzip() for expected metrics
  * - V3-STAGING uses same approach for static analysis
- * - Runtime probe (when implemented) will override with actual network metrics
+ * - Categorization logic matches V2: referenced = initial, unreferenced = subload
  */
 
 import pako from 'pako';
@@ -63,76 +72,55 @@ function computeGzipSize(path: string, bytes: Uint8Array): number {
 }
 
 /**
- * Categorize asset as 'initial' or 'subload' based on reference path
+ * Categorize asset as 'initial' or 'subload'
  * 
- * Initial load assets:
- * - Primary HTML (index.html)
- * - Direct CSS links in <head>
- * - Direct JS <script> tags in <head> or early <body>
- * - CSS @import from initial stylesheets
- * - Images/fonts referenced in initial CSS
+ * IMPORTANT: CM360/IAB interpretation (matches V2):
+ * - Initial load = ALL assets referenced by the creative
+ * - Subload = Only unreferenced (orphaned) files in the ZIP
  * 
- * Subload (polite) assets:
- * - Lazy-loaded images
- * - Deferred scripts (async, defer, or bottom of body)
- * - Assets loaded via JavaScript
- * - Secondary images not in initial CSS
+ * This differs from semantic "render-blocking" categorization.
+ * CM360's "initial load" budget includes all assets the creative needs,
+ * including images, even though images don't block render.
+ * 
+ * "Subload" in CM360 context means files that exist in the ZIP
+ * but are never used by the creative (orphaned assets).
  */
 function categorizeAssetPhase(ref: Reference, primaryPath: string): 'initial' | 'subload' {
-  // Primary HTML is always initial
-  if (ref.from === primaryPath) {
-    // Direct references from primary HTML
-    if (ref.type === 'css') return 'initial';
-    if (ref.type === 'js') return 'initial'; // Assume scripts in HTML are initial (conservative)
-    if (ref.type === 'img') return 'subload'; // Images are typically polite load
-    if (ref.type === 'font') return 'initial'; // Fonts block render
-  }
-  
-  // References from CSS files
-  if (ref.from.match(/\.css\$/i)) {
-    // CSS @imports and url() references
-    if (ref.type === 'css') return 'initial'; // @import cascades
-    if (ref.type === 'img') return 'subload'; // Background images are polite
-    if (ref.type === 'font') return 'initial'; // Fonts in CSS block render
-  }
-  
-  // References from JS files are subload (loaded after initial parse)
-  if (ref.from.match(/\.js\$/i)) {
-    return 'subload';
-  }
-  
-  // Default: subload (conservative for IAB compliance)
-  return 'subload';
+  // ALL referenced assets are "initial" in CM360/IAB terms
+  // This matches V2's logic and CM360's interpretation
+  return 'initial';
 }
 
 /**
  * Calculate load phase metrics from references and bundle
  * Uses gzip compression for accurate HTTP transfer sizes (matches CM360)
+ * 
+ * MATCHES V2 LOGIC:
+ * - Initial = all referenced files (what the creative uses)
+ * - Subload = unreferenced files (orphaned files in ZIP)
  */
 export function calculateLoadPhaseMetrics(
   refs: Reference[],
   bundle: ZipBundle,
   primaryPath: string
 ): LoadPhaseMetrics {
-  const initialAssets = new Set<string>();
-  const subloadAssets = new Set<string>();
+  const referencedAssets = new Set<string>();
   const initialHosts = new Set<string>();
   const totalHosts = new Set<string>();
   
-  // Always include primary in initial
-  initialAssets.add(primaryPath);
+  // Always include primary in referenced
+  referencedAssets.add(primaryPath.toLowerCase());
   
-  // Categorize each reference
+  // Collect all referenced assets
   for (const ref of refs) {
     if (!ref.inZip) {
       // External asset - track host
       if (ref.external) {
         try {
-          totalHosts.add(new URL(ref.url).hostname);
-          const phase = categorizeAssetPhase(ref, primaryPath);
-          if (phase === 'initial') {
-            initialHosts.add(new URL(ref.url).hostname);
-          }
+          const host = new URL(ref.url).hostname;
+          totalHosts.add(host);
+          // All external refs counted as initial (they're referenced)
+          initialHosts.add(host);
         } catch {
           // Invalid URL, skip
         }
@@ -140,14 +128,18 @@ export function calculateLoadPhaseMetrics(
       continue; // Don't count size for external assets
     }
     
-    // Internal asset
-    const assetPath = ref.normalized || ref.url;
-    const phase = categorizeAssetPhase(ref, primaryPath);
-    
-    if (phase === 'initial') {
-      initialAssets.add(assetPath);
-    } else {
-      subloadAssets.add(assetPath);
+    // Internal asset - all referenced assets are "initial"
+    const assetPath = (ref.normalized || ref.url).toLowerCase();
+    referencedAssets.add(assetPath);
+  }
+  
+  // Find unreferenced (orphaned) files for subload
+  const allFilePaths = Object.keys(bundle.files).map(p => p.toLowerCase());
+  const unreferencedAssets = new Set<string>();
+  
+  for (const path of allFilePaths) {
+    if (!referencedAssets.has(path)) {
+      unreferencedAssets.add(path);
     }
   }
   
@@ -155,17 +147,31 @@ export function calculateLoadPhaseMetrics(
   let initialBytes = 0;
   let subloadBytes = 0;
   
-  for (const path of initialAssets) {
-    const fileBytes = bundle.files[path];
-    if (fileBytes) {
-      initialBytes += computeGzipSize(path, fileBytes);
+  // Initial = all referenced assets (need case-insensitive lookup)
+  for (const path of referencedAssets) {
+    // Find actual file path (case-sensitive) from bundle
+    const actualPath = Object.keys(bundle.files).find(
+      p => p.toLowerCase() === path
+    );
+    if (actualPath) {
+      const fileBytes = bundle.files[actualPath];
+      if (fileBytes) {
+        initialBytes += computeGzipSize(actualPath, fileBytes);
+      }
     }
   }
   
-  for (const path of subloadAssets) {
-    const fileBytes = bundle.files[path];
-    if (fileBytes) {
-      subloadBytes += computeGzipSize(path, fileBytes);
+  // Subload = unreferenced (orphaned) assets
+  for (const path of unreferencedAssets) {
+    // Find actual file path (case-sensitive) from bundle
+    const actualPath = Object.keys(bundle.files).find(
+      p => p.toLowerCase() === path
+    );
+    if (actualPath) {
+      const fileBytes = bundle.files[actualPath];
+      if (fileBytes) {
+        subloadBytes += computeGzipSize(actualPath, fileBytes);
+      }
     }
   }
   
@@ -179,9 +185,9 @@ export function calculateLoadPhaseMetrics(
     initialBytes,
     subloadBytes,
     totalBytes,
-    initialRequests: initialAssets.size,
-    subloadRequests: subloadAssets.size,
-    totalRequests: initialAssets.size + subloadAssets.size,
+    initialRequests: referencedAssets.size,
+    subloadRequests: unreferencedAssets.size,
+    totalRequests: referencedAssets.size + unreferencedAssets.size,
     initialHosts: initialHosts.size,
     totalHosts: totalHosts.size,
   };
