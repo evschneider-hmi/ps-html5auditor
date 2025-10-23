@@ -511,19 +511,6 @@ export default function App() {
           <div>
             <div className="brand-title">
               Creative Suite Auditor V3
-              <span style={{
-                marginLeft: '12px',
-                padding: '4px 8px',
-                background: '#f59e0b',
-                color: 'white',
-                fontSize: '11px',
-                fontWeight: '700',
-                borderRadius: '4px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px'
-              }}>
-                STAGING
-              </span>
             </div>
             <div className="brand-sub">
               From Horizon Media's Platform Solutions team
