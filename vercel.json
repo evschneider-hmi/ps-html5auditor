@@ -1,5 +1,5 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
-  "outputDirectory": "app-V2/dist"
+  "buildCommand": "cd app-V3 && npm install && npm run build",
+  "outputDirectory": "app-V3/dist"
 }

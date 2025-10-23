@@ -59,6 +59,7 @@ export default function App() {
 
   const inputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const resultsRef = useRef<HTMLDivElement | null>(null);
   const dragging = useRef(false);
   const userAdjustedSplit = useRef(false); // Track if user manually adjusted split
 
@@ -137,6 +138,13 @@ export default function App() {
       }
       
       setLoading(false);
+      
+      // Auto-scroll to results table after upload completes
+      setTimeout(() => {
+        if (resultsRef.current) {
+          resultsRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
     },
     onError: (errorMsg, fileName) => {
       console.error('[App] Upload error:', fileName, errorMsg);
@@ -501,7 +509,22 @@ export default function App() {
         <div className="brand">
           <div className="brand-logo" />
           <div>
-            <div className="brand-title">Creative Suite Auditor V3</div>
+            <div className="brand-title">
+              Creative Suite Auditor V3
+              <span style={{
+                marginLeft: '12px',
+                padding: '4px 8px',
+                background: '#f59e0b',
+                color: 'white',
+                fontSize: '11px',
+                fontWeight: '700',
+                borderRadius: '4px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>
+                STAGING
+              </span>
+            </div>
             <div className="brand-sub">
               From Horizon Media's Platform Solutions team
             </div>
@@ -706,7 +729,7 @@ export default function App() {
 
       {/* Results Section with Split Pane */}
       {uploads.length > 0 && (
-        <div style={{ marginTop: 16 }}>
+        <div ref={resultsRef} style={{ marginTop: 16 }}>
           {/* Quick Actions Bar (sticky) */}
           <QuickActionsBar
             selectedCount={selectedIds.size}
