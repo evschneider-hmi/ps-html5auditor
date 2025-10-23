@@ -60,6 +60,7 @@ export default function App() {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const dragging = useRef(false);
+  const userAdjustedSplit = useRef(false); // Track if user manually adjusted split
 
   // Split pane state (0.25 to 0.75 range)
   const [split, setSplit] = useState<number>(() => {
@@ -75,6 +76,9 @@ export default function App() {
 
   // Auto-adjust split when creative dimensions require it
   useEffect(() => {
+    // Don't auto-adjust if user has manually adjusted the split
+    if (userAdjustedSplit.current) return;
+    
     if (!selectedUploadId || !containerRef.current) return;
     
     const selectedUpload = uploads.find(u => u.id === selectedUploadId);
@@ -186,6 +190,11 @@ export default function App() {
     }
   }, [activeTab, filteredUploads, selectedUploadId, showTabs]);
 
+  // Reset user-adjusted flag when switching to a different creative
+  useEffect(() => {
+    userAdjustedSplit.current = false;
+  }, [selectedUploadId]);
+
   // Apply theme
   useEffect(() => {
     try {
@@ -215,20 +224,34 @@ export default function App() {
       const x = e.clientX - rect.left;
       const p = Math.min(0.75, Math.max(0.25, x / Math.max(1, rect.width)));
       setSplit(p);
-      e.preventDefault();
+      userAdjustedSplit.current = true; // Mark that user has manually adjusted
     };
 
     const onUp = () => {
-      dragging.current = false;
-      document.body.style.cursor = '';
+      if (dragging.current) {
+        dragging.current = false;
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      }
+    };
+
+    const preventSelection = (e: Event) => {
+      if (dragging.current) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
     };
 
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
+    window.addEventListener('selectstart', preventSelection);
+    window.addEventListener('dragstart', preventSelection);
 
     return () => {
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('selectstart', preventSelection);
+      window.removeEventListener('dragstart', preventSelection);
     };
   }, []);
 
@@ -833,6 +856,7 @@ export default function App() {
                 onMouseDown={(e) => {
                   dragging.current = true;
                   document.body.style.cursor = 'col-resize';
+                  document.body.style.userSelect = 'none';
                   e.preventDefault();
                 }}
               >
