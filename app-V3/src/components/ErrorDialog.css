@@ -17,7 +17,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: var(--bg-primary);
+  background: white;
   border: 1px solid var(--status-fail);
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
@@ -25,6 +25,12 @@
   min-width: 400px;
   max-width: 500px;
   animation: slideUp 0.3s ease-out;
+}
+
+/* Dark mode: also white background */
+.theme-dark .error-dialog {
+  background: white;
+  color: #1a1a1a;
 }
 
 @keyframes fadeIn {
@@ -64,6 +70,17 @@
   color: var(--status-fail);
 }
 
+.error-dialog-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.error-dialog-icon svg {
+  color: var(--status-fail);
+}
+
 .error-dialog-title-row h2 {
   margin: 0;
   font-size: 18px;
@@ -91,7 +108,7 @@
 /* Content */
 .error-dialog-content {
   padding: 24px;
-  color: var(--text-primary);
+  color: #1a1a1a;
   font-size: 14px;
   line-height: 1.6;
 }
