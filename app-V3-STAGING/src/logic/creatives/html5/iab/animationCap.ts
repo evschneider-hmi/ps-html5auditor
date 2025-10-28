@@ -75,10 +75,10 @@ import type { Finding } from '../../../types';
 export const animationCapCheck: Check = {
   id: 'animation-cap',
   title: 'Animation Length Cap',
-  description: 'IAB: Animations must run ≤15 seconds OR ≤3 loops.',
-  profiles: ['IAB'],
+  description: 'IAB: Animations must run ≤15 seconds OR ≤3 loops (whichever is reached first). After limit, ad should be static.',
+  profiles: ['IAB', 'CM360'],
   priority: 'required',
-  tags: ['animation', 'duration', 'loops', 'iab'],
+  tags: ['animation', 'duration', 'loops', 'iab', 'cm360'],
   
   execute(context: CheckContext): Finding {
     const { htmlText, bundle } = context;
