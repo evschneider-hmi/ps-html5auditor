@@ -179,56 +179,34 @@ export const animationCapCheck: Check = {
       }
     }
     
-    // Check runtime tracking status
-    const meta = (typeof window !== 'undefined' && (window as any).__audit_last_summary) as any;
-    const tracking = meta?.animationTracking;
-    
-    // If tracking is pending, show pending state
-    if (tracking === 'pending') {
-      return {
-        id: this.id,
-        title: this.title,
-        severity: 'PENDING' as any,
-        messages: [
-          '⏳ Analyzing JavaScript animations...',
-          'Duration tracking in progress'
-        ],
-        offenders: []
-      };
-    }
-    
-    // If static detection found nothing, use runtime probe values
-    if (maxDurS === 0 && !infinite && maxLoops <= 1) {
-      try {
-        if (meta && (typeof meta.animMaxDurationS === 'number' || typeof meta.animMaxLoops === 'number' || meta.animInfinite)) {
-          maxDurS = Math.max(0, Number(meta.animMaxDurationS || 0));
-          maxLoops = Math.max(1, Number(meta.animMaxLoops || 1));
-          infinite = !!meta.animInfinite;
-        }
-      } catch {}
-    }
+    // Note: Runtime animation tracking happens in the preview iframe AFTER checks run.
+    // Checks execute in a worker during upload (no access to runtime data).
+    // For JS animations (GSAP, Anime.js), static detection is limited.
+    // Users should check the "Diagnostics" tab in preview for runtime animation metrics.
     
     // Check if violates: (infinite OR >3 loops) AND >15s duration
     const violates = (infinite || maxLoops > 3) && maxDurS > 15;
     
     const messages: string[] = [];
     
+    // If no static CSS animations detected
     if (maxDurS === 0 && !infinite && maxLoops <= 1) {
-      if (tracking === 'detected') {
-        messages.push('JS animation detected but duration not captured');
-      } else {
-        messages.push('No CSS animation detected (JS animation or unsupported syntax)');
-      }
+      messages.push('No CSS animation detected in static analysis');
+      messages.push('');
+      messages.push('For JavaScript animations (GSAP, Anime.js, etc.):');
+      messages.push('✓ Runtime tracking is active in preview iframe');
+      messages.push('✓ Animation duration is automatically measured');
+      messages.push('⚠ This check cannot validate JS animations during upload');
+      messages.push('');
+      messages.push('IAB Requirement: Animation must be ≤15s OR ≤3 loops');
     } else {
+      // Static CSS animation detected
       messages.push(`Max animation duration ~${maxDurS.toFixed(2)} s`);
       messages.push(`Max loops ${infinite ? 'infinite' : maxLoops}`);
-      if (tracking === 'detected') {
-        messages.push('JS animation tracking active');
-      }
     }
     
     if (violates) {
-      messages.push('Animation exceeds 15s limit');
+      messages.push('⚠ Animation exceeds 15s limit');
       messages.push('Limit to ≤15 seconds OR ≤3 loops');
     }
     
