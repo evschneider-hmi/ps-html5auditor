@@ -273,17 +273,21 @@ export const creativeBorderCheck: Check = {
     
     const severity = hasBorder ? 'PASS' : 'WARN';
     
-    // Get runtime probe stats
+    // Get runtime probe stats (only available in browser context, not worker)
     const meta = (typeof window !== 'undefined' && (window as any).__audit_last_summary) as any;
-    const sides = (meta?.borderSides ?? 0) as number;
-    const cssRules = (meta?.borderCssRules ?? 0) as number;
+    const sides = meta?.borderSides;
+    const cssRules = meta?.borderCssRules;
     
-    const borderMsgs = [
-      `Border detected: ${hasBorder ? 'yes' : 'no'}`,
-      `Sides detected: ${sides}`,
-      `CSS rules: ${cssRules}`,
-      ...messages
-    ];
+    // Build messages - only include runtime stats if available
+    const borderMsgs = [`Border detected: ${hasBorder ? 'yes' : 'no'}`];
+    
+    // Add runtime stats only if they're actually available (not undefined)
+    if (typeof sides === 'number' && typeof cssRules === 'number') {
+      borderMsgs.push(`Runtime detection: ${sides} side(s), ${cssRules} CSS rule(s)`);
+    }
+    
+    // Add detection method messages
+    borderMsgs.push(...messages);
     
     if (!hasBorder) {
       borderMsgs.push('No border detected');
@@ -293,7 +297,7 @@ export const creativeBorderCheck: Check = {
     
     // Collect evidence
     let evidence = hasBorder ? cssOffenders.concat(edgeOffenders) : edgeOffenders.slice(0, 4);
-    if (hasBorder && evidence.length === 0 && (sides > 0 || cssRules > 0)) {
+    if (hasBorder && evidence.length === 0 && sides && cssRules && (sides > 0 || cssRules > 0)) {
       evidence = [{ 
         path: '(runtime)', 
         detail: `Runtime detected ${sides} side(s), ${cssRules} css rule(s)` 
