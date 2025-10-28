@@ -49,10 +49,26 @@ function simplifyUpload(upload: any) {
     tagType: upload.tagType,
   };
 
-    // Preserve bundle metadata (exclude File object, bytes array, and files object)
+    // Preserve bundle metadata with stub values for excluded properties
   if (upload.bundle) {
     const { file, bytes, files, ...bundleMeta } = upload.bundle;
-    simplified.bundle = bundleMeta;
+    simplified.bundle = {
+      ...bundleMeta,
+      // Add stub values for properties that components may expect
+      bytes: new Uint8Array(0), // Empty array instead of undefined
+      files: {},                 // Empty object instead of undefined
+      file: null,                // Explicitly null
+    };
+  } else {
+    // If no bundle, create minimal stub
+    simplified.bundle = {
+      id: upload.id,
+      name: upload.name || 'Unknown',
+      bytes: new Uint8Array(0),
+      files: {},
+      file: null,
+      lowerCaseIndex: {},
+    };
   }
 
   // Simplify bundleResult if it exists
@@ -60,6 +76,8 @@ function simplifyUpload(upload: any) {
     const { content, rawFiles, ...rest } = upload.bundleResult;
     simplified.bundleResult = {
       ...rest,
+      content: null, // Explicitly null instead of undefined
+      rawFiles: [],  // Empty array instead of undefined
       files: upload.bundleResult.files ? upload.bundleResult.files.map((f: any) => {
         const { buffer, content, ...fileRest } = f;
         return {
@@ -67,9 +85,33 @@ function simplifyUpload(upload: any) {
           path: f.path,
           size: f.size,
           gzipSize: f.gzipSize,
-          ...fileRest, // Include other safe fields
+          buffer: null,  // Stub for buffer
+          content: null, // Stub for content
+          ...fileRest,   // Include other safe fields
         };
       }) : [],
+    };
+  } else {
+    // If no bundleResult, create minimal stub
+    simplified.bundleResult = {
+      bundleId: upload.id,
+      bundleName: upload.name || 'Unknown',
+      primary: undefined,
+      adSize: { width: 0, height: 0 },
+      findings: [],
+      references: [],
+      content: null,
+      rawFiles: [],
+      files: [],
+      summary: {
+        status: 'PASS',
+        totalFindings: 0,
+        fails: 0,
+        warns: 0,
+        pass: 0,
+        orphanCount: 0,
+        missingAssetCount: 0,
+      },
     };
   }
 
@@ -136,27 +178,43 @@ export async function saveSessionToCloud(
 
 // Load session from Firestore
 export async function loadSessionFromCloud(sessionId: string): Promise<CloudSession | null> {
+  console.log('[Firebase] Loading session:', sessionId);
   try {
     const docRef = doc(db, 'sessions', sessionId);
+    console.log('[Firebase] Fetching document from Firestore...');
     const docSnap = await getDoc(docRef);
 
+    console.log('[Firebase] Document exists:', docSnap.exists());
     if (!docSnap.exists()) {
+      console.warn('[Firebase] Session document not found');
       return null;
     }
 
     const data = docSnap.data() as CloudSession;
+    console.log('[Firebase] Session data retrieved:', {
+      id: data.id,
+      uploads: data.uploads?.length || 0,
+      createdAt: data.createdAt,
+      expiresAt: data.expiresAt
+    });
 
     // Check if session is expired
     const expiresAt = new Date(data.expiresAt);
     if (expiresAt < new Date()) {
-      console.warn('Session expired');
+      console.warn('[Firebase] Session expired:', expiresAt);
       return null;
     }
 
+    console.log('[Firebase] ✓ Session loaded successfully');
     return data;
   } catch (error) {
-    console.error('Error loading session:', error);
-    return null;
+    console.error('[Firebase] Error loading session:', error);
+    console.error('[Firebase] Error details:', {
+      name: (error as any)?.name,
+      code: (error as any)?.code,
+      message: (error as any)?.message
+    });
+    throw error; // Re-throw so App.tsx can catch and display it
   }
 }
 
