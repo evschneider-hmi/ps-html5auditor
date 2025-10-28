@@ -9,6 +9,9 @@
  * - Reduces "deceptive" appearance
  * - Publishers often require borders
  * - Better user trust
+ * - This requirement aims to clearly delineate the ad's boundaries, preventing it 
+ *   from blending into the surrounding content, which could lead to accidental 
+ *   clicks or a negative user experience.
  * 
  * IAB Guidelines:
  * - Creative should have visible border
@@ -74,7 +77,7 @@ import { getDOMParser } from '../../../../utils/domParser';
 export const creativeBorderCheck: Check = {
   id: 'border',
   title: 'Border Present',
-  description: 'IAB: Creative should have visible border (CSS or edge lines).',
+  description: 'IAB: A visible 1px border or keyline is required. Ads featuring predominantly black or white backgrounds must include a visible border of a contrasting color to the majority background color of the ad.',
   profiles: ['IAB', 'CM360'],
   priority: 'recommended',
   tags: ['border', 'css', 'transparency', 'iab', 'cm360'],
