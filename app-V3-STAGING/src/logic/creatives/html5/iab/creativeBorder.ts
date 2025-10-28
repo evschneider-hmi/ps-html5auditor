@@ -75,9 +75,9 @@ export const creativeBorderCheck: Check = {
   id: 'border',
   title: 'Border Present',
   description: 'IAB: Creative should have visible border (CSS or edge lines).',
-  profiles: ['IAB'],
-  priority: 'required',
-  tags: ['border', 'css', 'transparency', 'iab'],
+  profiles: ['IAB', 'CM360'],
+  priority: 'recommended',
+  tags: ['border', 'css', 'transparency', 'iab', 'cm360'],
   
   async execute(context: CheckContext): Promise<Finding> {
     const { htmlText, bundle, primary } = context;
